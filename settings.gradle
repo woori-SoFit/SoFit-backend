@@ -1,0 +1,5 @@
+rootProject.name = 'sofit'
+
+include 'sofit-common'
+include 'sofit-user'
+include 'sofit-admin'
