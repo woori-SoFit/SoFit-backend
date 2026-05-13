@@ -22,7 +22,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh './gradlew sonar --rerun-tasks'
+                    sh './gradlew sonar --rerun-tasks --stacktrace'
                 }
             }
         }
