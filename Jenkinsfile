@@ -15,7 +15,7 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh './gradlew :sofit-user:bootJar :sofit-admin:bootJar -x test'
+                sh './gradlew :sofit-user:bootJar :sofit-admin:bootJar -x test --rerun-tasks'
             }
         }
 
