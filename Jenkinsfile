@@ -22,10 +22,10 @@ pipeline {
         stage('Docker Build & Push') {
             steps {
                 sh '''
-                    docker build -t $REGISTRY/sofit-user:latest -f sofit-user/Dockerfile .
+                    docker build --no-cache -t $REGISTRY/sofit-user:latest -f sofit-user/Dockerfile .
                     docker push $REGISTRY/sofit-user:latest
 
-                    docker build -t $REGISTRY/sofit-admin:latest -f sofit-admin/Dockerfile .
+                    docker build --no-cache -t $REGISTRY/sofit-admin:latest -f sofit-admin/Dockerfile .
                     docker push $REGISTRY/sofit-admin:latest
                 '''
             }
