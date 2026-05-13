@@ -19,6 +19,14 @@ pipeline {
             }
         }
 
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh './gradlew sonar --rerun-tasks'
+                }
+            }
+        }
+
         stage('Docker Build & Push') {
             steps {
                 sh '''
