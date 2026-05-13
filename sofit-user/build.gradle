@@ -4,8 +4,15 @@ plugins {
 
 dependencies {
 	implementation project(':sofit-common')
+
+	// Web
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
 }
