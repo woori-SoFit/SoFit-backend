@@ -22,11 +22,11 @@ pipeline {
         stage('Docker Build & Push') {
             steps {
                 sh '''
-                    docker build --no-cache -t $REGISTRY/sofit-user:latest -f sofit-user/Dockerfile .
-                    docker push $REGISTRY/sofit-user:latest
+                    docker build --no-cache -t $REGISTRY/sofit-user-back:latest -f sofit-user/Dockerfile .
+                    docker push $REGISTRY/sofit-user-back:latest
 
-                    docker build --no-cache -t $REGISTRY/sofit-admin:latest -f sofit-admin/Dockerfile .
-                    docker push $REGISTRY/sofit-admin:latest
+                    docker build --no-cache -t $REGISTRY/sofit-admin-back:latest -f sofit-admin/Dockerfile .
+                    docker push $REGISTRY/sofit-admin-back:latest
                 '''
             }
         }
@@ -36,8 +36,8 @@ pipeline {
                 sshagent(['sofit-app-ssh']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no ubuntu@$APP_SERVER "
-                            docker pull $REGISTRY/sofit-user:latest &&
-                            docker pull $REGISTRY/sofit-admin:latest &&
+                            docker pull $REGISTRY/sofit-user-back:latest &&
+                            docker pull $REGISTRY/sofit-admin-back:latest &&
                             docker-compose -f /home/ubuntu/docker-compose.yml up -d
                         "
                     '''
