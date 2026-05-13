@@ -4,8 +4,22 @@ plugins {
 
 dependencies {
 	implementation project(':sofit-common')
+
+	// Web
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// Spring Batch
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+	// Spring AI (Gemini — SHAP 결과 자연어 변환)
+	implementation 'org.springframework.ai:spring-ai-vertex-ai-gemini-spring-boot-starter:1.0.0'
+
+	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'org.springframework.batch:spring-batch-test'
 }
