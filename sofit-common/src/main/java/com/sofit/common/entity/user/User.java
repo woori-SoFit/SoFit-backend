@@ -1,5 +1,6 @@
-package com.sofit.common.entity;
+package com.sofit.common.entity.user;
 
+import com.sofit.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 

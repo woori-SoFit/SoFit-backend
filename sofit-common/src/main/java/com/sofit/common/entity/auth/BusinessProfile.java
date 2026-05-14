@@ -1,6 +1,7 @@
-package com.sofit.common.entity;
+package com.sofit.common.entity.auth;
 
-import com.sofit.common.entity.enums.BusinessProfileStatus;
+import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 

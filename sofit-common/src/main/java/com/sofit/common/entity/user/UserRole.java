@@ -1,4 +1,4 @@
-package com.sofit.common.entity;
+package com.sofit.common.entity.user;
 
 public enum UserRole {
     USER,

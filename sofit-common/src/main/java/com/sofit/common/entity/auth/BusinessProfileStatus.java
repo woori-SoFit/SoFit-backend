@@ -1,4 +1,4 @@
-package com.sofit.common.entity.enums;
+package com.sofit.common.entity.auth;
 
 public enum BusinessProfileStatus {
     PENDING,
