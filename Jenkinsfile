@@ -19,6 +19,19 @@ pipeline {
             }
         }
 
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                        ${tool 'SonarScanner'}/bin/sonar-scanner \
+                            -Dsonar.projectKey=sofit-backend \
+                            -Dsonar.sources=. \
+                            -Dsonar.java.binaries=sofit-user/build/classes,sofit-admin/build/classes
+                    """
+                }
+            }
+        }
+
         stage('Docker Build & Push') {
             steps {
                 sh '''
