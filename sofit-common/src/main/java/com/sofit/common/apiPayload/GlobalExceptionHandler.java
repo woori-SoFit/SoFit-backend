@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
         log.warn("[ValidationException] {}", message);
         return ResponseEntity
                 .status(GeneralErrorCode.BAD_REQUEST.getHttpStatus())
-                .body(ApiResponse.onFailure(GeneralErrorCode.BAD_REQUEST, message));
+                .body(ApiResponse.onFailure(GeneralErrorCode.BAD_REQUEST));
     }
 
     // 그 외 예상치 못한 예외
