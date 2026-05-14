@@ -1,9 +1,9 @@
 package com.sofit.user.domain.auth.service;
 
-import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.user.domain.auth.dto.request.ExternalKycRequest;
 import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
+import com.sofit.user.domain.auth.dto.response.ExternalMockApiResponse;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ public class ExternalMockClient {
     /**
      * External Mock 서버에 사업자등록번호 진위 확인 요청
      */
-    public ApiResponse<ExternalKycResponse> callKycVerify(String businessNumber) {
+    public ExternalMockApiResponse<ExternalKycResponse> callKycVerify(String businessNumber) {
         try {
             return externalMockRestClient.post()
                     .uri("/ext/kyc/verify")

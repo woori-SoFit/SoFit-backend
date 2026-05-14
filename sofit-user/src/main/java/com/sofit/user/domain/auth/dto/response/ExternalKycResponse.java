@@ -1,6 +1,7 @@
 package com.sofit.user.domain.auth.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ExternalKycResponse(
@@ -11,6 +12,6 @@ public record ExternalKycResponse(
         String businessName,
         String businessAddress,
         String openDate,
-        boolean isValid
+        @JsonProperty("isValid") boolean isValid
 ) {
 }

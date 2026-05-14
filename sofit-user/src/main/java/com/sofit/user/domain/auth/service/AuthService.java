@@ -5,5 +5,5 @@ import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
 
 public interface AuthService {
 
-    BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, Long userId);
+    BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request);
 }
