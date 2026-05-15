@@ -1,20 +1,18 @@
 package com.sofit.common.repository;
 
-
-import com.sofit.common.entity.loan.LoanApplication;
-import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.sofit.common.entity.loan.LoanApplication;
+import com.sofit.common.entity.loan.enums.ApplicationStatus;
+
 public interface LoanApplicationRepository extends JpaRepository<LoanApplication, Long> {
 
-    List<LoanApplication> findByUserIdAndProductProductId(Long userId, Long productId);
+    // 특정 사용자의 심사 중 상태 목록 조회
+    List<LoanApplication> findByUser_IdAndStatusIn(Long userId, List<ApplicationStatus> statuses);
 
-    List<LoanApplication> findByUserId(Long userId);
-
-    Optional<LoanApplication> findByApplicationIdAndUserId(Long applicationId, Long userId);
-
-    List<LoanApplication> findByStatus(ApplicationStatus status);
+    // 특정 사용자의 대출 신청 단건 조회 (본인 소유 검증 포함)
+    Optional<LoanApplication> findByApplicationIdAndUser_Id(Long applicationId, Long userId);
 }
