@@ -29,10 +29,8 @@ public class LoanApplicationController {
      */
     @GetMapping
     public ApiResponse<List<LoanApplicationListResponse>> getUnderReviewLoans() {
-        return ApiResponse.onSuccess(
-                LoanSuccessCode.LOAN_APPLICATION_LIST_OK,
-                loanService.findUnderReviewLoans(TEMP_USER_ID)
-        );
+        List<LoanApplicationListResponse> response = loanService.findUnderReviewLoans(TEMP_USER_ID);
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_APPLICATION_LIST_OK, response);
     }
 
     /**
@@ -42,9 +40,7 @@ public class LoanApplicationController {
     @GetMapping("/{applicationId}")
     public ApiResponse<LoanApplicationDetailResponse> getLoanDetail(
             @PathVariable Long applicationId) {
-        return ApiResponse.onSuccess(
-                LoanSuccessCode.LOAN_APPLICATION_DETAIL_OK,
-                loanService.findLoanDetail(TEMP_USER_ID, applicationId)
-        );
+        LoanApplicationDetailResponse response = loanService.findLoanDetail(TEMP_USER_ID, applicationId);
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_APPLICATION_DETAIL_OK, response);
     }
 }
