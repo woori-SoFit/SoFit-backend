@@ -1,7 +1,8 @@
 package com.sofit.common.repository;
 
-import com.sofit.common.entity.loan.ApplicationStatus;
+
 import com.sofit.common.entity.loan.LoanApplication;
+import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

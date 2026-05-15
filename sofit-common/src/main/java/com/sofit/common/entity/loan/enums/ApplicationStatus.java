@@ -1,4 +1,4 @@
-package com.sofit.common.entity.loan;
+package com.sofit.common.entity.loan.enums;
 
 public enum ApplicationStatus {
     DRAFT,             // 초안 (1차 필터링 확인 시 생성)

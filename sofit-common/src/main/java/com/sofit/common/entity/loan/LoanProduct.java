@@ -1,6 +1,7 @@
 package com.sofit.common.entity.loan;
 
 import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.loan.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
 

@@ -1,4 +1,4 @@
-package com.sofit.common.entity.loan;
+package com.sofit.common.entity.loan.enums;
 
 public enum AnnualIncome {
     AMT_0_30M,       // 3천만 미만
