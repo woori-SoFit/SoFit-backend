@@ -20,13 +20,13 @@ public class LoanProductController {
 
     @GetMapping
     public ApiResponse<LoanProductListResponse> getProducts() {
-        LoanProductListResponse result = loanProductService.findProducts();
-        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_PRODUCT_LIST_OK, result);
+        LoanProductListResponse response = loanProductService.findProducts();
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_PRODUCT_LIST_OK, response);
     }
 
     @GetMapping("/{productId}")
     public ApiResponse<LoanProductDetailResponse> getProduct(@PathVariable Long productId) {
-        LoanProductDetailResponse result = loanProductService.findProduct(productId);
-        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_PRODUCT_DETAIL_OK, result);
+        LoanProductDetailResponse response = loanProductService.findProduct(productId);
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_PRODUCT_DETAIL_OK, response);
     }
 }
