@@ -121,6 +121,66 @@ dto/
 # Converter에서 Entity ↔ DTO 변환 처리
 ```
 
+### **DTO 타입 선택 기준 (record vs class)**
+
+- Response DTO → record 사용 (불변 데이터 전달 목적)
+- Request DTO → class 사용 (Bean Validation 등 추가 로직이 붙는 경우 대응)
+
+```
+// Response → record
+public record LoanProductResponse(Long id, String name) {}
+
+// Request → class
+public class LoanApplyRequest {
+    @NotNull
+    private Long productId;
+}
+```
+
+## **Controller 작성 규칙**
+
+### **응답 변수명**
+
+Controller에서 Service 반환값을 담는 변수명은 response로 통일한다.
+
+```
+// ✅ 올바른 방식
+public ApiResponse<LoanProductListResponse> getProducts() {
+    LoanProductListResponse response = loanProductService.findProducts();
+    return ApiResponse.onSuccess(LoanSuccessCode.LOAN_PRODUCT_LIST_OK, response);
+}
+```
+
+### **List 응답 래핑**
+
+목록 응답 시 List<DTO>를 직접 반환하지 않는다. DTO 안에 List를 감싸서 반환한다.
+
+```
+// ❌ 금지
+public ApiResponse<List<LoanProductResponse>> getProducts() { ... }
+
+// ✅ 올바른 방식
+public ApiResponse<LoanProductListResponse> getProducts() {
+    LoanProductListResponse response = loanProductService.findProducts();
+    return ApiResponse.onSuccess(LoanSuccessCode.LOAN_PRODUCT_LIST_OK, response);
+}
+```
+
+## **Converter 사용 규칙**
+
+- Entity ↔ DTO 변환 로직은 반드시 Converter 클래스에서 처리한다.
+- Service나 Controller에서 직접 변환하지 않는다.
+
+
+## **Enum 위치 규칙**
+
+- Enum은 해당 도메인의 enums/ 폴더에 모아둔다.
+
+## **설정 클래스 분리 규칙**
+
+- @EnableJpaAuditing, @EntityScan 등 JPA 관련 설정은 JpaConfig 클래스로 분리한다
+- Application 클래스에 직접 붙이지 않는다.
+
 ## 인증 (MVP: 세션)
 
 - Redis 세션 저장
