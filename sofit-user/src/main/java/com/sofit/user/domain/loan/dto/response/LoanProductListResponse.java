@@ -17,5 +17,6 @@ public class LoanProductListResponse {
         private Long productId;
         private String productName;
         private String title;
+        private Long maxLimit;
     }
 }
