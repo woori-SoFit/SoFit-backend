@@ -17,6 +17,7 @@ CREATE TABLE loan_product (
     status                   ENUM('ACTIVE', 'INACTIVE') NOT NULL,
     min_rate                 DECIMAL(5,2)    NOT NULL,
     max_rate                 DECIMAL(5,2)    NOT NULL,
+    min_limit                BIGINT          NOT NULL,
     max_limit                BIGINT          NOT NULL,
     min_term                 INT             NOT NULL,
     max_term                 INT             NOT NULL,
@@ -44,6 +45,7 @@ CREATE TABLE loan_product (
 | status | ENUM | `ACTIVE` 판매중 / `INACTIVE` 판매중단 (비활성화 시 신규 신청 차단) |
 | min_rate | DECIMAL(5,2) | 최저 금리 (%) |
 | max_rate | DECIMAL(5,2) | 최고 금리 (%) |
+| min_limit | BIGINT | 최소 대출 가능(원) |
 | max_limit | BIGINT | 최대 대출 한도 (원) |
 | min_term | INT | 최소 대출 기간 (개월) |
 | max_term | INT | 최대 대출 기간 (개월) |
