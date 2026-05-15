@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.sofit.common", "com.sofit.user"})
 @EntityScan(basePackages = {"com.sofit.common.entity", "com.sofit.user"})
 @EnableJpaRepositories(basePackages = {"com.sofit.common.repository", "com.sofit.user"})
 public class SofitUserApplication {
