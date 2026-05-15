@@ -45,6 +45,6 @@ public class LoanServiceImpl implements LoanService {
         return loanApplicationRepository
                 .findByApplicationIdAndUser_Id(applicationId, userId)
                 .map(LoanConverter::toDetailResponse)
-                .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_APPLICATION_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
     }
 }
