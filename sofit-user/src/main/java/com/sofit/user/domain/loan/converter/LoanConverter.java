@@ -9,11 +9,11 @@ public class LoanConverter {
     private LoanConverter() {}
 
     /**
-     * 목록 조회용 DTO 변환
+     * 목록 조회용 Item 변환
      * appliedAt: LocalDateTime → LocalDate (날짜만 반환)
      */
-    public static LoanApplicationListResponse toListResponse(LoanApplication application) {
-        return LoanApplicationListResponse.builder()
+    public static LoanApplicationListResponse.LoanApplicationItem toListItem(LoanApplication application) {
+        return LoanApplicationListResponse.LoanApplicationItem.builder()
                 .applicationId(application.getApplicationId())
                 .productName(application.getProduct().getProductName())
                 .status(application.getStatus())

@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/loan-applications")
 @RequiredArgsConstructor
@@ -28,8 +26,8 @@ public class LoanApplicationController {
      * GET /api/loan-applications
      */
     @GetMapping
-    public ApiResponse<List<LoanApplicationListResponse>> getUnderReviewLoans() {
-        List<LoanApplicationListResponse> response = loanService.findUnderReviewLoans(TEMP_USER_ID);
+    public ApiResponse<LoanApplicationListResponse> getUnderReviewLoans() {
+        LoanApplicationListResponse response = loanService.findUnderReviewLoans(TEMP_USER_ID);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_APPLICATION_LIST_OK, response);
     }
 

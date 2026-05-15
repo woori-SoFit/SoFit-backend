@@ -32,12 +32,16 @@ public class LoanServiceImpl implements LoanService {
     );
 
     @Override
-    public List<LoanApplicationListResponse> findUnderReviewLoans(Long userId) {
-        return loanApplicationRepository
+    public LoanApplicationListResponse findUnderReviewLoans(Long userId) {
+        List<LoanApplicationListResponse.LoanApplicationItem> items = loanApplicationRepository
                 .findByUser_IdAndStatusIn(userId, UNDER_REVIEW_STATUSES)
                 .stream()
-                .map(LoanConverter::toListResponse)
+                .map(LoanConverter::toListItem)
                 .toList();
+
+        return LoanApplicationListResponse.builder()
+                .loanApplications(items)
+                .build();
     }
 
     @Override
