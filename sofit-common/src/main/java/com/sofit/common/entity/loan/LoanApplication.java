@@ -1,11 +1,31 @@
 package com.sofit.common.entity.loan;
 
-import com.sofit.common.entity.BaseEntity;
-import com.sofit.common.entity.user.User;
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
+
+import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.loan.enums.AnnualIncome;
+import com.sofit.common.entity.loan.enums.ApplicationStatus;
+import com.sofit.common.entity.loan.enums.CreditScoreRange;
+import com.sofit.common.entity.loan.enums.ExistingLoanAmount;
+import com.sofit.common.entity.loan.enums.IncomeType;
+import com.sofit.common.entity.loan.enums.LoanPurpose;
+import com.sofit.common.entity.loan.enums.RepaymentMethod;
+import com.sofit.common.entity.user.User;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "loan_application")

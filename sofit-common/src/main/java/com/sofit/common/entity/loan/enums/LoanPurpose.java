@@ -1,4 +1,4 @@
-package com.sofit.common.entity.loan;
+package com.sofit.common.entity.loan.enums;
 
 public enum LoanPurpose {
     WORKING_CAPITAL,   // 운전자금

@@ -5,6 +5,9 @@ plugins {
 dependencies {
 	implementation project(':sofit-common')
 
+	// JPA (sofit-common의 JPA 엔티티/Repository 사용)
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
 	// Web
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 

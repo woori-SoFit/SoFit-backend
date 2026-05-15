@@ -1,4 +1,4 @@
-package com.sofit.common.entity.loan;
+package com.sofit.common.entity.loan.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

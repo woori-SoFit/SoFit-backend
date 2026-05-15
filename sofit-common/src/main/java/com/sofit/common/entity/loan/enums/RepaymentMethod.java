@@ -1,4 +1,4 @@
-package com.sofit.common.entity.loan;
+package com.sofit.common.entity.loan.enums;
 
 public enum RepaymentMethod {
     EQUAL_PRINCIPAL_INTEREST,  // 원리금균등상환

@@ -1,4 +1,4 @@
-package com.sofit.common.entity.loan;
+package com.sofit.common.entity.loan.enums;
 
 public enum CreditScoreRange {
     CS_0_850,      // 850 이하

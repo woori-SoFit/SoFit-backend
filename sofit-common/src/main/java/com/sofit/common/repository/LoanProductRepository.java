@@ -1,10 +1,11 @@
 package com.sofit.common.repository;
 
-import com.sofit.common.entity.loan.LoanProduct;
-import com.sofit.common.entity.loan.ProductStatus;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import com.sofit.common.entity.loan.LoanProduct;
+import com.sofit.common.entity.loan.enums.ProductStatus;
 
 public interface LoanProductRepository extends JpaRepository<LoanProduct, Long> {
 

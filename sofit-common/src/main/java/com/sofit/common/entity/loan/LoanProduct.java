@@ -1,10 +1,21 @@
 package com.sofit.common.entity.loan;
 
-import com.sofit.common.entity.BaseEntity;
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
+
+import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.loan.enums.ProductStatus;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "loan_product")
