@@ -11,7 +11,7 @@ import com.sofit.user.domain.loan.converter.LoanConverter;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationListResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
-import com.sofit.user.domain.loan.repository.LoanApplicationRepository;
+import com.sofit.common.repository.LoanApplicationRepository;
 
 import lombok.RequiredArgsConstructor;
 
