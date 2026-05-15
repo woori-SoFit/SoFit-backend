@@ -24,6 +24,9 @@ public class LoanProduct extends BaseEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "target_description", columnDefinition = "TEXT")
+    private String targetDescription;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ProductStatus status;
