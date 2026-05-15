@@ -13,6 +13,7 @@ public class LoanProductDetailResponse {
     private String productName;
     private String title;
     private String subtitle;
+    private Long minLimit;
     private Long maxLimit;
     private Integer maxTerm;
     private String industryType;

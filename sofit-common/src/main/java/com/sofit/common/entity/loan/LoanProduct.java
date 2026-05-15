@@ -34,6 +34,9 @@ public class LoanProduct extends BaseEntity {
     @Column(name = "max_rate", nullable = false, precision = 5, scale = 2)
     private BigDecimal maxRate;
 
+    @Column(name = "min_limit", nullable = false)
+    private Long minLimit;
+
     @Column(name = "max_limit", nullable = false)
     private Long maxLimit;
 

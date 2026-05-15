@@ -31,6 +31,7 @@ public class LoanProductConverter {
                 .productName(product.getProductName())
                 .title(product.getTitle())
                 .subtitle(product.getSubtitle())
+                .minLimit(product.getMinLimit())
                 .maxLimit(product.getMaxLimit())
                 .maxTerm(product.getMaxTerm())
                 .industryType(product.getIndustryType())
