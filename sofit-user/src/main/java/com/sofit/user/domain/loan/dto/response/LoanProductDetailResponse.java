@@ -16,7 +16,7 @@ public class LoanProductDetailResponse {
     private Long minLimit;
     private Long maxLimit;
     private Integer maxTerm;
-    private String industryType;
+    private String targetDescription;
     private InterestRate interestRate;
 
     @Getter

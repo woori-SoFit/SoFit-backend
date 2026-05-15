@@ -35,7 +35,7 @@ public class LoanProductConverter {
                 .minLimit(product.getMinLimit())
                 .maxLimit(product.getMaxLimit())
                 .maxTerm(product.getMaxTerm())
-                .industryType(product.getIndustryType())
+                .targetDescription(product.getTargetDescription())
                 .interestRate(LoanProductDetailResponse.InterestRate.builder()
                         .minRate(product.getMinRate())
                         .maxRate(product.getMaxRate())
