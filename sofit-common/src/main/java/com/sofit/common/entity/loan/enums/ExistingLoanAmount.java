@@ -1,4 +1,4 @@
-package com.sofit.common.entity.loan;
+package com.sofit.common.entity.loan.enums;
 
 public enum ExistingLoanAmount {
     LOAN_100M_OVER,  // 1억 초과

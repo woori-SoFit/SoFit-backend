@@ -1,6 +1,13 @@
 package com.sofit.common.entity.loan;
 
 import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.loan.enums.AnnualIncome;
+import com.sofit.common.entity.loan.enums.ApplicationStatus;
+import com.sofit.common.entity.loan.enums.CreditScoreRange;
+import com.sofit.common.entity.loan.enums.ExistingLoanAmount;
+import com.sofit.common.entity.loan.enums.IncomeType;
+import com.sofit.common.entity.loan.enums.LoanPurpose;
+import com.sofit.common.entity.loan.enums.RepaymentMethod;
 import com.sofit.common.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
