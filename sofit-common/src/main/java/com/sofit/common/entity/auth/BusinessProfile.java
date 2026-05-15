@@ -1,6 +1,7 @@
 package com.sofit.common.entity.auth;
 
 import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.auth.enums.BusinessProfileStatus;
 import com.sofit.common.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,7 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "business_profiles")
+@Table(name = "business_profile")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class BusinessProfile extends BaseEntity {

@@ -20,9 +20,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                );
-
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
         return http.build();
     }
 }
