@@ -2,6 +2,19 @@ plugins {
 	id 'org.springframework.boot'
 }
 
+// 루트의 .env 파일을 bootRun 환경변수로 주입
+bootRun {
+	def envFile = rootProject.file('.env')
+	if (envFile.exists()) {
+		envFile.readLines().each { line ->
+			if (!line.trim().startsWith('#') && line.contains('=')) {
+				def (key, value) = line.split('=', 2)
+				environment(key.trim(), value.trim())
+			}
+		}
+	}
+}
+
 dependencies {
 	implementation project(':sofit-common')
 
@@ -10,6 +23,9 @@ dependencies {
 
 	// Web
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// Security (sofit-common이 implementation이라 전이 안 됨)
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
