@@ -2,16 +2,9 @@ spring:
   application:
     name: sofit-user
 
-  # 활성 프로파일 (dev / release)
+  # 활성 프로파일 (local / dev / release)
   profiles:
-    active: dev
-
-  # MySQL 데이터소스
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST:localhost}:3306/sofit?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:}
+    active: local
 
   # JPA
   jpa:

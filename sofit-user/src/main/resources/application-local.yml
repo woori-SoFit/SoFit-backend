@@ -1,0 +1,7 @@
+spring:
+  # 로컬 개발용 MySQL (loclx 터널로 dev DB 접근)
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://us.loclx.io:50375/sofit?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
