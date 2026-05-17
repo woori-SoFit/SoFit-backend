@@ -166,6 +166,42 @@ public ApiResponse<LoanProductListResponse> getProducts() {
 }
 ```
 
+### **Swagger 문서 분리 (ControllerDocs 인터페이스 패턴)**
+
+Swagger 어노테이션은 Controller 클래스에 직접 작성하지 않는다.
+별도의 ControllerDocs 인터페이스에 분리하고, Controller가 이를 implements한다.
+
+- 파일 네이밍: {Controller명}Docs.java (예: LoanProductControllerDocs)
+- ControllerDocs 인터페이스는 controller/ 폴더 안에 위치
+
+```
+// ✅ 올바른 방식
+// 1. LoanProductControllerDocs.java — Swagger 어노테이션만 담는 인터페이스
+public interface LoanProductControllerDocs {
+
+    @Operation(summary = "대출 상품 목록 조회", description = "...")
+    @ApiResponse(responseCode = "200", description = "조회 성공")
+    ApiResponse<LoanProductListResponse> getProducts();
+}
+
+// 2. LoanProductController.java — 실제 로직만 담당
+@RestController
+@RequestMapping("/api/loan-products")
+public class LoanProductController implements LoanProductControllerDocs {
+
+    @GetMapping
+    public ApiResponse<LoanProductListResponse> getProducts() {
+        LoanProductListResponse response = loanProductService.findProducts();
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_PRODUCT_LIST_OK, response);
+    }
+}
+
+// ❌ 금지 — Controller에 Swagger 어노테이션 직접 작성
+@Operation(summary = "...")
+@GetMapping
+public ApiResponse<LoanProductListResponse> getProducts() { ... }
+```
+
 ## **Converter 사용 규칙**
 
 - Entity ↔ DTO 변환 로직은 반드시 Converter 클래스에서 처리한다.

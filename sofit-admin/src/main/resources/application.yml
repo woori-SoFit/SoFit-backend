@@ -2,16 +2,9 @@ spring:
   application:
     name: sofit-admin
 
-  # 활성 프로파일 (dev / release)
+  # 활성 프로파일 (local / dev / release)
   profiles:
-    active: dev
-
-  # MySQL 데이터소스
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST}:3306/sofit?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    active: local
 
   # JPA
   jpa:
@@ -26,8 +19,8 @@ spring:
   # Redis 세션
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
   # Spring Session (Redis 사용)
   session:
@@ -43,3 +36,12 @@ server:
   port: 8081
   servlet:
     context-path: /
+
+# SpringDoc (Swagger UI)
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs

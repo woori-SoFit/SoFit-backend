@@ -36,3 +36,12 @@ server:
 external:
   mock:
     url: ${EXTERNAL_MOCK_URL:http://localhost:9090}
+
+# SpringDoc (Swagger UI)
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
