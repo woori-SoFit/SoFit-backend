@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/loan-applications")
 @RequiredArgsConstructor
-public class LoanApplicationController {
+public class LoanApplicationController implements LoanApplicationControllerDocs {
 
     private final LoanService loanService;
 
