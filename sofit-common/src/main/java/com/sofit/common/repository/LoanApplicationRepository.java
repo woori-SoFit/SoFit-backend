@@ -15,4 +15,8 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
 
     // 특정 사용자의 대출 신청 단건 조회 (본인 소유 검증 포함)
     Optional<LoanApplication> findByApplicationIdAndUser_Id(Long applicationId, Long userId);
+
+    // 특정 사용자의 심사 완료 상태 목록 조회 (updatedAt 내림차순)
+    List<LoanApplication> findByUser_IdAndStatusInOrderByUpdatedAtDesc(
+            Long userId, List<ApplicationStatus> statuses);
 }
