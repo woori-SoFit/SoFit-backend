@@ -41,14 +41,14 @@
 ## Phase 2. sofit-user 조회 API 구현
 
 ### Task 2-1. LoanExecutionRepository 생성
-- **파일**: `sofit-user/src/main/java/com/sofit/user/domain/loan/repository/LoanExecutionRepository.java`
+- **파일**: `sofit-common/src/main/java/com/sofit/common/repository/LoanExecutionRepository.java` (JpaConfig basePackages 제한으로 common 모듈에 위치)
 - **메서드**: `findByApplicationIdAndUserId(Long applicationId, Long userId)`
   - JPQL fetch join: `e.application a`, `a.product`
   - 조건: `a.applicationId = :applicationId AND a.user.id = :userId AND a.status = 'EXECUTED'`
 
-### Task 2-2. LoanDecisionRepository 생성
-- **파일**: `sofit-user/src/main/java/com/sofit/user/domain/loan/repository/LoanDecisionRepository.java`
-- **메서드**: `findByApplication_ApplicationIdAndDecision(Long applicationId, LoanDecision.Decision decision)`
+### Task 2-2. LoanDecisionRepository — SOFIT-34에서 추가됨, 그대로 재사용
+- **파일**: `sofit-common/src/main/java/com/sofit/common/repository/LoanDecisionRepository.java`
+- **메서드**: `findByApplication_ApplicationId(Long applicationId)` (dev 머지 후 SOFIT-34 정의 채택)
 
 ### Task 2-3. LoanErrorCode에 EXECUTION_NOT_FOUND 추가
 - **파일**: `sofit-user/src/main/java/com/sofit/user/domain/loan/exception/LoanErrorCode.java`
@@ -74,8 +74,8 @@
 ### Task 2-8. LoanExecutionServiceImpl 구현
 - **파일**: `sofit-user/src/main/java/com/sofit/user/domain/loan/service/LoanExecutionServiceImpl.java`
 - **로직**:
-  1. `loanExecutionRepository.findByApplicationIdAndUserId(applicationId, userId)` → 없으면 EXECUTION_NOT_FOUND
-  2. `loanDecisionRepository.findByApplication_ApplicationIdAndDecision(applicationId, APPROVED)` → 없으면 EXECUTION_NOT_FOUND
+  1. `loanExecutionRepository.findByApplicationIdAndUserId(applicationId, userId)` → 없으면 EXECUTION_NOT_FOUND (LOAN4044)
+  2. `loanDecisionRepository.findByApplication_ApplicationId(applicationId)` → 없으면 LOAN_DECISION_NOT_FOUND (LOAN4043, SOFIT-34 정의 재사용)
   3. `LoanExecutionConverter.toResponse(execution, decision)` 반환
 - `@Transactional(readOnly = true)`
 

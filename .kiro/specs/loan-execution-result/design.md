@@ -226,10 +226,10 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
             .findByApplicationIdAndUserId(applicationId, userId)
             .orElseThrow(() -> new BaseException(LoanErrorCode.EXECUTION_NOT_FOUND));
 
-        // 2. loan_decision (APPROVED) 조회
+        // 2. loan_decision 조회 (EXECUTED 상태에선 APPROVED 가 보장)
         LoanDecision decision = loanDecisionRepository
-            .findByApplicationIdAndDecision(applicationId, LoanDecision.Decision.APPROVED)
-            .orElseThrow(() -> new BaseException(LoanErrorCode.EXECUTION_NOT_FOUND));
+            .findByApplication_ApplicationId(applicationId)
+            .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         // 3. 변환
         return LoanExecutionConverter.toResponse(execution, decision);
@@ -281,7 +281,8 @@ public interface LoanExecutionControllerDocs {
 
 | Enum 상수 | HTTP | code | message |
 |-----------|------|------|---------|
-| EXECUTION_NOT_FOUND | 404 | LOAN4044 | 실행 건을 찾을 수 없습니다. |
+| EXECUTION_NOT_FOUND | 404 | LOAN4044 | 실행 건을 찾을 수 없습니다. (신규) |
+| LOAN_DECISION_NOT_FOUND | 404 | LOAN4043 | 심사 결정 정보를 찾을 수 없습니다. (SOFIT-34 정의 재사용) |
 
 ## Success Code 추가
 
@@ -291,14 +292,12 @@ public interface LoanExecutionControllerDocs {
 
 ---
 
-## LoanDecisionRepository (sofit-user, 신규)
+## LoanDecisionRepository (sofit-common, SOFIT-34에서 추가됨 — 그대로 재사용)
 
 ```java
 public interface LoanDecisionRepository extends JpaRepository<LoanDecision, Long> {
 
-    Optional<LoanDecision> findByApplication_ApplicationIdAndDecision(
-        Long applicationId, LoanDecision.Decision decision
-    );
+    Optional<LoanDecision> findByApplication_ApplicationId(Long applicationId);
 }
 ```
 
@@ -311,7 +310,7 @@ Client → LoanExecutionController.getExecutionResult(applicationId)
   → LoanExecutionServiceImpl.findExecutionResult(TEMP_USER_ID, applicationId)
     → LoanExecutionRepository.findByApplicationIdAndUserId(applicationId, userId)
       ← LoanExecution (with application, product fetched)
-    → LoanDecisionRepository.findByApplication_ApplicationIdAndDecision(applicationId, APPROVED)
+    → LoanDecisionRepository.findByApplication_ApplicationId(applicationId)
       ← LoanDecision
     → LoanExecutionConverter.toResponse(execution, decision)
       ← LoanExecutionResultResponse

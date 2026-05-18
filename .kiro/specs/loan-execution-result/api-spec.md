@@ -71,8 +71,9 @@ GET /api/loan-applications/{applicationId}/execution
 | 본인 소유 아님 | 404 | LOAN4044 | 실행 건을 찾을 수 없습니다. |
 | status ≠ EXECUTED | 404 | LOAN4044 | 실행 건을 찾을 수 없습니다. |
 | loan_execution row 없음 | 404 | LOAN4044 | 실행 건을 찾을 수 없습니다. |
+| loan_decision row 없음 (정합성 깨짐) | 404 | LOAN4043 | 심사 결정 정보를 찾을 수 없습니다. |
 
-> 모든 실패 케이스를 동일한 404로 통합하여 정보 노출 방지
+> 사용자 입력 관련 실패 4종은 LOAN4044로 통합 (정보 노출 방지). loan_decision 누락은 데이터 정합성 문제로 별도 코드(LOAN4043, SOFIT-34 정의 재사용).
 
 ### Error Response 예시
 

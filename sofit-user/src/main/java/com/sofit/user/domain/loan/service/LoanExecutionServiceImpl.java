@@ -28,7 +28,7 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
 
         LoanDecision decision = loanDecisionRepository
                 .findByApplication_ApplicationId(applicationId)
-                .orElseThrow(() -> new BaseException(LoanErrorCode.EXECUTION_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         return LoanExecutionConverter.toResponse(execution, decision);
     }

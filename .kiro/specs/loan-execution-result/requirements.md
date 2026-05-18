@@ -19,6 +19,7 @@
 | AC-3 | applicationId가 존재하지만 본인 소유가 아님 | 404 + `LOAN4044` (정보 노출 방지) |
 | AC-4 | applicationId가 본인 소유이지만 status ≠ EXECUTED | 404 + `LOAN4044` |
 | AC-5 | applicationId가 본인 소유이고 status=EXECUTED이지만 loan_execution row 없음 | 404 + `LOAN4044` |
+| AC-6 | EXECUTED 상태인데 loan_decision row 없음 (데이터 정합성 깨짐) | 404 + `LOAN4043` (LOAN_DECISION_NOT_FOUND) |
 
 ---
 
