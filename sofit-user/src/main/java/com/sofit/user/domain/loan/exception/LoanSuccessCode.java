@@ -1,9 +1,11 @@
 package com.sofit.user.domain.loan.exception;
 
+import org.springframework.http.HttpStatus;
+
 import com.sofit.common.apiPayload.code.BaseSuccessCode;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.springframework.http.HttpStatus;
 
 @Getter
 @AllArgsConstructor
@@ -17,7 +19,8 @@ public enum LoanSuccessCode implements BaseSuccessCode {
     LOAN_APPLICATION_LIST_OK(HttpStatus.OK, "LOAN2006", "심사 중인 대출 목록 조회에 성공했습니다."),
     LOAN_APPLICATION_DETAIL_OK(HttpStatus.OK, "LOAN2007", "심사 중인 대출 상세 조회에 성공했습니다."),
     LOAN_APPLICATION_COMPLETED_LIST_OK(HttpStatus.OK, "LOAN2008", "심사 완료 대출 목록 조회에 성공했습니다."),
-    LOAN_APPLICATION_COMPLETED_DETAIL_OK(HttpStatus.OK, "LOAN2009", "심사 완료 대출 상세 조회에 성공했습니다.");
+    LOAN_APPLICATION_COMPLETED_DETAIL_OK(HttpStatus.OK, "LOAN2009", "심사 완료 대출 상세 조회에 성공했습니다."),
+    LOAN_EXECUTION_RESULT_OK(HttpStatus.OK, "LOAN2010", "대출 실행 결과 조회에 성공했습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
