@@ -14,11 +14,11 @@
 
 | # | 조건 | 기대 결과 |
 |---|------|-----------|
-| AC-1 | `GET /api/loan-applications/{applicationId}/execution` 호출 시 해당 건이 본인 소유이고 status=EXECUTED이며 loan_execution row가 존재 | 200 + `LOAN2008` 응답, result에 실행 결과 필드 포함 |
-| AC-2 | applicationId가 존재하지 않음 | 404 + `LOAN4043` |
-| AC-3 | applicationId가 존재하지만 본인 소유가 아님 | 404 + `LOAN4043` (정보 노출 방지) |
-| AC-4 | applicationId가 본인 소유이지만 status ≠ EXECUTED | 404 + `LOAN4043` |
-| AC-5 | applicationId가 본인 소유이고 status=EXECUTED이지만 loan_execution row 없음 | 404 + `LOAN4043` |
+| AC-1 | `GET /api/loan-applications/{applicationId}/execution` 호출 시 해당 건이 본인 소유이고 status=EXECUTED이며 loan_execution row가 존재 | 200 + `LOAN2010` 응답, result에 실행 결과 필드 포함 |
+| AC-2 | applicationId가 존재하지 않음 | 404 + `LOAN4044` |
+| AC-3 | applicationId가 존재하지만 본인 소유가 아님 | 404 + `LOAN4044` (정보 노출 방지) |
+| AC-4 | applicationId가 본인 소유이지만 status ≠ EXECUTED | 404 + `LOAN4044` |
+| AC-5 | applicationId가 본인 소유이고 status=EXECUTED이지만 loan_execution row 없음 | 404 + `LOAN4044` |
 
 ---
 

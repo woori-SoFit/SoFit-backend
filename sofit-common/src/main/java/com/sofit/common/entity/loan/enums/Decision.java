@@ -1,6 +1,6 @@
 package com.sofit.common.entity.loan.enums;
 
-public enum DecisionType {
+public enum Decision {
     APPROVED,
     REJECTED
 }

@@ -8,7 +8,7 @@
 ```json
 {
   "isSuccess": true,
-  "code": "LOAN2008",
+  "code": "LOAN2010",
   "message": "대출 실행 결과 조회에 성공했습니다.",
   "result": {}
 }
@@ -33,7 +33,7 @@ GET /api/loan-applications/{applicationId}/execution
 ```json
 {
   "isSuccess": true,
-  "code": "LOAN2008",
+  "code": "LOAN2010",
   "message": "대출 실행 결과 조회에 성공했습니다.",
   "result": {
     "executionId": 1,
@@ -67,10 +67,10 @@ GET /api/loan-applications/{applicationId}/execution
 
 | 상황 | HTTP | code | message |
 |------|------|------|---------|
-| applicationId 미존재 | 404 | LOAN4043 | 실행 건을 찾을 수 없습니다. |
-| 본인 소유 아님 | 404 | LOAN4043 | 실행 건을 찾을 수 없습니다. |
-| status ≠ EXECUTED | 404 | LOAN4043 | 실행 건을 찾을 수 없습니다. |
-| loan_execution row 없음 | 404 | LOAN4043 | 실행 건을 찾을 수 없습니다. |
+| applicationId 미존재 | 404 | LOAN4044 | 실행 건을 찾을 수 없습니다. |
+| 본인 소유 아님 | 404 | LOAN4044 | 실행 건을 찾을 수 없습니다. |
+| status ≠ EXECUTED | 404 | LOAN4044 | 실행 건을 찾을 수 없습니다. |
+| loan_execution row 없음 | 404 | LOAN4044 | 실행 건을 찾을 수 없습니다. |
 
 > 모든 실패 케이스를 동일한 404로 통합하여 정보 노출 방지
 
@@ -79,7 +79,7 @@ GET /api/loan-applications/{applicationId}/execution
 ```json
 {
   "isSuccess": false,
-  "code": "LOAN4043",
+  "code": "LOAN4044",
   "message": "실행 건을 찾을 수 없습니다.",
   "result": null
 }

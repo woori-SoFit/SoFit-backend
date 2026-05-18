@@ -281,13 +281,13 @@ public interface LoanExecutionControllerDocs {
 
 | Enum 상수 | HTTP | code | message |
 |-----------|------|------|---------|
-| EXECUTION_NOT_FOUND | 404 | LOAN4043 | 실행 건을 찾을 수 없습니다. |
+| EXECUTION_NOT_FOUND | 404 | LOAN4044 | 실행 건을 찾을 수 없습니다. |
 
 ## Success Code 추가
 
 | Enum 상수 | HTTP | code | message |
 |-----------|------|------|---------|
-| LOAN_EXECUTION_RESULT_OK | 200 | LOAN2008 | 대출 실행 결과 조회에 성공했습니다. |
+| LOAN_EXECUTION_RESULT_OK | 200 | LOAN2010 | 대출 실행 결과 조회에 성공했습니다. |
 
 ---
 

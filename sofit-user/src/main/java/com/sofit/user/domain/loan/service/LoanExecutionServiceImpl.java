@@ -3,12 +3,11 @@ package com.sofit.user.domain.loan.service;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanExecution;
-import com.sofit.common.entity.loan.enums.DecisionType;
+import com.sofit.common.repository.LoanDecisionRepository;
+import com.sofit.common.repository.LoanExecutionRepository;
 import com.sofit.user.domain.loan.converter.LoanExecutionConverter;
 import com.sofit.user.domain.loan.dto.response.LoanExecutionResultResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
-import com.sofit.common.repository.LoanDecisionRepository;
-import com.sofit.common.repository.LoanExecutionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +27,7 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
                 .orElseThrow(() -> new BaseException(LoanErrorCode.EXECUTION_NOT_FOUND));
 
         LoanDecision decision = loanDecisionRepository
-                .findByApplication_ApplicationIdAndDecision(applicationId, DecisionType.APPROVED)
+                .findByApplication_ApplicationId(applicationId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.EXECUTION_NOT_FOUND));
 
         return LoanExecutionConverter.toResponse(execution, decision);

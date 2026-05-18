@@ -52,11 +52,11 @@
 
 ### Task 2-3. LoanErrorCode에 EXECUTION_NOT_FOUND 추가
 - **파일**: `sofit-user/src/main/java/com/sofit/user/domain/loan/exception/LoanErrorCode.java`
-- **추가**: `EXECUTION_NOT_FOUND(HttpStatus.NOT_FOUND, "LOAN4043", "실행 건을 찾을 수 없습니다.")`
+- **추가**: `EXECUTION_NOT_FOUND(HttpStatus.NOT_FOUND, "LOAN4044", "실행 건을 찾을 수 없습니다.")`
 
 ### Task 2-4. LoanSuccessCode에 LOAN_EXECUTION_RESULT_OK 추가
 - **파일**: `sofit-user/src/main/java/com/sofit/user/domain/loan/exception/LoanSuccessCode.java`
-- **추가**: `LOAN_EXECUTION_RESULT_OK(HttpStatus.OK, "LOAN2008", "대출 실행 결과 조회에 성공했습니다.")`
+- **추가**: `LOAN_EXECUTION_RESULT_OK(HttpStatus.OK, "LOAN2010", "대출 실행 결과 조회에 성공했습니다.")`
 
 ### Task 2-5. LoanExecutionResultResponse DTO 생성
 - **파일**: `sofit-user/src/main/java/com/sofit/user/domain/loan/dto/response/LoanExecutionResultResponse.java`

@@ -2,7 +2,7 @@ package com.sofit.common.entity.loan;
 
 import java.math.BigDecimal;
 
-import com.sofit.common.entity.loan.enums.DecisionType;
+import com.sofit.common.entity.loan.enums.Decision;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,7 +13,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -30,13 +30,13 @@ public class LoanDecision {
     @Column(name = "decision_id")
     private Long decisionId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false, unique = true)
     private LoanApplication application;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "decision", nullable = false)
-    private DecisionType decision;
+    private Decision decision;
 
     @Column(name = "approved_amount")
     private Long approvedAmount;
@@ -47,6 +47,6 @@ public class LoanDecision {
     @Column(name = "approved_term")
     private Integer approvedTerm;
 
-    @Column(name = "rejection_reason")
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
     private String rejectionReason;
 }
