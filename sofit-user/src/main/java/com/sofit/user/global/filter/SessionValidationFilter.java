@@ -1,10 +1,14 @@
 package com.sofit.user.global.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sofit.common.apiPayload.ApiResponse;
+import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -18,9 +22,11 @@ import java.time.LocalDateTime;
  * - 이 필터는 loginAt + 12시간 경과 여부만 체크
  */
 @Component
+@RequiredArgsConstructor
 public class SessionValidationFilter extends OncePerRequestFilter {
 
     private static final long ABSOLUTE_TIMEOUT_HOURS = 12;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -44,21 +50,15 @@ public class SessionValidationFilter extends OncePerRequestFilter {
             if (loginTime != null && loginTime.plusHours(ABSOLUTE_TIMEOUT_HOURS).isBefore(LocalDateTime.now())) {
                 // 절대 만료: 세션 무효화 후 401 응답
                 session.invalidate();
-                sendUnauthorizedResponse(response);
+                response.setStatus(GeneralErrorCode.UNAUTHORIZED.getHttpStatus().value());
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.setCharacterEncoding("UTF-8");
+                objectMapper.writeValue(response.getOutputStream(),
+                        ApiResponse.onFailure(GeneralErrorCode.UNAUTHORIZED));
                 return;
             }
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    private void sendUnauthorizedResponse(HttpServletResponse response) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-
-        String body = """
-                {"isSuccess":false,"code":"COMMON4001","message":"인증이 필요합니다."}""";
-        response.getWriter().write(body);
     }
 }
