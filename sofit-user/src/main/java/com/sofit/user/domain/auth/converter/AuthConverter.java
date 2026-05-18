@@ -1,9 +1,11 @@
 package com.sofit.user.domain.auth.converter;
 
+import com.sofit.common.entity.user.User;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
 import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
+import com.sofit.user.domain.auth.dto.response.LoginResponse;
 
 import java.time.LocalDateTime;
 
@@ -32,6 +34,14 @@ public class AuthConverter {
                 certResult.phoneNumber(),
                 certResult.status(),
                 LocalDateTime.now()
+        );
+    }
+
+    public static LoginResponse toLoginResponse(User user) {
+        return new LoginResponse(
+                user.getUserId(),
+                user.getName(),
+                user.getRole().name()
         );
     }
 }

@@ -21,7 +21,7 @@ public class RedisSessionConfig {
         DefaultCookieSerializer serializer = new DefaultCookieSerializer();
         serializer.setCookieName("SESSION");
         serializer.setUseHttpOnlyCookie(true);
-        serializer.setUseSecureCookie(true);
+        serializer.setUseSecureCookie(false); // TODO: 운영 환경에서는 true로 변경
         serializer.setSameSite("Lax");
         serializer.setCookiePath("/");
         return serializer;
