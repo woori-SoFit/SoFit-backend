@@ -20,7 +20,11 @@ public enum LoanSuccessCode implements BaseSuccessCode {
     LOAN_APPLICATION_DETAIL_OK(HttpStatus.OK, "LOAN2007", "심사 중인 대출 상세 조회에 성공했습니다."),
     LOAN_APPLICATION_COMPLETED_LIST_OK(HttpStatus.OK, "LOAN2008", "심사 완료 대출 목록 조회에 성공했습니다."),
     LOAN_APPLICATION_COMPLETED_DETAIL_OK(HttpStatus.OK, "LOAN2009", "심사 완료 대출 상세 조회에 성공했습니다."),
-    LOAN_EXECUTION_RESULT_OK(HttpStatus.OK, "LOAN2010", "대출 실행 결과 조회에 성공했습니다.");
+    LOAN_EXECUTION_RESULT_OK(HttpStatus.OK, "LOAN2010", "대출 실행 결과 조회에 성공했습니다."),
+
+    // 계좌 인증 성공 코드
+    ACCOUNT_VERIFICATION_OK(HttpStatus.OK, "LOAN2011", "1원 송금 요청에 성공했습니다."),
+    ACCOUNT_VERIFICATION_CONFIRM_OK(HttpStatus.OK, "LOAN2012", "계좌 인증에 성공했습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
