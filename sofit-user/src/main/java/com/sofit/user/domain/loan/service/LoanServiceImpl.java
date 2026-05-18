@@ -46,7 +46,7 @@ public class LoanServiceImpl implements LoanService {
     @Override
     public LoanApplicationListResponse findUnderReviewLoans(Long userId) {
         List<LoanApplicationListResponse.LoanApplicationItem> items = loanApplicationRepository
-                .findByUser_IdAndStatusIn(userId, UNDER_REVIEW_STATUSES)
+                .findByUser_UserIdAndStatusIn(userId, UNDER_REVIEW_STATUSES)
                 .stream()
                 .map(LoanConverter::toListItem)
                 .toList();
@@ -59,7 +59,7 @@ public class LoanServiceImpl implements LoanService {
     @Override
     public LoanApplicationDetailResponse findLoanDetail(Long userId, Long applicationId) {
         return loanApplicationRepository
-                .findByApplicationIdAndUser_Id(applicationId, userId)
+                .findByApplicationIdAndUser_UserId(applicationId, userId)
                 .map(LoanConverter::toDetailResponse)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
     }
@@ -67,7 +67,7 @@ public class LoanServiceImpl implements LoanService {
     @Override
     public CompletedLoanListResponse findCompletedLoans(Long userId) {
         List<CompletedLoanListResponse.CompletedLoanItem> items = loanApplicationRepository
-                .findByUser_IdAndStatusInOrderByUpdatedAtDesc(userId, COMPLETED_STATUSES)
+                .findByUser_UserIdAndStatusInOrderByUpdatedAtDesc(userId, COMPLETED_STATUSES)
                 .stream()
                 .map(LoanConverter::toCompletedListItem)
                 .toList();
@@ -78,7 +78,7 @@ public class LoanServiceImpl implements LoanService {
     @Override
     public CompletedLoanDetailResponse findCompletedLoanDetail(Long userId, Long applicationId) {
         LoanApplication application = loanApplicationRepository
-                .findByApplicationIdAndUser_Id(applicationId, userId)
+                .findByApplicationIdAndUser_UserId(applicationId, userId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
 
         if (!COMPLETED_STATUSES.contains(application.getStatus())) {
