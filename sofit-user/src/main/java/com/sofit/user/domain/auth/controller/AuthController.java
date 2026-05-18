@@ -46,7 +46,7 @@ public class AuthController implements AuthControllerDocs {
         FinancialCertVerifyResponse response = authService.verifyFinancialCertificate(request);
 
         return ResponseEntity.ok(
-                ApiResponse.onSuccess(AuthSuccessCode.FINANCIAL_CERT_VERIFIED, response)
+                ApiResponse.onSuccess(AuthSuccessCode.PIN_VERIFIED, response)
         );
     }
 }
