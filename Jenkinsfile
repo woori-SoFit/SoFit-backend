@@ -26,7 +26,12 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh './gradlew sonarqube'
+                    sh """
+                        ${tool 'sonar-scanner'}/bin/sonar-scanner \
+                            -Dsonar.projectKey=sofit-backend \
+                            -Dsonar.sources=sofit-user/src/main/java,sofit-admin/src/main/java,sofit-common/src/main/java \
+                            -Dsonar.java.binaries=sofit-user/build/classes/java/main,sofit-admin/build/classes/java/main,sofit-common/build/classes/java/main
+                    """
                 }
             }
         }
