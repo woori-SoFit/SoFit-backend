@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+    }
+
     environment {
         REGISTRY = '172.21.33.225:5000'
         APP_SERVER = '172.21.33.238'
@@ -10,6 +14,20 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh './gradlew test jacocoTestReport'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh './gradlew sonarqube'
+                }
             }
         }
 
