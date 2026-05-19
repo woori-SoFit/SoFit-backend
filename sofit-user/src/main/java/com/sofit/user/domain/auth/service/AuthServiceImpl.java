@@ -34,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request) {
         ExternalMockApiResponse<ExternalKycResponse> mockResponse =
-                externalMockClient.callKycVerify(request.businessNumber());
+                externalMockClient.callKycVerify(request.getBusinessNumber());
 
         if (!mockResponse.isSuccess() || mockResponse.result() == null || !mockResponse.result().isValid()) {
             throw new BaseException(AuthErrorCode.BUSINESS_NOT_FOUND);

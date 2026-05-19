@@ -69,7 +69,7 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
 - [x] 2. Phase 1 Checkpoint
   - 컴파일 확인, 기존 테스트 통과 확인. 문제 발생 시 사용자에게 질문.
 
-- [-] 3. Phase 2: 로그인 [SOFIT-20]
+- [x] 3. Phase 2: 로그인 [SOFIT-20]
   - 세션 생성이 되어야 다른 인증 필요 API 테스트가 가능하므로 로그인을 먼저 구현한다.
   - 커밋: `[SOFIT-20] Feat: 세션 기반 로그인 API 구현`
 
@@ -100,14 +100,14 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
     - **Property 9: 로그인 실패 응답 동일성**
     - **Validates: Requirements 4.11, 5.1, 5.2, 5.3, 5.4, 5.5**
 
-- [ ] 4. Phase 2 Checkpoint
+- [x] 4. Phase 2 Checkpoint
   - 컴파일 확인, 로그인 API 동작 확인. 문제 발생 시 사용자에게 질문.
 
-- [ ] 5. Phase 3: 회원가입 Step 1 사업자등록번호 인증 수정 [SOFIT-21]
+- [-] 5. Phase 3: 회원가입 Step 1 사업자등록번호 인증 수정 [SOFIT-21]
   - 기존 구현을 회원가입 멀티스텝 플로우에 맞게 수정한다.
   - 커밋: `[SOFIT-21] Feat: 회원가입 Step 1 사업자등록번호 인증 수정`
 
-  - [ ] 5.1 VerifyBusinessRequest / VerifyBusinessResponse DTO 수정
+  - [x] 5.1 VerifyBusinessRequest / VerifyBusinessResponse DTO 수정
     - 기존 BusinessVerificationRequest.java → VerifyBusinessRequest로 리네임 또는 수정 (class, @NotBlank @Pattern businessNumber)
     - 기존 BusinessVerificationResponse.java → VerifyBusinessResponse로 변경 (record: registrationId, businessNumber, representativeName, businessName, businessType, openDate)
     - _Requirements: 2.1, 2.3_

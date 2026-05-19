@@ -13,15 +13,14 @@ public class AuthConverter {
 
     private AuthConverter() {}
 
-    public static BusinessVerificationResponse toBusinessVerificationResponse(ExternalKycResponse kycResult) {
+    public static BusinessVerificationResponse toBusinessVerificationResponse(String registrationId, ExternalKycResponse kycResult) {
         return new BusinessVerificationResponse(
-                null,
+                registrationId,
                 kycResult.businessNumber(),
                 kycResult.representativeName(),
                 kycResult.businessName(),
                 kycResult.businessType(),
                 kycResult.openDate(),
-                true,
                 LocalDateTime.now()
         );
     }
