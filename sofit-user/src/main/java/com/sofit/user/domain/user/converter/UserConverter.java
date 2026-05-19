@@ -30,7 +30,6 @@ public class UserConverter {
      * 전화번호 포맷팅 (하이픈 삽입)
      * - null/빈 문자열 → 빈 문자열 반환
      * - 11자리 → NNN-NNNN-NNNN 형식
-     * - 10자리 → NN-NNNN-NNNN 형식
      * - 그 외 → 원본 그대로 반환
      */
     public static String formatPhoneNumber(String phoneNumber) {
@@ -40,10 +39,6 @@ public class UserConverter {
 
         if (phoneNumber.length() == 11) {
             return phoneNumber.substring(0, 3) + "-" + phoneNumber.substring(3, 7) + "-" + phoneNumber.substring(7);
-        }
-
-        if (phoneNumber.length() == 10) {
-            return phoneNumber.substring(0, 2) + "-" + phoneNumber.substring(2, 6) + "-" + phoneNumber.substring(6);
         }
 
         return phoneNumber;

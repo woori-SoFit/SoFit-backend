@@ -7,7 +7,7 @@ import com.sofit.common.entity.user.UserStatus;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.user.converter.UserConverter;
 import com.sofit.user.domain.user.dto.response.UserProfileResponse;
-import com.sofit.user.domain.user.exception.UserErrorCode;
+import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService {
 
         // 3. 탈퇴 계정 체크
         if (user.getStatus() == UserStatus.INACTIVE) {
-            throw new BaseException(UserErrorCode.INACTIVE_USER);
+            throw new BaseException(AuthErrorCode.ACCOUNT_WITHDRAWN);
         }
 
         // 4. Entity → DTO 변환 후 반환
