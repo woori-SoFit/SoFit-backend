@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 /**
  * 회원가입 멀티스텝 플로우를 추적하는 엔티티.
+ * 세션에 PK(registration_process_id)를 저장하여 프로세스를 추적한다.
  * 가입 완료 시 KYC 데이터를 기반으로 BusinessProfile이 별도 생성된다.
  */
 @Entity
@@ -22,17 +23,13 @@ public class RegistrationProcess extends BaseEntity {
     @Column(name = "registration_process_id")
     private Long id;
 
-    // 회원가입 프로세스 임시 식별자 (완료 후 null로 설정)
-    @Column(name = "registration_id", length = 36, unique = true)
-    private String registrationId;
-
     // 회원가입 단계 상태
     @Enumerated(EnumType.STRING)
     @Column(name = "step", nullable = false, columnDefinition = "VARCHAR(20)")
     private RegistrationStep step;
 
     // KYC 인증 결과 (사업자 정보)
-    @Column(name = "business_number", length = 10)
+    @Column(name = "business_number", length = 10, unique = true)
     private String businessNumber;
 
     @Column(name = "business_name", length = 50)
@@ -56,16 +53,13 @@ public class RegistrationProcess extends BaseEntity {
 
     /**
      * 팩토리 메서드: Step 1 완료 시 생성
-     * KYC 인증 성공 후 사업자 정보를 저장하고 step=STEP_1_COMPLETED로 설정
      */
-    public static RegistrationProcess createForStep1(String registrationId,
-                                                      String businessNumber,
+    public static RegistrationProcess createForStep1(String businessNumber,
                                                       String businessName,
                                                       String representativeName,
                                                       String openDate,
                                                       String businessType) {
         RegistrationProcess process = new RegistrationProcess();
-        process.registrationId = registrationId;
         process.businessNumber = businessNumber;
         process.businessName = businessName;
         process.representativeName = representativeName;
@@ -77,8 +71,25 @@ public class RegistrationProcess extends BaseEntity {
     }
 
     /**
+     * KYC 재요청 시 기존 레코드 업데이트
+     */
+    public void updateKycResult(String businessNumber,
+                                 String businessName,
+                                 String representativeName,
+                                 String openDate,
+                                 String businessType) {
+        this.businessNumber = businessNumber;
+        this.businessName = businessName;
+        this.representativeName = representativeName;
+        this.openDate = openDate;
+        this.businessType = businessType;
+        this.step = RegistrationStep.STEP_1_COMPLETED;
+        this.pinVerified = false;
+        this.pinVerifiedAt = null;
+    }
+
+    /**
      * Step 2 완료 처리
-     * PIN 인증 성공 시 pinVerified=true, pinVerifiedAt 설정, step=STEP_2_COMPLETED
      */
     public void completeStep2() {
         this.pinVerified = true;
@@ -88,10 +99,8 @@ public class RegistrationProcess extends BaseEntity {
 
     /**
      * 가입 완료 처리
-     * registrationId null 설정, step=COMPLETED
      */
     public void completeRegistration() {
-        this.registrationId = null;
         this.step = RegistrationStep.COMPLETED;
     }
 

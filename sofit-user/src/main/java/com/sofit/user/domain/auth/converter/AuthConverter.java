@@ -1,5 +1,6 @@
 package com.sofit.user.domain.auth.converter;
 
+import com.sofit.common.entity.auth.RegistrationProcess;
 import com.sofit.common.entity.user.User;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
@@ -13,15 +14,25 @@ public class AuthConverter {
 
     private AuthConverter() {}
 
-    public static BusinessVerificationResponse toBusinessVerificationResponse(String registrationId, ExternalKycResponse kycResult) {
+    public static BusinessVerificationResponse toBusinessVerificationResponse(ExternalKycResponse kycResult) {
         return new BusinessVerificationResponse(
-                registrationId,
                 kycResult.businessNumber(),
                 kycResult.representativeName(),
                 kycResult.businessName(),
                 kycResult.businessType(),
                 kycResult.openDate(),
                 LocalDateTime.now()
+        );
+    }
+
+    public static BusinessVerificationResponse toBusinessVerificationResponse(RegistrationProcess process) {
+        return new BusinessVerificationResponse(
+                process.getBusinessNumber(),
+                process.getRepresentativeName(),
+                process.getBusinessName(),
+                process.getBusinessType(),
+                process.getOpenDate(),
+                process.getCreatedAt()
         );
     }
 

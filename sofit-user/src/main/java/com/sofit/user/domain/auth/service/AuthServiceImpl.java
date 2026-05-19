@@ -24,7 +24,6 @@ import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +36,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session) {
-        // 1. External Mock 호출
+        // 1. 세션에 이미 프로세스가 있으면 기존 결과 반환 (중복 요청 방지)
+        Long existingProcessId = (Long) session.getAttribute("registrationProcessId");
+        if (existingProcessId != null) {
+            RegistrationProcess existing = registrationProcessRepository.findById(existingProcessId)
+                    .orElse(null);
+            if (existing != null && !existing.isExpired()) {
+                return AuthConverter.toBusinessVerificationResponse(existing);
+            }
+        }
+
+        // 2. External Mock 호출
         ExternalMockApiResponse<ExternalKycResponse> mockResponse =
                 externalMockClient.callKycVerify(request.getBusinessNumber());
 
@@ -47,10 +56,8 @@ public class AuthServiceImpl implements AuthService {
 
         ExternalKycResponse kycResult = mockResponse.result();
 
-        // 2. RegistrationProcess 생성 (registration_id 발급, step=STEP_1_COMPLETED)
-        String registrationId = UUID.randomUUID().toString();
+        // 3. 신규 RegistrationProcess 생성
         RegistrationProcess process = RegistrationProcess.createForStep1(
-                registrationId,
                 kycResult.businessNumber(),
                 kycResult.businessName(),
                 kycResult.representativeName(),
@@ -59,11 +66,11 @@ public class AuthServiceImpl implements AuthService {
         );
         registrationProcessRepository.save(process);
 
-        // 3. 세션에 registrationId 저장 (Step 2, 3에서 사용)
-        session.setAttribute("registrationId", registrationId);
+        // 4. 세션에 PK 저장
+        session.setAttribute("registrationProcessId", process.getId());
 
-        // 4. 응답 반환
-        return AuthConverter.toBusinessVerificationResponse(registrationId, kycResult);
+        // 5. 응답 반환
+        return AuthConverter.toBusinessVerificationResponse(kycResult);
     }
 
     @Override
