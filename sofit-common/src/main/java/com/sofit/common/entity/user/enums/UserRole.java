@@ -2,6 +2,7 @@ package com.sofit.common.entity.user;
 
 public enum UserRole {
     USER,
-    BANK_ADMIN,
-    DEV_ADMIN
+    ADMIN_BANK_TELLER,
+    ADMIN_BANK_MANAGER,
+    ADMIN_DEV
 }
