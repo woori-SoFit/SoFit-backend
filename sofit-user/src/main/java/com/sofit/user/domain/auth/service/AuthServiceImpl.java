@@ -82,7 +82,9 @@ public class AuthServiceImpl implements AuthService {
                     kycResult.businessName(),
                     kycResult.representativeName(),
                     kycResult.openDate(),
-                    kycResult.businessType()
+                    kycResult.businessType(),
+                    kycResult.businessCategory(),
+                    kycResult.businessAddress()
             );
             process = registrationProcessRepository.save(existingProcess);
         } else {
@@ -91,7 +93,9 @@ public class AuthServiceImpl implements AuthService {
                     kycResult.businessName(),
                     kycResult.representativeName(),
                     kycResult.openDate(),
-                    kycResult.businessType()
+                    kycResult.businessType(),
+                    kycResult.businessCategory(),
+                    kycResult.businessAddress()
             );
             registrationProcessRepository.save(process);
         }
@@ -201,10 +205,10 @@ public class AuthServiceImpl implements AuthService {
                 user,
                 process.getBusinessNumber(),
                 process.getRepresentativeName(),
-                null, // businessCategory
+                process.getBusinessCategory(),
                 process.getBusinessType(),
                 process.getBusinessName(),
-                null, // businessAddress
+                process.getBusinessAddress(),
                 process.getOpenDate() != null ? java.time.LocalDate.parse(process.getOpenDate()) : null
         );
         businessProfileRepository.save(businessProfile);

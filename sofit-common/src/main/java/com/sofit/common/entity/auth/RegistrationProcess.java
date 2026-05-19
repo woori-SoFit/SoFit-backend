@@ -44,6 +44,12 @@ public class RegistrationProcess extends BaseEntity {
     @Column(name = "business_type", length = 50)
     private String businessType;
 
+    @Column(name = "business_category", length = 50)
+    private String businessCategory;
+
+    @Column(name = "business_address", length = 200)
+    private String businessAddress;
+
     // PIN 인증 결과
     @Column(name = "pin_verified", columnDefinition = "TINYINT(1)")
     private Boolean pinVerified;
@@ -58,13 +64,17 @@ public class RegistrationProcess extends BaseEntity {
                                                       String businessName,
                                                       String representativeName,
                                                       String openDate,
-                                                      String businessType) {
+                                                      String businessType,
+                                                      String businessCategory,
+                                                      String businessAddress) {
         RegistrationProcess process = new RegistrationProcess();
         process.businessNumber = businessNumber;
         process.businessName = businessName;
         process.representativeName = representativeName;
         process.openDate = openDate;
         process.businessType = businessType;
+        process.businessCategory = businessCategory;
+        process.businessAddress = businessAddress;
         process.step = RegistrationStep.STEP_1_COMPLETED;
         process.pinVerified = false;
         return process;
@@ -77,12 +87,16 @@ public class RegistrationProcess extends BaseEntity {
                                  String businessName,
                                  String representativeName,
                                  String openDate,
-                                 String businessType) {
+                                 String businessType,
+                                 String businessCategory,
+                                 String businessAddress) {
         this.businessNumber = businessNumber;
         this.businessName = businessName;
         this.representativeName = representativeName;
         this.openDate = openDate;
         this.businessType = businessType;
+        this.businessCategory = businessCategory;
+        this.businessAddress = businessAddress;
         this.step = RegistrationStep.STEP_1_COMPLETED;
         this.pinVerified = false;
         this.pinVerifiedAt = null;
