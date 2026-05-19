@@ -4,7 +4,6 @@ import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -31,15 +30,6 @@ public class GlobalExceptionHandler {
                 .orElse(GeneralErrorCode.BAD_REQUEST.getMessage());
 
         log.warn("[ValidationException] {}", message);
-        return ResponseEntity
-                .status(GeneralErrorCode.BAD_REQUEST.getHttpStatus())
-                .body(ApiResponse.onFailure(GeneralErrorCode.BAD_REQUEST));
-    }
-
-    // 필수 쿼리 파라미터 누락
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<ApiResponse<Void>> handleMissingParam(MissingServletRequestParameterException e) {
-        log.warn("[MissingParam] {}", e.getMessage());
         return ResponseEntity
                 .status(GeneralErrorCode.BAD_REQUEST.getHttpStatus())
                 .body(ApiResponse.onFailure(GeneralErrorCode.BAD_REQUEST));
