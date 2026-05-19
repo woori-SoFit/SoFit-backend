@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+    }
+
     environment {
         REGISTRY = '172.21.33.225:5000'
         APP_SERVER = '172.21.33.238'
@@ -10,6 +14,25 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh './gradlew test'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                        ${tool 'sonar-scanner'}/bin/sonar-scanner \
+                            -Dsonar.projectKey=sofit-backend \
+                            -Dsonar.sources=sofit-user/src/main/java,sofit-admin/src/main/java,sofit-common/src/main/java \
+                            -Dsonar.java.binaries=sofit-user/build/classes/java/main,sofit-admin/build/classes/java/main,sofit-common/build/classes/java/main
+                    """
+                }
             }
         }
 
