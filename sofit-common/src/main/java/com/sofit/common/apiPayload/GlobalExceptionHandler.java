@@ -2,9 +2,11 @@ package com.sofit.common.apiPayload;
 
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
@@ -36,12 +38,11 @@ public class GlobalExceptionHandler {
     }
 
     // 쿼리 파라미터 타입 변환 실패 (ex. enum 미존재 값)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+    public ApiResponse<Void> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         log.warn("[TypeMismatch] {}", e.getMessage());
-        return ResponseEntity
-                .status(GeneralErrorCode.BAD_REQUEST.getHttpStatus())
-                .body(ApiResponse.onFailure(GeneralErrorCode.BAD_REQUEST));
+        return ApiResponse.onFailure(GeneralErrorCode.BAD_REQUEST);
     }
 
     // 그 외 예상치 못한 예외
