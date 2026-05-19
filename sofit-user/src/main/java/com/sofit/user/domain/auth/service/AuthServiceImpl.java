@@ -2,6 +2,7 @@ package com.sofit.user.domain.auth.service;
 
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.auth.RegistrationProcess;
+import com.sofit.common.entity.auth.enums.RegistrationStep;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.UserStatus;
 import com.sofit.common.repository.auth.RegistrationProcessRepository;
@@ -29,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -65,14 +67,26 @@ public class AuthServiceImpl implements AuthService {
 
         ExternalKycResponse kycResult = mockResponse.result();
 
-        // 3. 신규 RegistrationProcess 생성
-        RegistrationProcess process = RegistrationProcess.createForStep1(
-                kycResult.businessNumber(),
-                kycResult.businessName(),
-                kycResult.representativeName(),
-                kycResult.openDate(),
-                kycResult.businessType()
-        );
+        // 3. 기존 RegistrationProcess가 있으면 업데이트, 없으면 신규 생성
+        RegistrationProcess process = registrationProcessRepository
+                .findByBusinessNumber(kycResult.businessNumber())
+                .map(existing -> {
+                    existing.updateKycResult(
+                            kycResult.businessNumber(),
+                            kycResult.businessName(),
+                            kycResult.representativeName(),
+                            kycResult.openDate(),
+                            kycResult.businessType()
+                    );
+                    return existing;
+                })
+                .orElseGet(() -> RegistrationProcess.createForStep1(
+                        kycResult.businessNumber(),
+                        kycResult.businessName(),
+                        kycResult.representativeName(),
+                        kycResult.openDate(),
+                        kycResult.businessType()
+                ));
         registrationProcessRepository.save(process);
 
         // 4. 세션에 PK 저장
@@ -83,9 +97,32 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request) {
+    @Transactional
+    public FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
+        // 1. 세션에서 registrationProcessId 조회
+        Long processId = (Long) session.getAttribute("registrationProcessId");
+        if (processId == null) {
+            throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
+        }
+
+        RegistrationProcess process = registrationProcessRepository.findById(processId)
+                .orElseThrow(() -> new BaseException(AuthErrorCode.REGISTRATION_EXPIRED));
+
+        // 2. 만료 체크 (updated_at + 30분)
+        if (process.getUpdatedAt().plusMinutes(30).isBefore(LocalDateTime.now())) {
+            process.expire();
+            registrationProcessRepository.save(process);
+            throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
+        }
+
+        // 3. Step 1 완료 여부 확인
+        if (process.getStep() != RegistrationStep.STEP_1_COMPLETED) {
+            throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
+        }
+
+        // 4. External Mock 서버에 PIN 인증 요청
         ExternalMockApiResponse<ExternalFinancialCertResponse> mockResponse =
-                externalMockClient.callFinancialCertVerify(request.phoneNumber(), request.pin());
+                externalMockClient.callFinancialCertVerify(request.getPhoneNumber(), request.getPin());
 
         if (!mockResponse.isSuccess()) {
             String code = mockResponse.code();
@@ -95,7 +132,18 @@ public class AuthServiceImpl implements AuthService {
             throw new BaseException(AuthErrorCode.CERT_NOT_FOUND);
         }
 
-        return AuthConverter.toFinancialCertVerifyResponse(mockResponse.result());
+        ExternalFinancialCertResponse certResult = mockResponse.result();
+
+        // 5. 금융인증서 상태 VALID 확인
+        if (!"VALID".equals(certResult.status())) {
+            throw new BaseException(AuthErrorCode.CERT_VERIFICATION_FAILED);
+        }
+
+        // 6. 성공 시 RegistrationProcess 갱신
+        process.completeStep2();
+        registrationProcessRepository.save(process);
+
+        return AuthConverter.toFinancialCertVerifyResponse(certResult);
     }
 
     @Override

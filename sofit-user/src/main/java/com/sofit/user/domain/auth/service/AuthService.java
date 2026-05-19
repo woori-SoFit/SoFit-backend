@@ -14,7 +14,7 @@ public interface AuthService {
 
     BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session);
 
-    FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request);
+    FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session);
 
     LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
 }

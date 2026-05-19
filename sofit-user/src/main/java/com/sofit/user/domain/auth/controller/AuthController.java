@@ -35,11 +35,12 @@ public class AuthController implements AuthControllerDocs {
         return ApiResponse.onSuccess(AuthSuccessCode.BUSINESS_VERIFIED, response);
     }
 
-    @PostMapping("/financial-certificate/verify")
+    @PostMapping("/verify-pin")
     public ApiResponse<FinancialCertVerifyResponse> verifyFinancialCertificate(
-            @Valid @RequestBody FinancialCertVerifyRequest request) {
+            @Valid @RequestBody FinancialCertVerifyRequest request,
+            HttpSession session) {
 
-        FinancialCertVerifyResponse response = authService.verifyFinancialCertificate(request);
+        FinancialCertVerifyResponse response = authService.verifyFinancialCertificate(request, session);
         return ApiResponse.onSuccess(AuthSuccessCode.PIN_VERIFIED, response);
     }
 

@@ -34,6 +34,7 @@ public class SessionValidationFilter extends OncePerRequestFilter {
         // 인증 불필요 경로는 필터 스킵
         return path.startsWith("/api/auth/signup")
                 || path.equals("/api/auth/login")
+                || path.equals("/api/auth/verify-pin")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs");
     }
