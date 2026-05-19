@@ -47,17 +47,19 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session) {
-        // 1. 세션에 이미 프로세스가 있으면 기존 결과 반환 (중복 요청 방지)
-        Long existingProcessId = (Long) session.getAttribute("registrationProcessId");
-        if (existingProcessId != null) {
-            RegistrationProcess existing = registrationProcessRepository.findById(existingProcessId)
-                    .orElse(null);
-            if (existing != null) {
-                return AuthConverter.toBusinessVerificationResponse(existing);
-            }
+        RegistrationProcess existingProcess = registrationProcessRepository
+                .findByBusinessNumber(request.getBusinessNumber())
+                .orElse(null);
+
+        // 유효한 레코드면 기존 결과 반환
+        if (existingProcess != null
+                && existingProcess.getStep() == RegistrationStep.STEP_1_COMPLETED
+                && existingProcess.getUpdatedAt().plusMinutes(30).isAfter(LocalDateTime.now())) {
+            session.setAttribute("registrationProcessId", existingProcess.getId());
+            return AuthConverter.toBusinessVerificationResponse(existingProcess);
         }
 
-        // 2. External Mock 호출
+        // External Mock 호출
         ExternalMockApiResponse<ExternalKycResponse> mockResponse =
                 externalMockClient.callKycVerify(request.getBusinessNumber());
 
@@ -67,32 +69,29 @@ public class AuthServiceImpl implements AuthService {
 
         ExternalKycResponse kycResult = mockResponse.result();
 
-        // 3. 기존 RegistrationProcess가 있으면 업데이트, 없으면 신규 생성
-        RegistrationProcess process = registrationProcessRepository
-                .findByBusinessNumber(kycResult.businessNumber())
-                .map(existing -> {
-                    existing.updateKycResult(
-                            kycResult.businessNumber(),
-                            kycResult.businessName(),
-                            kycResult.representativeName(),
-                            kycResult.openDate(),
-                            kycResult.businessType()
-                    );
-                    return existing;
-                })
-                .orElseGet(() -> RegistrationProcess.createForStep1(
-                        kycResult.businessNumber(),
-                        kycResult.businessName(),
-                        kycResult.representativeName(),
-                        kycResult.openDate(),
-                        kycResult.businessType()
-                ));
-        registrationProcessRepository.save(process);
+        // 만료된 레코드 있으면 재활용, 없으면 신규 생성
+        RegistrationProcess process;
+        if (existingProcess != null) {
+            existingProcess.updateKycResult(
+                    kycResult.businessNumber(),
+                    kycResult.businessName(),
+                    kycResult.representativeName(),
+                    kycResult.openDate(),
+                    kycResult.businessType()
+            );
+            process = registrationProcessRepository.save(existingProcess);
+        } else {
+            process = RegistrationProcess.createForStep1(
+                    kycResult.businessNumber(),
+                    kycResult.businessName(),
+                    kycResult.representativeName(),
+                    kycResult.openDate(),
+                    kycResult.businessType()
+            );
+            registrationProcessRepository.save(process);
+        }
 
-        // 4. 세션에 PK 저장
         session.setAttribute("registrationProcessId", process.getId());
-
-        // 5. 응답 반환
         return AuthConverter.toBusinessVerificationResponse(kycResult);
     }
 
