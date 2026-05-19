@@ -24,6 +24,7 @@ public enum AuthErrorCode implements BaseErrorCode {
     ACCOUNT_WITHDRAWN(HttpStatus.FORBIDDEN, "AUTH4031", "탈퇴한 계정입니다."),
 
     // 404 Not Found
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH4040", "존재하지 않는 사용자입니다."),
     BUSINESS_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH4041", "일치하는 사업자등록번호를 찾을 수 없습니다."),
     CERT_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH4042", "등록된 금융인증서를 찾을 수 없습니다."),
 
