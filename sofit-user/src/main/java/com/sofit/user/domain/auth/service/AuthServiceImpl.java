@@ -1,22 +1,26 @@
 package com.sofit.user.domain.auth.service;
 
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.auth.RegistrationProcess;
 import com.sofit.common.entity.auth.enums.RegistrationStep;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.UserStatus;
+import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.auth.RegistrationProcessRepository;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.auth.converter.AuthConverter;
 import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
 import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
 import com.sofit.user.domain.auth.dto.request.LoginRequest;
+import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalMockApiResponse;
 import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
+import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
     private final ExternalMockClient externalMockClient;
     private final UserRepository userRepository;
     private final RegistrationProcessRepository registrationProcessRepository;
+    private final BusinessProfileRepository businessProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final HttpSessionSecurityContextRepository securityContextRepository;
 
@@ -146,6 +151,72 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return AuthConverter.toFinancialCertVerifyResponse(certResult);
+    }
+
+    @Override
+    @Transactional
+    public SignupCompleteResponse completeSignup(SignupCompleteRequest request, HttpSession session) {
+        // 1. 세션에서 registrationProcessId 조회
+        Long processId = (Long) session.getAttribute("registrationProcessId");
+        if (processId == null) {
+            throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
+        }
+
+        RegistrationProcess process = registrationProcessRepository.findById(processId)
+                .orElseThrow(() -> new BaseException(AuthErrorCode.REGISTRATION_EXPIRED));
+
+        // 2. 만료 체크
+        if (process.getUpdatedAt().plusMinutes(30).isBefore(LocalDateTime.now())) {
+            process.expire();
+            registrationProcessRepository.save(process);
+            throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
+        }
+
+        // 3. Step 2 완료 여부 확인
+        if (process.getStep() != RegistrationStep.STEP_2_COMPLETED) {
+            if (process.getStep() == RegistrationStep.COMPLETED) {
+                throw new BaseException(AuthErrorCode.STEP_ALREADY_COMPLETED);
+            }
+            throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
+        }
+
+        // 4. loginId 중복 체크
+        if (userRepository.existsByLoginId(request.getLoginId())) {
+            throw new BaseException(AuthErrorCode.LOGIN_ID_DUPLICATED);
+        }
+
+        // 5. User 생성
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        User user = User.createUser(
+                request.getLoginId(),
+                encodedPassword,
+                request.getName(),
+                request.getPhoneNumber(),
+                request.getResidentNumber()
+        );
+        userRepository.save(user);
+
+        // 6. BusinessProfile 생성 (KYC 데이터 기반)
+        BusinessProfile businessProfile = BusinessProfile.createVerified(
+                user,
+                process.getBusinessNumber(),
+                process.getRepresentativeName(),
+                null, // businessCategory
+                process.getBusinessType(),
+                process.getBusinessName(),
+                null, // businessAddress
+                process.getOpenDate() != null ? java.time.LocalDate.parse(process.getOpenDate()) : null
+        );
+        businessProfileRepository.save(businessProfile);
+
+        // 7. RegistrationProcess 완료 처리 및 삭제
+        process.completeRegistration();
+        registrationProcessRepository.delete(process);
+
+        // 8. 세션에서 registrationProcessId 제거
+        session.removeAttribute("registrationProcessId");
+
+        return AuthConverter.toSignupCompleteResponse(user);
     }
 
     @Override

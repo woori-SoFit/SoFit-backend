@@ -4,9 +4,11 @@ import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
 import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
 import com.sofit.user.domain.auth.dto.request.LoginRequest;
+import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
 import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
+import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import com.sofit.user.domain.auth.exception.AuthSuccessCode;
 import com.sofit.user.domain.auth.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,6 +44,15 @@ public class AuthController implements AuthControllerDocs {
 
         FinancialCertVerifyResponse response = authService.verifyFinancialCertificate(request, session);
         return ApiResponse.onSuccess(AuthSuccessCode.PIN_VERIFIED, response);
+    }
+
+    @PostMapping("/signup/complete")
+    public ApiResponse<SignupCompleteResponse> completeSignup(
+            @Valid @RequestBody SignupCompleteRequest request,
+            HttpSession session) {
+
+        SignupCompleteResponse response = authService.completeSignup(request, session);
+        return ApiResponse.onSuccess(AuthSuccessCode.SIGNUP_COMPLETED, response);
     }
 
     @PostMapping("/login")
