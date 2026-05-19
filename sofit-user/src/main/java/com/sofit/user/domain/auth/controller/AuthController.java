@@ -9,6 +9,8 @@ import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.exception.AuthSuccessCode;
 import com.sofit.user.domain.auth.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,9 +46,10 @@ public class AuthController implements AuthControllerDocs {
     @PostMapping("/login")
     public ApiResponse<LoginResponse> login(
             @Valid @RequestBody LoginRequest request,
-            HttpSession session) {
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
 
-        LoginResponse response = authService.login(request, session);
+        LoginResponse response = authService.login(request, httpRequest, httpResponse);
         return ApiResponse.onSuccess(AuthSuccessCode.LOGIN_SUCCESS, response);
     }
 }

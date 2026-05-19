@@ -17,13 +17,21 @@ import com.sofit.user.domain.auth.dto.response.ExternalMockApiResponse;
 import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RegistrationProcessRepository registrationProcessRepository;
     private final PasswordEncoder passwordEncoder;
+    private final HttpSessionSecurityContextRepository securityContextRepository;
 
     @Override
     public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session) {
@@ -41,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
         if (existingProcessId != null) {
             RegistrationProcess existing = registrationProcessRepository.findById(existingProcessId)
                     .orElse(null);
-            if (existing != null && !existing.isExpired()) {
+            if (existing != null) {
                 return AuthConverter.toBusinessVerificationResponse(existing);
             }
         }
@@ -90,7 +99,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public LoginResponse login(LoginRequest request, HttpSession session) {
+    public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         // 1. loginId로 사용자 조회 (미존재 시 동일 에러)
         User user = userRepository.findByLoginId(request.getLoginId())
                 .orElseThrow(() -> new BaseException(AuthErrorCode.LOGIN_FAILED));
@@ -105,7 +114,21 @@ public class AuthServiceImpl implements AuthService {
             throw new BaseException(AuthErrorCode.LOGIN_FAILED);
         }
 
-        // 4. 세션에 사용자 정보 저장
+        // 4. SecurityContext에 인증 정보 저장
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        user.getUserId(), null,
+                        List.of(new SimpleGrantedAuthority(user.getRole().name()))
+                );
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authentication);
+        SecurityContextHolder.setContext(securityContext);
+
+        // 5. HttpSessionSecurityContextRepository를 통해 세션에 영속화
+        securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
+
+        // 6. 세션에 사용자 정보 저장
+        HttpSession session = httpRequest.getSession();
         session.setAttribute("userId", user.getUserId());
         session.setAttribute("role", user.getRole().name());
         session.setAttribute("loginTime", LocalDateTime.now());

@@ -110,11 +110,4 @@ public class RegistrationProcess extends BaseEntity {
     public void expire() {
         this.step = RegistrationStep.EXPIRED;
     }
-
-    /**
-     * 만료 여부 확인 (created_at + 30분 경과 여부)
-     */
-    public boolean isExpired() {
-        return getCreatedAt().plusMinutes(30).isBefore(LocalDateTime.now());
-    }
 }
