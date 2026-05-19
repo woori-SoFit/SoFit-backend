@@ -36,7 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request) {
+    public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session) {
         // 1. External Mock 호출
         ExternalMockApiResponse<ExternalKycResponse> mockResponse =
                 externalMockClient.callKycVerify(request.getBusinessNumber());
@@ -59,7 +59,10 @@ public class AuthServiceImpl implements AuthService {
         );
         registrationProcessRepository.save(process);
 
-        // 3. 응답 반환 (registrationId 포함)
+        // 3. 세션에 registrationId 저장 (Step 2, 3에서 사용)
+        session.setAttribute("registrationId", registrationId);
+
+        // 4. 응답 반환
         return AuthConverter.toBusinessVerificationResponse(registrationId, kycResult);
     }
 

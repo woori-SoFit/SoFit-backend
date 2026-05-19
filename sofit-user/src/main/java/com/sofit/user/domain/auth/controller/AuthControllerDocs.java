@@ -23,7 +23,8 @@ public interface AuthControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사업자 정보를 찾을 수 없음")
     })
     ResponseEntity<ApiResponse<BusinessVerificationResponse>> verifyBusiness(
-            BusinessVerificationRequest request
+            BusinessVerificationRequest request,
+            HttpSession session
     );
 
     @Operation(summary = "금융인증서 검증", description = "금융인증서 유효성 및 실명 일치 여부를 확인합니다.")

@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpSession;
 
 public interface AuthService {
 
-    BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request);
+    BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session);
 
     FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request);
 

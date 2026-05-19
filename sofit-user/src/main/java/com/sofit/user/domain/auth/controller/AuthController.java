@@ -27,9 +27,10 @@ public class AuthController implements AuthControllerDocs {
 
     @PostMapping("/signup/business-verification")
     public ResponseEntity<ApiResponse<BusinessVerificationResponse>> verifyBusiness(
-            @Valid @RequestBody BusinessVerificationRequest request) {
+            @Valid @RequestBody BusinessVerificationRequest request,
+            HttpSession session) {
 
-        BusinessVerificationResponse response = authService.verifyBusiness(request);
+        BusinessVerificationResponse response = authService.verifyBusiness(request, session);
 
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(AuthSuccessCode.BUSINESS_VERIFIED, response)

@@ -2,7 +2,6 @@ package com.sofit.common.entity.auth;
 
 import com.sofit.common.entity.BaseEntity;
 import com.sofit.common.entity.auth.enums.RegistrationStep;
-import com.sofit.common.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,14 +26,9 @@ public class RegistrationProcess extends BaseEntity {
     @Column(name = "registration_id", length = 36, unique = true)
     private String registrationId;
 
-    // 가입 완료 후 연결되는 User (가입 전에는 null)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
     // 회원가입 단계 상태
     @Enumerated(EnumType.STRING)
-    @Column(name = "step", nullable = false)
+    @Column(name = "step", nullable = false, columnDefinition = "VARCHAR(20)")
     private RegistrationStep step;
 
     // KYC 인증 결과 (사업자 정보)
@@ -54,7 +48,7 @@ public class RegistrationProcess extends BaseEntity {
     private String businessType;
 
     // PIN 인증 결과
-    @Column(name = "pin_verified")
+    @Column(name = "pin_verified", columnDefinition = "TINYINT(1)")
     private Boolean pinVerified;
 
     @Column(name = "pin_verified_at")
@@ -94,10 +88,9 @@ public class RegistrationProcess extends BaseEntity {
 
     /**
      * 가입 완료 처리
-     * User 연결, registrationId null 설정, step=COMPLETED
+     * registrationId null 설정, step=COMPLETED
      */
-    public void completeRegistration(User user) {
-        this.user = user;
+    public void completeRegistration() {
         this.registrationId = null;
         this.step = RegistrationStep.COMPLETED;
     }
