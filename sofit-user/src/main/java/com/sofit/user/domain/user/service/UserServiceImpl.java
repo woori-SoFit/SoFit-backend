@@ -27,9 +27,9 @@ public class UserServiceImpl implements UserService {
         }
         Long userId = (userIdAttr instanceof Long) ? (Long) userIdAttr : Long.valueOf(userIdAttr.toString());
 
-        // 2. 사용자 조회 (미존재 시 NOT_FOUND 예외)
+        // 2. 사용자 조회 (미존재 시 USER_NOT_FOUND 예외)
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
+                .orElseThrow(() -> new BaseException(AuthErrorCode.USER_NOT_FOUND));
 
         // 3. 탈퇴 계정 체크
         if (user.getStatus() == UserStatus.INACTIVE) {
