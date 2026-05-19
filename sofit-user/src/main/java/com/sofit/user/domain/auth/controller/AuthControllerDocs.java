@@ -10,6 +10,8 @@ import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @Tag(name = "인증", description = "회원가입, 로그인, 로그아웃 API")
@@ -44,6 +46,7 @@ public interface AuthControllerDocs {
     })
     ApiResponse<LoginResponse> login(
             LoginRequest request,
-            HttpSession session
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse
     );
 }
