@@ -1,5 +1,7 @@
 package com.sofit.user.domain.loan.client;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.Map;
@@ -8,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -43,9 +46,13 @@ public class CodefClient {
         this.properties = properties;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
+
+        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout((int) TIMEOUT.toMillis());
+        requestFactory.setReadTimeout((int) TIMEOUT.toMillis());
+
         this.restClient = RestClient.builder()
-                .connectTimeout(TIMEOUT)
-                .readTimeout(TIMEOUT)
+                .requestFactory(requestFactory)
                 .build();
     }
 
@@ -94,13 +101,18 @@ public class CodefClient {
         try {
             String body = objectMapper.writeValueAsString(requestBody);
 
-            return restClient.post()
+            String response = restClient.post()
                     .uri(properties.getBaseUrl() + TRANSFER_AUTH_PATH)
                     .header("Authorization", "Bearer " + accessToken)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(body)
                     .retrieve()
                     .body(String.class);
+
+            log.info("코데프 API 원본 응답 (앞 200자): {}", response != null && response.length() > 200 ? response.substring(0, 200) : response);
+
+            // 코데프 API 응답은 URL 인코딩되어 옴 → 디코딩
+            return URLDecoder.decode(response, StandardCharsets.UTF_8);
         } catch (Exception e) {
             log.error("코데프 API 호출 중 예외 발생: {}", e.getMessage());
             throw new BaseException(LoanErrorCode.ACCOUNT_SERVICE_ERROR);
@@ -109,6 +121,7 @@ public class CodefClient {
 
     /**
      * 코데프 응답에서 authCode 추출
+     * 코데프 API 응답은 URL 인코딩되어 오므로 디코딩 후 JSON 파싱
      * result.code == "CF-00000" 확인 후 data.authCode 반환
      */
     private String extractAuthCode(String responseBody) {

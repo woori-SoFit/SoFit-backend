@@ -34,6 +34,8 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 인증 불필요 경로
                         .requestMatchers("/api/auth/signup/**", "/api/auth/login").permitAll()
+                        // 계좌 인증 (임시 - 세션 인증 통합 전까지)
+                        .requestMatchers("/api/loan-applications/*/account-verification/**").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )

@@ -1,8 +1,16 @@
 package com.sofit.user.domain.loan.service;
 
+import com.sofit.user.domain.loan.dto.request.AccountVerificationConfirmRequest;
+import com.sofit.user.domain.loan.dto.request.AccountVerificationRequest;
+import com.sofit.user.domain.loan.dto.response.AccountVerificationConfirmResponse;
+import com.sofit.user.domain.loan.dto.response.AccountVerificationResponse;
 import com.sofit.user.domain.loan.dto.response.LoanExecutionResultResponse;
 
 public interface LoanExecutionService {
 
     LoanExecutionResultResponse findExecutionResult(Long userId, Long applicationId);
+
+    AccountVerificationResponse requestAccountVerification(Long applicationId, AccountVerificationRequest request);
+
+    AccountVerificationConfirmResponse confirmAccountVerification(Long applicationId, AccountVerificationConfirmRequest request);
 }
