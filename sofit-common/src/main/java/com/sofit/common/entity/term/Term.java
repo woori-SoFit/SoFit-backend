@@ -39,7 +39,7 @@ public class Term {
     @Column(name = "version", nullable = false, length = 20)
     private String version;
 
-    @Column(name = "title", nullable = false, length = 20)
+    @Column(name = "title", nullable = false, length = 100)
     private String title;
 
     @Column(name = "file_url", nullable = false, length = 500)
