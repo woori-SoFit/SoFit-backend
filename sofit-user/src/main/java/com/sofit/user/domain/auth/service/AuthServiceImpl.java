@@ -1,8 +1,10 @@
 package com.sofit.user.domain.auth.service;
 
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.entity.auth.RegistrationProcess;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.UserStatus;
+import com.sofit.common.repository.auth.RegistrationProcessRepository;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.auth.converter.AuthConverter;
 import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
@@ -22,6 +24,7 @@ import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -29,10 +32,12 @@ public class AuthServiceImpl implements AuthService {
 
     private final ExternalMockClient externalMockClient;
     private final UserRepository userRepository;
+    private final RegistrationProcessRepository registrationProcessRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request) {
+        // 1. External Mock 호출
         ExternalMockApiResponse<ExternalKycResponse> mockResponse =
                 externalMockClient.callKycVerify(request.getBusinessNumber());
 
@@ -40,7 +45,22 @@ public class AuthServiceImpl implements AuthService {
             throw new BaseException(AuthErrorCode.BUSINESS_NOT_FOUND);
         }
 
-        return AuthConverter.toBusinessVerificationResponse(mockResponse.result());
+        ExternalKycResponse kycResult = mockResponse.result();
+
+        // 2. RegistrationProcess 생성 (registration_id 발급, step=STEP_1_COMPLETED)
+        String registrationId = UUID.randomUUID().toString();
+        RegistrationProcess process = RegistrationProcess.createForStep1(
+                registrationId,
+                kycResult.businessNumber(),
+                kycResult.businessName(),
+                kycResult.representativeName(),
+                kycResult.openDate(),
+                kycResult.businessType()
+        );
+        registrationProcessRepository.save(process);
+
+        // 3. 응답 반환 (registrationId 포함)
+        return AuthConverter.toBusinessVerificationResponse(registrationId, kycResult);
     }
 
     @Override

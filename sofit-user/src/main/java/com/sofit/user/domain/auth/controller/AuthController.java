@@ -27,14 +27,9 @@ public class AuthController implements AuthControllerDocs {
 
     @PostMapping("/signup/business-verification")
     public ResponseEntity<ApiResponse<BusinessVerificationResponse>> verifyBusiness(
-            @Valid @RequestBody BusinessVerificationRequest request,
-            HttpSession session) {
+            @Valid @RequestBody BusinessVerificationRequest request) {
 
         BusinessVerificationResponse response = authService.verifyBusiness(request);
-
-        // 인증 결과를 세션에 임시 저장 (회원가입 완료 시 DB 저장에 사용)
-        session.setAttribute("kycVerified", true);
-        session.setAttribute("kycResult", response);
 
         return ResponseEntity.ok(
                 ApiResponse.onSuccess(AuthSuccessCode.BUSINESS_VERIFIED, response)
