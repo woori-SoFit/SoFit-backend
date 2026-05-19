@@ -122,14 +122,60 @@ public interface LoanExecutionService {
 
 ### 3. CodefClient (신규)
 
-코데프 데모 서버와 HTTP 통신을 담당하는 클라이언트.
+코데프 데모 서버와 HTTP 통신을 담당하는 클라이언트. CODEF API는 OAuth 2.0 기반 인증이 필요하므로 accessToken 발급/캐싱/재발급 로직을 포함한다.
+
+#### OAuth 인증 흐름
+
+1. `clientId`와 `clientSecret`을 Base64 인코딩하여 `Authorization: Basic {encoded}` 헤더로 토큰 발급 요청
+2. 토큰 발급 엔드포인트: `https://oauth.codef.io/oauth/token`
+3. 요청 Body: `grant_type=client_credentials&scope=read` (Content-Type: application/x-www-form-urlencoded)
+4. 발급된 accessToken은 Redis에 캐싱 (TTL 6일, 일주일 유효이므로 여유 확보)
+5. API 호출 시 `Authorization: Bearer {accessToken}` 헤더 포함
+6. 토큰 만료 시(401 응답) 재발급 후 재시도 (1회만)
+
+#### CODEF API 응답 구조
+
+```json
+{
+  "result": {
+    "code": "CF-00000",
+    "extraMessage": null,
+    "message": "성공",
+    "transactionId": "f41d087dd6314"
+  },
+  "data": {
+    "authCode": "1234"
+  }
+}
+```
+
+- 성공 판정: `result.code == "CF-00000"`
+- 인증코드 추출: `data.authCode`
+
+#### 설정값 (application.yml)
+
+```yaml
+codef:
+  client-id: ${CODEF_CLIENT_ID}
+  client-secret: ${CODEF_CLIENT_SECRET}
+  base-url: https://development.codef.io
+  oauth-url: https://oauth.codef.io/oauth/token
+```
 
 ```java
 @Component
 public class CodefClient {
+    // accessToken 발급 (clientId + clientSecret → Base64 → OAuth 토큰)
+    // Redis 캐싱 (key: codef:access-token, TTL 6일)
+    // 만료 시 자동 재발급
+    private String getAccessToken();
+
     // 코데프 API 호출 (1원 이체 요청)
     // URL: https://development.codef.io/v1/kr/bank/a/account/transfer-authentication
+    // Header: Authorization: Bearer {accessToken}, Content-Type: application/json
     // Timeout: 연결 30초, 읽기 30초
+    // 응답에서 result.code == "CF-00000" 확인 후 data.authCode 추출
+    // 401 응답 시 토큰 재발급 후 1회 재시도
     public String requestOneWonTransfer(String organization, String account);
 }
 ```
