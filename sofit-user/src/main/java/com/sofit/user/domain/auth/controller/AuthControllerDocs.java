@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.http.ResponseEntity;
 
 @Tag(name = "인증", description = "회원가입, 로그인, 로그아웃 API")
 public interface AuthControllerDocs {
@@ -22,7 +21,7 @@ public interface AuthControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사업자 정보를 찾을 수 없음")
     })
-    ResponseEntity<ApiResponse<BusinessVerificationResponse>> verifyBusiness(
+    ApiResponse<BusinessVerificationResponse> verifyBusiness(
             BusinessVerificationRequest request,
             HttpSession session
     );
@@ -33,7 +32,7 @@ public interface AuthControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "인증서를 찾을 수 없음")
     })
-    ResponseEntity<ApiResponse<FinancialCertVerifyResponse>> verifyFinancialCertificate(
+    ApiResponse<FinancialCertVerifyResponse> verifyFinancialCertificate(
             FinancialCertVerifyRequest request
     );
 
@@ -43,7 +42,7 @@ public interface AuthControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "아이디 또는 비밀번호 불일치"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "탈퇴한 계정")
     })
-    ResponseEntity<ApiResponse<LoginResponse>> login(
+    ApiResponse<LoginResponse> login(
             LoginRequest request,
             HttpSession session
     );

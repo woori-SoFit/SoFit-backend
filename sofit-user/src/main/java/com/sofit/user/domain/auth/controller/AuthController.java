@@ -12,7 +12,6 @@ import com.sofit.user.domain.auth.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,37 +25,28 @@ public class AuthController implements AuthControllerDocs {
     private final AuthService authService;
 
     @PostMapping("/signup/business-verification")
-    public ResponseEntity<ApiResponse<BusinessVerificationResponse>> verifyBusiness(
+    public ApiResponse<BusinessVerificationResponse> verifyBusiness(
             @Valid @RequestBody BusinessVerificationRequest request,
             HttpSession session) {
 
         BusinessVerificationResponse response = authService.verifyBusiness(request, session);
-
-        return ResponseEntity.ok(
-                ApiResponse.onSuccess(AuthSuccessCode.BUSINESS_VERIFIED, response)
-        );
+        return ApiResponse.onSuccess(AuthSuccessCode.BUSINESS_VERIFIED, response);
     }
 
     @PostMapping("/financial-certificate/verify")
-    public ResponseEntity<ApiResponse<FinancialCertVerifyResponse>> verifyFinancialCertificate(
+    public ApiResponse<FinancialCertVerifyResponse> verifyFinancialCertificate(
             @Valid @RequestBody FinancialCertVerifyRequest request) {
 
         FinancialCertVerifyResponse response = authService.verifyFinancialCertificate(request);
-
-        return ResponseEntity.ok(
-                ApiResponse.onSuccess(AuthSuccessCode.PIN_VERIFIED, response)
-        );
+        return ApiResponse.onSuccess(AuthSuccessCode.PIN_VERIFIED, response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(
+    public ApiResponse<LoginResponse> login(
             @Valid @RequestBody LoginRequest request,
             HttpSession session) {
 
         LoginResponse response = authService.login(request, session);
-
-        return ResponseEntity.ok(
-                ApiResponse.onSuccess(AuthSuccessCode.LOGIN_SUCCESS, response)
-        );
+        return ApiResponse.onSuccess(AuthSuccessCode.LOGIN_SUCCESS, response);
     }
 }
