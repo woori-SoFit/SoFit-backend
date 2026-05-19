@@ -14,6 +14,7 @@ public enum AuthErrorCode implements BaseErrorCode {
     INVALID_INPUT_FORMAT(HttpStatus.BAD_REQUEST, "AUTH4002", "입력값 형식이 올바르지 않습니다."),
     BUSINESS_ALREADY_REGISTERED(HttpStatus.BAD_REQUEST, "AUTH4003", "이미 가입된 사업자등록번호입니다."),
     STEP_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "AUTH4004", "이전 단계가 완료되지 않았습니다."),
+    STEP_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "AUTH4007", "이미 완료된 단계입니다."),
     REGISTRATION_EXPIRED(HttpStatus.BAD_REQUEST, "AUTH4005", "인증 정보가 만료되었습니다."),
     CERT_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "AUTH4006", "금융인증서 검증에 실패했습니다."),
 

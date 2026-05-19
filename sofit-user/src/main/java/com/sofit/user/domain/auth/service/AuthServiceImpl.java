@@ -98,28 +98,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
-        // 1. 세션에서 registrationProcessId 조회
-        Long processId = (Long) session.getAttribute("registrationProcessId");
-        if (processId == null) {
-            throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
-        }
-
-        RegistrationProcess process = registrationProcessRepository.findById(processId)
-                .orElseThrow(() -> new BaseException(AuthErrorCode.REGISTRATION_EXPIRED));
-
-        // 2. 만료 체크 (updated_at + 30분)
-        if (process.getUpdatedAt().plusMinutes(30).isBefore(LocalDateTime.now())) {
-            process.expire();
-            registrationProcessRepository.save(process);
-            throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
-        }
-
-        // 3. Step 1 완료 여부 확인
-        if (process.getStep() != RegistrationStep.STEP_1_COMPLETED) {
-            throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
-        }
-
-        // 4. External Mock 서버에 PIN 인증 요청
+        // 1. External Mock 서버에 PIN 인증 요청
         ExternalMockApiResponse<ExternalFinancialCertResponse> mockResponse =
                 externalMockClient.callFinancialCertVerify(request.getPhoneNumber(), request.getPin());
 
@@ -133,14 +112,38 @@ public class AuthServiceImpl implements AuthService {
 
         ExternalFinancialCertResponse certResult = mockResponse.result();
 
-        // 5. 금융인증서 상태 VALID 확인
+        // 2. 금융인증서 상태 VALID 확인
         if (!"VALID".equals(certResult.status())) {
             throw new BaseException(AuthErrorCode.CERT_VERIFICATION_FAILED);
         }
 
-        // 6. 성공 시 RegistrationProcess 갱신
-        process.completeStep2();
-        registrationProcessRepository.save(process);
+        // 3. 회원가입 플로우인 경우 RegistrationProcess 후처리
+        Long processId = (Long) session.getAttribute("registrationProcessId");
+        if (processId != null) {
+            RegistrationProcess process = registrationProcessRepository.findById(processId)
+                    .orElse(null);
+
+            if (process != null) {
+                // 만료 체크
+                if (process.getUpdatedAt().plusMinutes(30).isBefore(LocalDateTime.now())) {
+                    process.expire();
+                    registrationProcessRepository.save(process);
+                    throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
+                }
+
+                // Step 1 완료 여부 확인
+                if (process.getStep() == RegistrationStep.STEP_2_COMPLETED
+                        || process.getStep() == RegistrationStep.COMPLETED) {
+                    throw new BaseException(AuthErrorCode.STEP_ALREADY_COMPLETED);
+                }
+                if (process.getStep() != RegistrationStep.STEP_1_COMPLETED) {
+                    throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
+                }
+
+                process.completeStep2();
+                registrationProcessRepository.save(process);
+            }
+        }
 
         return AuthConverter.toFinancialCertVerifyResponse(certResult);
     }
