@@ -19,4 +19,12 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
     // 특정 사용자의 심사 완료 상태 목록 조회 (updatedAt 내림차순)
     List<LoanApplication> findByUser_UserIdAndStatusInOrderByUpdatedAtDesc(
             Long userId, List<ApplicationStatus> statuses);
+
+    // 동일 상품 중복 신청 체크 (CANCELLED 제외한 모든 상태에 신청이 존재하는지)
+    boolean existsByUser_UserIdAndProduct_ProductIdAndStatusNot(
+            Long userId, Long productId, ApplicationStatus status);
+
+    // 특정 상품에 대한 DRAFT 상태 신청 조회
+    Optional<LoanApplication> findByUser_UserIdAndProduct_ProductIdAndStatus(
+            Long userId, Long productId, ApplicationStatus status);
 }
