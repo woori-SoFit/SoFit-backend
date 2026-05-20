@@ -13,6 +13,7 @@ public enum AuthSuccessCode implements BaseSuccessCode {
     BUSINESS_VERIFIED(HttpStatus.OK, "AUTH2001", "사업자등록번호 인증에 성공했습니다."),
     PIN_VERIFIED(HttpStatus.OK, "AUTH2002", "금융인증서 PIN 인증에 성공했습니다."),
     SIGNUP_COMPLETED(HttpStatus.CREATED, "AUTH2003", "회원가입이 완료되었습니다."),
+    LOGIN_ID_AVAILABLE(HttpStatus.OK, "AUTH2007", "사용 가능한 아이디입니다."),
 
     // 로그인/로그아웃
     LOGIN_SUCCESS(HttpStatus.OK, "AUTH2004", "로그인에 성공했습니다."),

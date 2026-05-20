@@ -12,6 +12,7 @@ public enum AuthErrorCode implements BaseErrorCode {
     // 400 Bad Request
     PIN_MISMATCH(HttpStatus.BAD_REQUEST, "AUTH4001", "PIN 번호가 올바르지 않습니다."),
     INVALID_INPUT_FORMAT(HttpStatus.BAD_REQUEST, "AUTH4002", "입력값 형식이 올바르지 않습니다."),
+    INVALID_LOGIN_ID_FORMAT(HttpStatus.BAD_REQUEST, "AUTH4008", "아이디는 영문/숫자 4~20자여야 합니다."),
     BUSINESS_ALREADY_REGISTERED(HttpStatus.BAD_REQUEST, "AUTH4003", "이미 가입된 사업자등록번호입니다."),
     STEP_NOT_COMPLETED(HttpStatus.BAD_REQUEST, "AUTH4004", "이전 단계가 완료되지 않았습니다."),
     STEP_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "AUTH4007", "이미 완료된 단계입니다."),

@@ -19,6 +19,7 @@ import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalMockApiResponse;
 import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
+import com.sofit.user.domain.auth.dto.response.CheckLoginIdResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
@@ -259,6 +260,18 @@ public class AuthServiceImpl implements AuthService {
         session.removeAttribute("registrationProcessId");
 
         return AuthConverter.toSignupCompleteResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CheckLoginIdResponse checkLoginId(String loginId) {
+        // loginId 유효성 검증: 영문/숫자 4~20자
+        if (loginId == null || !loginId.matches("^[a-zA-Z0-9]{4,20}$")) {
+            throw new BaseException(AuthErrorCode.INVALID_LOGIN_ID_FORMAT);
+        }
+
+        boolean exists = userRepository.existsByLoginId(loginId);
+        return new CheckLoginIdResponse(loginId, !exists);
     }
 
     @Override
