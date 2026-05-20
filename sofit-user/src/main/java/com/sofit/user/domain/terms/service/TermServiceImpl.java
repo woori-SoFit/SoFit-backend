@@ -10,13 +10,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
+import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.term.ConsentHistory;
 import com.sofit.common.entity.term.Term;
 import com.sofit.common.entity.term.enums.TermType;
+import com.sofit.common.entity.user.User;
 import com.sofit.common.repository.ConsentHistoryRepository;
 import com.sofit.common.repository.LoanApplicationRepository;
 import com.sofit.common.repository.TermRepository;
+import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
+import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import com.sofit.user.domain.terms.converter.TermConverter;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest.ConsentItem;
@@ -35,6 +39,7 @@ public class TermServiceImpl implements TermService {
     private final TermRepository termRepository;
     private final ConsentHistoryRepository consentHistoryRepository;
     private final LoanApplicationRepository loanApplicationRepository;
+    private final UserRepository userRepository;
 
     @Value("${sofit.storage.base-url}")
     private String storageBaseUrl;
@@ -54,6 +59,9 @@ public class TermServiceImpl implements TermService {
             throw new BaseException(GeneralErrorCode.UNAUTHORIZED);
         }
         Long userId = (userIdAttr instanceof Long) ? (Long) userIdAttr : Long.valueOf(userIdAttr.toString());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(AuthErrorCode.USER_NOT_FOUND));
 
         List<Long> termIds = request.getConsents().stream()
                 .map(ConsentItem::getTermId)
@@ -85,21 +93,24 @@ public class TermServiceImpl implements TermService {
 
         // 5. applicationId 소유권 검증 (nullable)
         Long applicationId = request.getApplicationId();
+        LoanApplication application = null;
         if (applicationId != null) {
-            loanApplicationRepository.findByApplicationIdAndUser_UserId(applicationId, userId)
+            application = loanApplicationRepository.findByApplicationIdAndUser_UserId(applicationId, userId)
                     .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
         }
 
         // 6. 중복 동의 검증
         boolean hasDuplicate = termIds.stream()
                 .anyMatch(termId -> consentHistoryRepository
-                        .existsByUserIdAndTermIdAndApplicationId(userId, termId, applicationId));
+                        .existsConsent(userId, termId, applicationId));
         if (hasDuplicate) {
             throw new BaseException(TermErrorCode.ALREADY_CONSENTED);
         }
 
         // 7. ConsentHistory 일괄 저장
-        List<ConsentHistory> consentHistories = TermConverter.toConsentHistoryList(userId, request, applicationId);
+        Map<Long, Term> termMap = foundTerms.stream()
+                .collect(Collectors.toMap(Term::getTermId, t -> t));
+        List<ConsentHistory> consentHistories = TermConverter.toConsentHistoryList(user, termMap, application, request);
         List<ConsentHistory> savedHistories = consentHistoryRepository.saveAll(consentHistories);
 
         // 8. 응답 변환

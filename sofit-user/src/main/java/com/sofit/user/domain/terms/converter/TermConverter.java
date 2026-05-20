@@ -1,10 +1,13 @@
 package com.sofit.user.domain.terms.converter;
 
 import java.util.List;
+import java.util.Map;
 
+import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.term.ConsentHistory;
 import com.sofit.common.entity.term.Term;
 import com.sofit.common.entity.term.enums.TermType;
+import com.sofit.common.entity.user.User;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse.ConsentItemResponse;
@@ -31,12 +34,14 @@ public class TermConverter {
         return new TermListResponse(items);
     }
 
-    public static List<ConsentHistory> toConsentHistoryList(Long userId, ConsentCreateRequest request, Long applicationId) {
+    public static List<ConsentHistory> toConsentHistoryList(User user, Map<Long, Term> termMap,
+                                                            LoanApplication application,
+                                                            ConsentCreateRequest request) {
         return request.getConsents().stream()
                 .map(item -> ConsentHistory.builder()
-                        .userId(userId)
-                        .termId(item.getTermId())
-                        .applicationId(applicationId)
+                        .user(user)
+                        .term(termMap.get(item.getTermId()))
+                        .application(application)
                         .isConsented(item.getIsConsented())
                         .build())
                 .toList();
@@ -46,7 +51,7 @@ public class TermConverter {
                                                           List<ConsentHistory> savedHistories) {
         List<ConsentItemResponse> consents = savedHistories.stream()
                 .map(history -> new ConsentItemResponse(
-                        history.getTermId(),
+                        history.getTerm().getTermId(),
                         history.getIsConsented(),
                         history.getConsentedAt()))
                 .toList();

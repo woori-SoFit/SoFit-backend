@@ -5,12 +5,18 @@ import java.time.LocalDateTime;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.sofit.common.entity.loan.LoanApplication;
+import com.sofit.common.entity.user.User;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -29,14 +35,17 @@ public class ConsentHistory {
     @Column(name = "consent_id")
     private Long consentId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(name = "term_id", nullable = false)
-    private Long termId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "term_id", nullable = false)
+    private Term term;
 
-    @Column(name = "application_id")
-    private Long applicationId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id")
+    private LoanApplication application;
 
     @Column(name = "is_consented", nullable = false)
     private Boolean isConsented;
@@ -46,10 +55,10 @@ public class ConsentHistory {
     private LocalDateTime consentedAt;
 
     @Builder
-    public ConsentHistory(Long userId, Long termId, Long applicationId, Boolean isConsented) {
-        this.userId = userId;
-        this.termId = termId;
-        this.applicationId = applicationId;
+    public ConsentHistory(User user, Term term, LoanApplication application, Boolean isConsented) {
+        this.user = user;
+        this.term = term;
+        this.application = application;
         this.isConsented = isConsented;
     }
 }
