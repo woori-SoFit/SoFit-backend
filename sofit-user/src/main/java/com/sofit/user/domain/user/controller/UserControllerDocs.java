@@ -5,7 +5,7 @@ import com.sofit.user.domain.user.dto.response.UserProfileResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Tag(name = "회원", description = "회원 정보 관련 API")
 public interface UserControllerDocs {
@@ -17,5 +17,5 @@ public interface UserControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "탈퇴 계정"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사용자 미존재")
     })
-    ApiResponse<UserProfileResponse> findUser(HttpSession session);
+    ApiResponse<UserProfileResponse> findUser(HttpServletRequest request);
 }
