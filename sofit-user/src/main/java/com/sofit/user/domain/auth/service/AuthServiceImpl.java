@@ -2,6 +2,7 @@ package com.sofit.user.domain.auth.service;
 
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.auth.RegistrationProcess;
+import com.sofit.common.entity.auth.enums.RegistrationStep;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.UserStatus;
 import com.sofit.common.repository.auth.RegistrationProcessRepository;
@@ -29,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,17 +47,19 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session) {
-        // 1. 세션에 이미 프로세스가 있으면 기존 결과 반환 (중복 요청 방지)
-        Long existingProcessId = (Long) session.getAttribute("registrationProcessId");
-        if (existingProcessId != null) {
-            RegistrationProcess existing = registrationProcessRepository.findById(existingProcessId)
-                    .orElse(null);
-            if (existing != null) {
-                return AuthConverter.toBusinessVerificationResponse(existing);
-            }
+        RegistrationProcess existingProcess = registrationProcessRepository
+                .findByBusinessNumber(request.getBusinessNumber())
+                .orElse(null);
+
+        // 유효한 레코드면 기존 결과 반환
+        if (existingProcess != null
+                && existingProcess.getStep() == RegistrationStep.STEP_1_COMPLETED
+                && existingProcess.getUpdatedAt().plusMinutes(30).isAfter(LocalDateTime.now())) {
+            session.setAttribute("registrationProcessId", existingProcess.getId());
+            return AuthConverter.toBusinessVerificationResponse(existingProcess);
         }
 
-        // 2. External Mock 호출
+        // External Mock 호출
         ExternalMockApiResponse<ExternalKycResponse> mockResponse =
                 externalMockClient.callKycVerify(request.getBusinessNumber());
 
@@ -65,27 +69,38 @@ public class AuthServiceImpl implements AuthService {
 
         ExternalKycResponse kycResult = mockResponse.result();
 
-        // 3. 신규 RegistrationProcess 생성
-        RegistrationProcess process = RegistrationProcess.createForStep1(
-                kycResult.businessNumber(),
-                kycResult.businessName(),
-                kycResult.representativeName(),
-                kycResult.openDate(),
-                kycResult.businessType()
-        );
-        registrationProcessRepository.save(process);
+        // 만료된 레코드 있으면 재활용, 없으면 신규 생성
+        RegistrationProcess process;
+        if (existingProcess != null) {
+            existingProcess.updateKycResult(
+                    kycResult.businessNumber(),
+                    kycResult.businessName(),
+                    kycResult.representativeName(),
+                    kycResult.openDate(),
+                    kycResult.businessType()
+            );
+            process = registrationProcessRepository.save(existingProcess);
+        } else {
+            process = RegistrationProcess.createForStep1(
+                    kycResult.businessNumber(),
+                    kycResult.businessName(),
+                    kycResult.representativeName(),
+                    kycResult.openDate(),
+                    kycResult.businessType()
+            );
+            registrationProcessRepository.save(process);
+        }
 
-        // 4. 세션에 PK 저장
         session.setAttribute("registrationProcessId", process.getId());
-
-        // 5. 응답 반환
         return AuthConverter.toBusinessVerificationResponse(kycResult);
     }
 
     @Override
-    public FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request) {
+    @Transactional
+    public FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
+        // 1. External Mock 서버에 PIN 인증 요청
         ExternalMockApiResponse<ExternalFinancialCertResponse> mockResponse =
-                externalMockClient.callFinancialCertVerify(request.phoneNumber(), request.pin());
+                externalMockClient.callFinancialCertVerify(request.getPhoneNumber(), request.getPin());
 
         if (!mockResponse.isSuccess()) {
             String code = mockResponse.code();
@@ -95,7 +110,42 @@ public class AuthServiceImpl implements AuthService {
             throw new BaseException(AuthErrorCode.CERT_NOT_FOUND);
         }
 
-        return AuthConverter.toFinancialCertVerifyResponse(mockResponse.result());
+        ExternalFinancialCertResponse certResult = mockResponse.result();
+
+        // 2. 금융인증서 상태 VALID 확인
+        if (!"VALID".equals(certResult.status())) {
+            throw new BaseException(AuthErrorCode.CERT_VERIFICATION_FAILED);
+        }
+
+        // 3. 회원가입 플로우인 경우 RegistrationProcess 후처리
+        Long processId = (Long) session.getAttribute("registrationProcessId");
+        if (processId != null) {
+            RegistrationProcess process = registrationProcessRepository.findById(processId)
+                    .orElse(null);
+
+            if (process != null) {
+                // 만료 체크
+                if (process.getUpdatedAt().plusMinutes(30).isBefore(LocalDateTime.now())) {
+                    process.expire();
+                    registrationProcessRepository.save(process);
+                    throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
+                }
+
+                // Step 1 완료 여부 확인
+                if (process.getStep() == RegistrationStep.STEP_2_COMPLETED
+                        || process.getStep() == RegistrationStep.COMPLETED) {
+                    throw new BaseException(AuthErrorCode.STEP_ALREADY_COMPLETED);
+                }
+                if (process.getStep() != RegistrationStep.STEP_1_COMPLETED) {
+                    throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
+                }
+
+                process.completeStep2();
+                registrationProcessRepository.save(process);
+            }
+        }
+
+        return AuthConverter.toFinancialCertVerifyResponse(certResult);
     }
 
     @Override
