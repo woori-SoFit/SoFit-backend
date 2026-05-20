@@ -22,7 +22,7 @@ public class UserController implements UserControllerDocs {
     public ApiResponse<UserProfileResponse> findUser(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("userId") == null) {
-            return ApiResponse.onSuccess(UserSuccessCode.USER_PROFILE_OK, null);
+            return ApiResponse.onSuccess(UserSuccessCode.USER_NOT_AUTHENTICATED, null);
         }
         UserProfileResponse response = userService.findUser(session);
         return ApiResponse.onSuccess(UserSuccessCode.USER_PROFILE_OK, response);
