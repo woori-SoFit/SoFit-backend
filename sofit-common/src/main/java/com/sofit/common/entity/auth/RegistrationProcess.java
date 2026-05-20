@@ -29,7 +29,7 @@ public class RegistrationProcess extends BaseEntity {
     private RegistrationStep step;
 
     // KYC 인증 결과 (사업자 정보)
-    @Column(name = "business_number", length = 10)
+    @Column(name = "business_number", length = 10, unique = true)
     private String businessNumber;
 
     @Column(name = "business_name", length = 50)
@@ -75,7 +75,7 @@ public class RegistrationProcess extends BaseEntity {
         process.businessType = businessType;
         process.businessCategory = businessCategory;
         process.businessAddress = businessAddress;
-        process.step = RegistrationStep.STEP_1_COMPLETED;
+        process.step = RegistrationStep.KYC_VERIFIED;
         process.pinVerified = false;
         return process;
     }
@@ -97,25 +97,18 @@ public class RegistrationProcess extends BaseEntity {
         this.businessType = businessType;
         this.businessCategory = businessCategory;
         this.businessAddress = businessAddress;
-        this.step = RegistrationStep.STEP_1_COMPLETED;
+        this.step = RegistrationStep.KYC_VERIFIED;
         this.pinVerified = false;
         this.pinVerifiedAt = null;
     }
 
     /**
-     * Step 2 완료 처리
+     * Step 2 완료 처리 (PIN 인증 완료)
      */
     public void completeStep2() {
         this.pinVerified = true;
         this.pinVerifiedAt = LocalDateTime.now();
-        this.step = RegistrationStep.STEP_2_COMPLETED;
-    }
-
-    /**
-     * 가입 완료 처리
-     */
-    public void completeRegistration() {
-        this.step = RegistrationStep.COMPLETED;
+        this.step = RegistrationStep.PIN_VERIFIED;
     }
 
     /**
