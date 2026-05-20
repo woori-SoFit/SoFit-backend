@@ -76,6 +76,6 @@ public class AuthController implements AuthControllerDocs {
             @RequestParam String loginId) {
 
         CheckLoginIdResponse response = authService.checkLoginId(loginId);
-        return ApiResponse.onSuccess(AuthSuccessCode.LOGIN_ID_AVAILABLE, response);
+        return ApiResponse.onSuccess(AuthSuccessCode.LOGIN_ID_CHECKED, response);
     }
 }
