@@ -29,7 +29,7 @@ public class LoanApplicationConverter {
     public static DraftCheckResponse toDraftCheckResponse(LoanApplication application) {
         LastCompletedStep step = application.getLastCompletedStep();
         String lastStep = step != null ? step.name() : null;
-        String resumeStep = calculateResumeStep(step);
+        String resumeStep = LastCompletedStep.getResumeStep(step);
 
         return new DraftCheckResponse(true, application.getApplicationId(), lastStep, resumeStep);
     }
@@ -40,7 +40,7 @@ public class LoanApplicationConverter {
      */
     public static LoanApplicationResumeResponse toResumeResponse(LoanApplication application) {
         LastCompletedStep step = application.getLastCompletedStep();
-        String resumeStep = calculateResumeStep(step);
+        String resumeStep = LastCompletedStep.getResumeStep(step);
 
         LoanApplicationResumeResponse.SavedData savedData = new LoanApplicationResumeResponse.SavedData(
                 application.getUserInputAnnualIncome() != null
@@ -59,27 +59,5 @@ public class LoanApplicationConverter {
                 resumeStep,
                 savedData
         );
-    }
-
-    /**
-     * lastCompletedStep 기반으로 다음 진행할 단계(resumeStep)를 계산한다.
-     * - null: Step 1만 완료 → 약관 동의(CONSENT)부터
-     * - CONSENT_DONE → 본인인증(AUTH)
-     * - AUTH_DONE → 사업자 정보 확인(BIZ_INFO)
-     * - BIZ_INFO_DONE → 마이데이터 수집(COLLECT_DATA)
-     * - DATA_COLLECTED → 마이비즈데이터 연동(MYBIZ)
-     * - MYBIZ_CONNECTED → 최종 제출(SUBMIT)
-     */
-    private static String calculateResumeStep(LastCompletedStep step) {
-        if (step == null) {
-            return "CONSENT";
-        }
-        return switch (step) {
-            case CONSENT_DONE -> "AUTH";
-            case AUTH_DONE -> "BIZ_INFO";
-            case BIZ_INFO_DONE -> "COLLECT_DATA";
-            case DATA_COLLECTED -> "MYBIZ";
-            case MYBIZ_CONNECTED -> "SUBMIT";
-        };
     }
 }
