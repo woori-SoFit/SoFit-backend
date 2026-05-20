@@ -14,7 +14,6 @@ public record TermListResponse(
             String title,
             String fileUrl,
             Boolean isRequired,
-            Boolean isActive,
             LocalDateTime effectiveAt
     ) {
     }

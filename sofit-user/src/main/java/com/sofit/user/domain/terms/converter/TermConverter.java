@@ -19,7 +19,6 @@ public class TermConverter {
                         term.getTitle(),
                         baseUrl + term.getFileUrl(),
                         term.getIsRequired(),
-                        term.getIsActive(),
                         term.getEffectiveAt()
                 ))
                 .toList();
