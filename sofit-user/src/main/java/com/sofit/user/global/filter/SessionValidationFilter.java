@@ -35,6 +35,7 @@ public class SessionValidationFilter extends OncePerRequestFilter {
         return path.startsWith("/api/auth/signup")
                 || path.equals("/api/auth/login")
                 || path.equals("/api/auth/verify-pin")
+                || path.equals("/api/users/me")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs");
     }

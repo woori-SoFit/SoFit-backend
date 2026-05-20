@@ -37,6 +37,13 @@ external:
   mock:
     url: ${EXTERNAL_MOCK_URL:http://localhost:9090}
 
+# SoFit 내부 설정
+sofit:
+  storage:
+    # 약관 PDF 등 정적 리소스 base URL (응답 시 상대 경로 앞에 붙여서 조립)
+    # MVP: Spring Boot static/ 정적 리소스 / 향후 AWS 이전 시 S3 도메인으로 교체
+    base-url: ${STORAGE_BASE_URL:http://localhost:8080}
+
 # SpringDoc (Swagger UI)
 springdoc:
   swagger-ui:

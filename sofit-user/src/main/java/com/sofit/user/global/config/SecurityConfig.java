@@ -34,7 +34,7 @@ public class SecurityConfig {
                         // Swagger UI 허용
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 인증 불필요 경로
-                        .requestMatchers("/api/auth/signup/**", "/api/auth/login", "/api/auth/verify-pin").permitAll()
+                        .requestMatchers("/api/auth/signup/**", "/api/auth/login", "/api/auth/verify-pin", "/api/users/me").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
