@@ -50,6 +50,8 @@ pipeline {
 
                     docker build --no-cache -t $REGISTRY/sofit-admin-back:latest -f sofit-admin/Dockerfile .
                     docker push $REGISTRY/sofit-admin-back:latest
+
+                    docker image prune -f
                 '''
             }
         }
