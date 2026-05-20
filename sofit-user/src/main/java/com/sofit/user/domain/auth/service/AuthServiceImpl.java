@@ -192,21 +192,24 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional
     public SignupCompleteResponse completeSignup(SignupCompleteRequest request, HttpSession session) {
         // 1. 세션에서 registrationProcessId 조회
         Long processId = (Long) session.getAttribute("registrationProcessId");
         if (processId == null) {
-            throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
+            throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
         }
 
-        RegistrationProcess process = registrationProcessRepository.findById(processId)
-                .orElseThrow(() -> new BaseException(AuthErrorCode.REGISTRATION_EXPIRED));
+        RegistrationProcess process = transactionTemplate.execute(status ->
+                registrationProcessRepository.findById(processId)
+                        .orElseThrow(() -> new BaseException(AuthErrorCode.REGISTRATION_EXPIRED))
+        );
 
-        // 2. 만료 체크
+        // 2. 만료 체크 — 만료 상태를 별도 트랜잭션으로 저장 후 예외 전파
         if (process.getUpdatedAt().plusMinutes(30).isBefore(LocalDateTime.now())) {
-            process.expire();
-            registrationProcessRepository.save(process);
+            transactionTemplate.executeWithoutResult(status -> {
+                process.expire();
+                registrationProcessRepository.save(process);
+            });
             throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
         }
 
@@ -215,39 +218,44 @@ public class AuthServiceImpl implements AuthService {
             throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
         }
 
-        // 4. loginId 중복 체크
-        if (userRepository.existsByLoginId(request.getLoginId())) {
-            throw new BaseException(AuthErrorCode.LOGIN_ID_DUPLICATED);
-        }
+        // 4~8. 가입 처리 (트랜잭션)
+        User user = transactionTemplate.execute(status -> {
+            // loginId 중복 체크
+            if (userRepository.existsByLoginId(request.getLoginId())) {
+                throw new BaseException(AuthErrorCode.LOGIN_ID_DUPLICATED);
+            }
 
-        // 5. User 생성
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-        User user = User.createUser(
-                request.getLoginId(),
-                encodedPassword,
-                request.getName(),
-                request.getPhoneNumber(),
-                request.getResidentNumber()
-        );
-        userRepository.save(user);
+            // User 생성
+            String encodedPassword = passwordEncoder.encode(request.getPassword());
+            User newUser = User.createUser(
+                    request.getLoginId(),
+                    encodedPassword,
+                    request.getName(),
+                    request.getPhoneNumber(),
+                    request.getResidentNumber()
+            );
+            userRepository.save(newUser);
 
-        // 6. BusinessProfile 생성 (KYC 데이터 기반)
-        BusinessProfile businessProfile = BusinessProfile.createVerified(
-                user,
-                process.getBusinessNumber(),
-                process.getRepresentativeName(),
-                process.getBusinessCategory(),
-                process.getBusinessType(),
-                process.getBusinessName(),
-                process.getBusinessAddress(),
-                process.getOpenDate() != null ? java.time.LocalDate.parse(process.getOpenDate()) : null
-        );
-        businessProfileRepository.save(businessProfile);
+            // BusinessProfile 생성 (KYC 데이터 기반)
+            BusinessProfile businessProfile = BusinessProfile.createVerified(
+                    newUser,
+                    process.getBusinessNumber(),
+                    process.getRepresentativeName(),
+                    process.getBusinessCategory(),
+                    process.getBusinessType(),
+                    process.getBusinessName(),
+                    process.getBusinessAddress(),
+                    process.getOpenDate() != null ? java.time.LocalDate.parse(process.getOpenDate()) : null
+            );
+            businessProfileRepository.save(businessProfile);
 
-        // 7. RegistrationProcess 삭제 (가입 완료)
-        registrationProcessRepository.delete(process);
+            // RegistrationProcess 삭제 (가입 완료)
+            registrationProcessRepository.delete(process);
 
-        // 8. 세션에서 registrationProcessId 제거
+            return newUser;
+        });
+
+        // 세션에서 registrationProcessId 제거
         session.removeAttribute("registrationProcessId");
 
         return AuthConverter.toSignupCompleteResponse(user);
