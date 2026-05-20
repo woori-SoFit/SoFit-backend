@@ -204,4 +204,29 @@ class TermConsentControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value("필수 약관에 동의하지 않았습니다."));
     }
 
+    @Test
+    @DisplayName("이미 동의한 약관에 재동의 시 400 응답을 반환한다")
+    void 이미_동의한_약관_재동의시_400_응답_반환() throws Exception {
+        given(termService.createConsents(any(), any()))
+                .willThrow(new BaseException(TermErrorCode.ALREADY_CONSENTED));
+
+        String requestBody = """
+                {
+                    "termType": "PERSONAL_INFO",
+                    "consents": [
+                        {"termId": 1, "isConsented": true}
+                    ]
+                }
+                """;
+
+        mockMvc.perform(post("/api/terms/consents")
+                        .sessionAttr("userId", USER_ID)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.isSuccess").value(false))
+                .andExpect(jsonPath("$.code").value("TERM4003"))
+                .andExpect(jsonPath("$.message").value("이미 동의한 약관입니다."));
+    }
+
 }

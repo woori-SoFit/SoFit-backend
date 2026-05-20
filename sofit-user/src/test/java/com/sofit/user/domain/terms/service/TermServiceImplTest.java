@@ -170,6 +170,32 @@ class TermServiceImplTest {
     }
 
     @Test
+    @DisplayName("이미 동의한 약관에 재동의 시 ALREADY_CONSENTED 예외가 발생한다")
+    void 이미_동의한_약관_재동의시_ALREADY_CONSENTED_예외_발생() {
+        // given
+        Long userId = 1L;
+        HttpSession session = sessionOf(userId);
+        ConsentCreateRequest request = createRequest(TermType.PERSONAL_INFO, null, List.of(
+                createConsentItem(1L, true)
+        ));
+
+        Term term = createTerm(1L, TermType.PERSONAL_INFO, true);
+        given(termRepository.findAllById(List.of(1L))).willReturn(List.of(term));
+        given(consentHistoryRepository.existsByUserIdAndTermIdAndApplicationId(userId, 1L, null))
+                .willReturn(true);
+
+        // when & then
+        assertThatThrownBy(() -> termService.createConsents(session, request))
+                .isInstanceOf(BaseException.class)
+                .satisfies(ex -> {
+                    BaseException baseEx = (BaseException) ex;
+                    assertThat(baseEx.getErrorCode()).isEqualTo(TermErrorCode.ALREADY_CONSENTED);
+                });
+
+        verify(consentHistoryRepository, never()).saveAll(anyList());
+    }
+
+    @Test
     @DisplayName("applicationId가 null이면 소유권 검증을 건너뛴다")
     void applicationId_null이면_소유권_검증_건너뛰기() {
         // given

@@ -90,11 +90,19 @@ public class TermServiceImpl implements TermService {
                     .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
         }
 
-        // 6. ConsentHistory 일괄 저장
+        // 6. 중복 동의 검증
+        boolean hasDuplicate = termIds.stream()
+                .anyMatch(termId -> consentHistoryRepository
+                        .existsByUserIdAndTermIdAndApplicationId(userId, termId, applicationId));
+        if (hasDuplicate) {
+            throw new BaseException(TermErrorCode.ALREADY_CONSENTED);
+        }
+
+        // 7. ConsentHistory 일괄 저장
         List<ConsentHistory> consentHistories = TermConverter.toConsentHistoryList(userId, request, applicationId);
         List<ConsentHistory> savedHistories = consentHistoryRepository.saveAll(consentHistories);
 
-        // 7. 응답 변환
+        // 8. 응답 변환
         return TermConverter.toConsentResponse(request.getTermType(), applicationId, userId, savedHistories);
     }
 }
