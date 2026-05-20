@@ -4,9 +4,11 @@ import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
 import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
 import com.sofit.user.domain.auth.dto.request.LoginRequest;
+import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
 import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
+import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,6 +38,17 @@ public interface AuthControllerDocs {
     })
     ApiResponse<FinancialCertVerifyResponse> verifyFinancialCertificate(
             FinancialCertVerifyRequest request,
+            HttpSession session
+    );
+
+    @Operation(summary = "회원가입 완료", description = "회원가입 Step 3 - 고객 정보를 입력받아 회원가입을 완료합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "회원가입 완료"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "단계 미완료, 만료"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "아이디 중복")
+    })
+    ApiResponse<SignupCompleteResponse> completeSignup(
+            SignupCompleteRequest request,
             HttpSession session
     );
 
