@@ -1,19 +1,24 @@
 package com.sofit.user.domain.terms.converter;
 
-import com.sofit.common.entity.term.ConsentHistory;
-import com.sofit.common.entity.term.enums.TermType;
-import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
-import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
-import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse.ConsentItemResponse;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.sofit.common.entity.loan.LoanApplication;
+import com.sofit.common.entity.term.ConsentHistory;
+import com.sofit.common.entity.term.Term;
+import com.sofit.common.entity.term.enums.TermType;
+import com.sofit.common.entity.user.User;
+import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
+import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
+import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse.ConsentItemResponse;
 
 class TermConverterTest {
 
@@ -22,11 +27,17 @@ class TermConverterTest {
     class ToConsentHistoryListTest {
 
         @Test
-        @DisplayName("요청의 userId, termId, applicationId, isConsented가 정확히 매핑된다")
+        @DisplayName("요청의 user, term, application, isConsented가 정확히 매핑된다")
         void 요청_필드가_ConsentHistory에_정확히_매핑된다() {
             // given
             Long userId = 1L;
             Long applicationId = 100L;
+
+            User user = createUser(userId);
+            Term term1 = createTerm(10L, TermType.LOAN_APPLICATION, true);
+            Term term2 = createTerm(20L, TermType.LOAN_APPLICATION, false);
+            LoanApplication application = createApplication(applicationId);
+            Map<Long, Term> termMap = Map.of(10L, term1, 20L, term2);
 
             ConsentCreateRequest request = new ConsentCreateRequest();
             ReflectionTestUtils.setField(request, "termType", TermType.LOAN_APPLICATION);
@@ -43,29 +54,33 @@ class TermConverterTest {
             ReflectionTestUtils.setField(request, "consents", List.of(item1, item2));
 
             // when
-            List<ConsentHistory> result = TermConverter.toConsentHistoryList(userId, request, applicationId);
+            List<ConsentHistory> result = TermConverter.toConsentHistoryList(user, termMap, application, request);
 
             // then
             assertThat(result).hasSize(2);
 
             ConsentHistory first = result.get(0);
-            assertThat(first.getUserId()).isEqualTo(userId);
-            assertThat(first.getTermId()).isEqualTo(10L);
-            assertThat(first.getApplicationId()).isEqualTo(applicationId);
+            assertThat(first.getUser().getUserId()).isEqualTo(userId);
+            assertThat(first.getTerm().getTermId()).isEqualTo(10L);
+            assertThat(first.getApplication().getApplicationId()).isEqualTo(applicationId);
             assertThat(first.getIsConsented()).isTrue();
 
             ConsentHistory second = result.get(1);
-            assertThat(second.getUserId()).isEqualTo(userId);
-            assertThat(second.getTermId()).isEqualTo(20L);
-            assertThat(second.getApplicationId()).isEqualTo(applicationId);
+            assertThat(second.getUser().getUserId()).isEqualTo(userId);
+            assertThat(second.getTerm().getTermId()).isEqualTo(20L);
+            assertThat(second.getApplication().getApplicationId()).isEqualTo(applicationId);
             assertThat(second.getIsConsented()).isFalse();
         }
 
         @Test
-        @DisplayName("applicationId가 null이면 ConsentHistory의 applicationId도 null이다")
-        void applicationId가_null이면_null로_매핑된다() {
+        @DisplayName("application이 null이면 ConsentHistory의 application도 null이다")
+        void application이_null이면_null로_매핑된다() {
             // given
             Long userId = 2L;
+
+            User user = createUser(userId);
+            Term term = createTerm(5L, TermType.PERSONAL_INFO, true);
+            Map<Long, Term> termMap = Map.of(5L, term);
 
             ConsentCreateRequest request = new ConsentCreateRequest();
             ReflectionTestUtils.setField(request, "termType", TermType.PERSONAL_INFO);
@@ -78,11 +93,11 @@ class TermConverterTest {
             ReflectionTestUtils.setField(request, "consents", List.of(item));
 
             // when
-            List<ConsentHistory> result = TermConverter.toConsentHistoryList(userId, request, null);
+            List<ConsentHistory> result = TermConverter.toConsentHistoryList(user, termMap, null, request);
 
             // then
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getApplicationId()).isNull();
+            assertThat(result.get(0).getApplication()).isNull();
         }
     }
 
@@ -99,17 +114,16 @@ class TermConverterTest {
             Long userId = 3L;
 
             ConsentHistory history = ConsentHistory.builder()
-                    .userId(userId)
-                    .termId(11L)
-                    .applicationId(applicationId)
+                    .user(createUser(userId))
+                    .term(createTerm(11L, TermType.MYDATA, true))
+                    .application(createApplication(applicationId))
                     .isConsented(true)
                     .build();
             ReflectionTestUtils.setField(history, "consentedAt", LocalDateTime.of(2024, 1, 15, 10, 30, 0));
 
-            List<ConsentHistory> savedHistories = List.of(history);
-
             // when
-            ConsentCreateResponse response = TermConverter.toConsentResponse(termType, applicationId, userId, savedHistories);
+            ConsentCreateResponse response = TermConverter.toConsentResponse(termType, applicationId, userId,
+                    List.of(history));
 
             // then
             assertThat(response.termType()).isEqualTo(TermType.MYDATA);
@@ -129,25 +143,24 @@ class TermConverterTest {
             LocalDateTime consentedAt2 = LocalDateTime.of(2024, 3, 10, 9, 0, 1);
 
             ConsentHistory history1 = ConsentHistory.builder()
-                    .userId(userId)
-                    .termId(21L)
-                    .applicationId(applicationId)
+                    .user(createUser(userId))
+                    .term(createTerm(21L, TermType.MYBIZDATA, true))
+                    .application(null)
                     .isConsented(true)
                     .build();
             ReflectionTestUtils.setField(history1, "consentedAt", consentedAt1);
 
             ConsentHistory history2 = ConsentHistory.builder()
-                    .userId(userId)
-                    .termId(22L)
-                    .applicationId(applicationId)
+                    .user(createUser(userId))
+                    .term(createTerm(22L, TermType.MYBIZDATA, false))
+                    .application(null)
                     .isConsented(false)
                     .build();
             ReflectionTestUtils.setField(history2, "consentedAt", consentedAt2);
 
-            List<ConsentHistory> savedHistories = List.of(history1, history2);
-
             // when
-            ConsentCreateResponse response = TermConverter.toConsentResponse(termType, applicationId, userId, savedHistories);
+            ConsentCreateResponse response = TermConverter.toConsentResponse(termType, applicationId, userId,
+                    List.of(history1, history2));
 
             // then
             assertThat(response.consents()).hasSize(2);
@@ -161,6 +174,46 @@ class TermConverterTest {
             assertThat(secondItem.termId()).isEqualTo(22L);
             assertThat(secondItem.isConsented()).isFalse();
             assertThat(secondItem.consentedAt()).isEqualTo(consentedAt2);
+        }
+    }
+
+    // === Helper Methods ===
+
+    private User createUser(Long userId) {
+        try {
+            var constructor = User.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            User user = constructor.newInstance();
+            ReflectionTestUtils.setField(user, "userId", userId);
+            return user;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Term createTerm(Long termId, TermType termType, Boolean isRequired) {
+        try {
+            var constructor = Term.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            Term term = constructor.newInstance();
+            ReflectionTestUtils.setField(term, "termId", termId);
+            ReflectionTestUtils.setField(term, "termType", termType);
+            ReflectionTestUtils.setField(term, "isRequired", isRequired);
+            return term;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private LoanApplication createApplication(Long applicationId) {
+        try {
+            var constructor = LoanApplication.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            LoanApplication application = constructor.newInstance();
+            ReflectionTestUtils.setField(application, "applicationId", applicationId);
+            return application;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

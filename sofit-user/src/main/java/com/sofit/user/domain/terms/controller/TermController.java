@@ -18,7 +18,6 @@ public class TermController implements TermControllerDocs {
 
     private final TermService termService;
 
-    // TODO: 인증 적용 시 @AuthenticationPrincipal 추가
     @Override
     @GetMapping
     public ApiResponse<TermListResponse> getTerms(@RequestParam TermType termType) {

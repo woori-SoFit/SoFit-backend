@@ -27,9 +27,11 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.term.ConsentHistory;
 import com.sofit.common.entity.term.Term;
 import com.sofit.common.entity.term.enums.TermType;
+import com.sofit.common.entity.user.User;
 import com.sofit.common.repository.ConsentHistoryRepository;
 import com.sofit.common.repository.LoanApplicationRepository;
 import com.sofit.common.repository.TermRepository;
+import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
@@ -48,6 +50,9 @@ class TermServiceImplTest {
 
     @Mock
     private LoanApplicationRepository loanApplicationRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private TermServiceImpl termService;
@@ -76,7 +81,11 @@ class TermServiceImplTest {
     @DisplayName("존재하지 않는 termId로 요청 시 TERM_NOT_FOUND 예외가 발생한다")
     void 존재하지_않는_termId_요청시_TERM_NOT_FOUND_예외_발생() {
         // given
-        HttpSession session = sessionOf(1L);
+        Long userId = 1L;
+        HttpSession session = sessionOf(userId);
+        User user = createUser(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
         ConsentCreateRequest request = createRequest(TermType.PERSONAL_INFO, null, List.of(
                 createConsentItem(100L, true),
                 createConsentItem(200L, true)
@@ -100,7 +109,11 @@ class TermServiceImplTest {
     @DisplayName("termType이 일치하지 않으면 TERM_TYPE_MISMATCH 예외가 발생한다")
     void termType_불일치시_TERM_TYPE_MISMATCH_예외_발생() {
         // given
-        HttpSession session = sessionOf(1L);
+        Long userId = 1L;
+        HttpSession session = sessionOf(userId);
+        User user = createUser(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
         ConsentCreateRequest request = createRequest(TermType.PERSONAL_INFO, null, List.of(
                 createConsentItem(1L, true)
         ));
@@ -123,7 +136,11 @@ class TermServiceImplTest {
     @DisplayName("필수 약관에 동의하지 않으면 REQUIRED_TERM_NOT_CONSENTED 예외가 발생한다")
     void 필수_약관_미동의시_REQUIRED_TERM_NOT_CONSENTED_예외_발생() {
         // given
-        HttpSession session = sessionOf(1L);
+        Long userId = 1L;
+        HttpSession session = sessionOf(userId);
+        User user = createUser(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
         ConsentCreateRequest request = createRequest(TermType.PERSONAL_INFO, null, List.of(
                 createConsentItem(1L, false)
         ));
@@ -149,6 +166,9 @@ class TermServiceImplTest {
         Long userId = 1L;
         Long applicationId = 99L;
         HttpSession session = sessionOf(userId);
+        User user = createUser(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
         ConsentCreateRequest request = createRequest(TermType.LOAN_APPLICATION, applicationId, List.of(
                 createConsentItem(1L, true)
         ));
@@ -175,14 +195,16 @@ class TermServiceImplTest {
         // given
         Long userId = 1L;
         HttpSession session = sessionOf(userId);
+        User user = createUser(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
         ConsentCreateRequest request = createRequest(TermType.PERSONAL_INFO, null, List.of(
                 createConsentItem(1L, true)
         ));
 
         Term term = createTerm(1L, TermType.PERSONAL_INFO, true);
         given(termRepository.findAllById(List.of(1L))).willReturn(List.of(term));
-        given(consentHistoryRepository.existsByUserIdAndTermIdAndApplicationId(userId, 1L, null))
-                .willReturn(true);
+        given(consentHistoryRepository.existsConsent(userId, 1L, null)).willReturn(true);
 
         // when & then
         assertThatThrownBy(() -> termService.createConsents(session, request))
@@ -201,6 +223,9 @@ class TermServiceImplTest {
         // given
         Long userId = 1L;
         HttpSession session = sessionOf(userId);
+        User user = createUser(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
         ConsentCreateRequest request = createRequest(TermType.PERSONAL_INFO, null, List.of(
                 createConsentItem(1L, true)
         ));
@@ -229,6 +254,9 @@ class TermServiceImplTest {
         Long userId = 1L;
         Long applicationId = 10L;
         HttpSession session = sessionOf(userId);
+        User user = createUser(userId);
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
         ConsentCreateRequest request = createRequest(TermType.LOAN_APPLICATION, applicationId, List.of(
                 createConsentItem(1L, true),
                 createConsentItem(2L, true)
@@ -274,28 +302,55 @@ class TermServiceImplTest {
         return session;
     }
 
-    private Term createTerm(Long termId, TermType termType, Boolean isRequired) {
-        Term term;
+    private User createUser(Long userId) {
         try {
-            var constructor = Term.class.getDeclaredConstructor();
+            var constructor = User.class.getDeclaredConstructor();
             constructor.setAccessible(true);
-            term = constructor.newInstance();
+            User user = constructor.newInstance();
+            ReflectionTestUtils.setField(user, "userId", userId);
+            return user;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        ReflectionTestUtils.setField(term, "termId", termId);
-        ReflectionTestUtils.setField(term, "termType", termType);
-        ReflectionTestUtils.setField(term, "isRequired", isRequired);
-        ReflectionTestUtils.setField(term, "isActive", true);
-        return term;
+    }
+
+    private Term createTerm(Long termId, TermType termType, Boolean isRequired) {
+        try {
+            var constructor = Term.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            Term term = constructor.newInstance();
+            ReflectionTestUtils.setField(term, "termId", termId);
+            ReflectionTestUtils.setField(term, "termType", termType);
+            ReflectionTestUtils.setField(term, "isRequired", isRequired);
+            ReflectionTestUtils.setField(term, "isActive", true);
+            return term;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private LoanApplication createApplication(Long applicationId) {
+        try {
+            var constructor = LoanApplication.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            LoanApplication application = constructor.newInstance();
+            ReflectionTestUtils.setField(application, "applicationId", applicationId);
+            return application;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private ConsentHistory createConsentHistory(Long consentId, Long userId, Long termId,
                                                  Long applicationId, Boolean isConsented) {
+        User user = createUser(userId);
+        Term term = createTerm(termId, TermType.PERSONAL_INFO, true);
+        LoanApplication application = applicationId != null ? createApplication(applicationId) : null;
+
         ConsentHistory history = ConsentHistory.builder()
-                .userId(userId)
-                .termId(termId)
-                .applicationId(applicationId)
+                .user(user)
+                .term(term)
+                .application(application)
                 .isConsented(isConsented)
                 .build();
         ReflectionTestUtils.setField(history, "consentId", consentId);
