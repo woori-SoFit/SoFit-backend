@@ -6,6 +6,7 @@ import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.loan.enums.CreditScoreRange;
 import com.sofit.common.entity.loan.enums.ExistingLoanAmount;
 import com.sofit.common.entity.loan.enums.IncomeType;
+import com.sofit.common.entity.loan.enums.LastCompletedStep;
 import com.sofit.common.entity.loan.enums.LoanPurpose;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
 import com.sofit.common.entity.user.User;
@@ -76,6 +77,10 @@ public class LoanApplication extends BaseEntity {
     @Column(name = "status", nullable = false)
     private ApplicationStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "last_completed_step", length = 30)
+    private LastCompletedStep lastCompletedStep;
+
     @Column(name = "applied_at")
     private LocalDateTime appliedAt;
 
@@ -109,5 +114,9 @@ public class LoanApplication extends BaseEntity {
 
     public void updateStatus(ApplicationStatus newStatus) {
         this.status = newStatus;
+    }
+
+    public void updateLastCompletedStep(LastCompletedStep step) {
+        this.lastCompletedStep = step;
     }
 }
