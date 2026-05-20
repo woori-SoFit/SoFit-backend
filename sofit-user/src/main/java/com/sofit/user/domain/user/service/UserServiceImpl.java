@@ -3,7 +3,7 @@ package com.sofit.user.domain.user.service;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.entity.user.UserStatus;
+import com.sofit.common.entity.user.enums.UserStatus;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.user.converter.UserConverter;
 import com.sofit.user.domain.user.dto.response.UserProfileResponse;

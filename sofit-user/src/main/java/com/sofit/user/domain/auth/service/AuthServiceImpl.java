@@ -5,7 +5,7 @@ import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.auth.RegistrationProcess;
 import com.sofit.common.entity.auth.enums.RegistrationStep;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.entity.user.UserStatus;
+import com.sofit.common.entity.user.enums.UserStatus;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.auth.RegistrationProcessRepository;
 import com.sofit.common.repository.user.UserRepository;
@@ -55,6 +55,8 @@ public class AuthServiceImpl implements AuthService {
     private final HttpSessionSecurityContextRepository securityContextRepository;
     private final TransactionTemplate transactionTemplate;
 
+    private final String REGISTRATIONPROCESSID = "registrationProcessId";
+
     @Override
     public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session) {
         // 1. 이미 가입 완료된 사업자 체크 + 기존 프로세스 조회 (트랜잭션)
@@ -74,7 +76,7 @@ public class AuthServiceImpl implements AuthService {
         if (existingProcess != null
                 && existingProcess.getStep() == RegistrationStep.KYC_VERIFIED
                 && existingProcess.getUpdatedAt().plusMinutes(30).isAfter(LocalDateTime.now())) {
-            session.setAttribute("registrationProcessId", existingProcess.getId());
+            session.setAttribute(REGISTRATIONPROCESSID, existingProcess.getId());
             return AuthConverter.toBusinessVerificationResponse(existingProcess);
         }
 
@@ -120,7 +122,7 @@ public class AuthServiceImpl implements AuthService {
             }
         });
 
-        session.setAttribute("registrationProcessId", process.getId());
+        session.setAttribute(REGISTRATIONPROCESSID, process.getId());
         return AuthConverter.toBusinessVerificationResponse(kycResult);
     }
 
@@ -146,7 +148,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 3. 회원가입 플로우인 경우 RegistrationProcess 후처리 (트랜잭션)
-        Long processId = (Long) session.getAttribute("registrationProcessId");
+        Long processId = (Long) session.getAttribute(REGISTRATIONPROCESSID);
         if (processId != null) {
             processRegistrationStep2(processId);
         }
@@ -195,7 +197,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public SignupCompleteResponse completeSignup(SignupCompleteRequest request, HttpSession session) {
         // 1. 세션에서 registrationProcessId 조회
-        Long processId = (Long) session.getAttribute("registrationProcessId");
+        Long processId = (Long) session.getAttribute(REGISTRATIONPROCESSID);
         if (processId == null) {
             throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
         }
@@ -257,7 +259,7 @@ public class AuthServiceImpl implements AuthService {
         });
 
         // 세션에서 registrationProcessId 제거
-        session.removeAttribute("registrationProcessId");
+        session.removeAttribute(REGISTRATIONPROCESSID);
 
         return AuthConverter.toSignupCompleteResponse(user);
     }
