@@ -77,7 +77,4 @@ public class LoanProduct extends BaseEntity {
 
     @Column(name = "scb_limit")
     private Integer scbLimit;
-
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
-    private List<LoanProductOption> options = new ArrayList<>();
 }
