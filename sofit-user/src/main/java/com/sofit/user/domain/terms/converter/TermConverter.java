@@ -36,8 +36,8 @@ public class TermConverter {
 
     public static List<ConsentHistory> toConsentHistoryList(User user, Map<Long, Term> termMap,
                                                             LoanApplication application,
-                                                            ConsentCreateRequest request) {
-        return request.getConsents().stream()
+                                                            List<ConsentCreateRequest.ConsentItem> consents) {
+        return consents.stream()
                 .map(item -> ConsentHistory.builder()
                         .user(user)
                         .term(termMap.get(item.getTermId()))

@@ -99,19 +99,19 @@ public class TermServiceImpl implements TermService {
                     .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
         }
 
-        // 6. 중복 동의 검증
-        boolean hasDuplicate = termIds.stream()
-                .anyMatch(termId -> consentHistoryRepository
-                        .existsConsent(userId, termId, applicationId));
-        if (hasDuplicate) {
-            throw new BaseException(TermErrorCode.ALREADY_CONSENTED);
-        }
-
-        // 7. ConsentHistory 일괄 저장
+        // 6. 기존 동의 이력 조회 (이미 전부 동의된 경우 저장 없이 기존 이력 반환)
         Map<Long, Term> termMap = foundTerms.stream()
                 .collect(Collectors.toMap(Term::getTermId, t -> t));
-        List<ConsentHistory> consentHistories = TermConverter.toConsentHistoryList(user, termMap, application, request);
-        List<ConsentHistory> savedHistories = consentHistoryRepository.saveAll(consentHistories);
+
+        List<ConsentHistory> existingHistories = consentHistoryRepository
+                .findExistingConsents(userId, termIds, applicationId);
+        if (existingHistories.size() == termIds.size()) {
+            return TermConverter.toConsentResponse(request.getTermType(), applicationId, userId, existingHistories);
+        }
+
+        // 7. 신규 동의 항목 ConsentHistory 저장
+        List<ConsentHistory> savedHistories = consentHistoryRepository.saveAll(
+                TermConverter.toConsentHistoryList(user, termMap, application, request.getConsents()));
 
         // 8. 응답 변환
         return TermConverter.toConsentResponse(request.getTermType(), applicationId, userId, savedHistories);

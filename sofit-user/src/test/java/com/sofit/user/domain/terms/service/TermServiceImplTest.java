@@ -190,8 +190,8 @@ class TermServiceImplTest {
     }
 
     @Test
-    @DisplayName("이미 동의한 약관에 재동의 시 ALREADY_CONSENTED 예외가 발생한다")
-    void 이미_동의한_약관_재동의시_ALREADY_CONSENTED_예외_발생() {
+    @DisplayName("이미 전부 동의한 약관에 재요청 시 saveAll 없이 기존 이력을 반환한다")
+    void 이미_전부_동의한_약관_재요청시_기존_이력_반환() {
         // given
         Long userId = 1L;
         HttpSession session = sessionOf(userId);
@@ -204,17 +204,19 @@ class TermServiceImplTest {
 
         Term term = createTerm(1L, TermType.PERSONAL_INFO, true);
         given(termRepository.findAllById(List.of(1L))).willReturn(List.of(term));
-        given(consentHistoryRepository.existsConsent(userId, 1L, null)).willReturn(true);
 
-        // when & then
-        assertThatThrownBy(() -> termService.createConsents(session, request))
-                .isInstanceOf(BaseException.class)
-                .satisfies(ex -> {
-                    BaseException baseEx = (BaseException) ex;
-                    assertThat(baseEx.getErrorCode()).isEqualTo(TermErrorCode.ALREADY_CONSENTED);
-                });
+        ConsentHistory existingHistory = createConsentHistory(1L, userId, 1L, null, true);
+        given(consentHistoryRepository.findExistingConsents(userId, List.of(1L), null))
+                .willReturn(List.of(existingHistory));
 
+        // when
+        ConsentCreateResponse response = termService.createConsents(session, request);
+
+        // then
         verify(consentHistoryRepository, never()).saveAll(anyList());
+        assertThat(response).isNotNull();
+        assertThat(response.consents()).hasSize(1);
+        assertThat(response.consents().get(0).termId()).isEqualTo(1L);
     }
 
     @Test
@@ -232,6 +234,7 @@ class TermServiceImplTest {
 
         Term term = createTerm(1L, TermType.PERSONAL_INFO, true);
         given(termRepository.findAllById(List.of(1L))).willReturn(List.of(term));
+        given(consentHistoryRepository.findExistingConsents(userId, List.of(1L), null)).willReturn(List.of());
 
         List<ConsentHistory> savedHistories = List.of(
                 createConsentHistory(1L, userId, 1L, null, true)
@@ -268,6 +271,8 @@ class TermServiceImplTest {
 
         given(loanApplicationRepository.findByApplicationIdAndUser_UserId(applicationId, userId))
                 .willReturn(Optional.of(mock(LoanApplication.class)));
+        given(consentHistoryRepository.findExistingConsents(userId, List.of(1L, 2L), applicationId))
+                .willReturn(List.of());
 
         LocalDateTime now = LocalDateTime.now();
         List<ConsentHistory> savedHistories = List.of(
