@@ -1,9 +1,11 @@
 package com.sofit.user.domain.loan.service;
 
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
+import com.sofit.user.domain.loan.dto.request.LoanApplicationSubmitRequest;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
+import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
 
 public interface LoanApplicationService {
 
@@ -15,4 +17,7 @@ public interface LoanApplicationService {
 
     // 이어가기 데이터 조회
     LoanApplicationResumeResponse getResumeData(Long userId, Long applicationId);
+
+    // 최종 제출 (심사 요청) — DRAFT → SUBMITTED
+    LoanApplicationSubmitResponse submitApplication(Long userId, Long applicationId, LoanApplicationSubmitRequest request);
 }

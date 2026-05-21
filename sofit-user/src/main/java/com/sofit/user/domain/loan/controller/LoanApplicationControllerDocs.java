@@ -2,6 +2,7 @@ package com.sofit.user.domain.loan.controller;
 
 import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
+import com.sofit.user.domain.loan.dto.request.LoanApplicationSubmitRequest;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
@@ -9,6 +10,7 @@ import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
+import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -48,6 +50,18 @@ public interface LoanApplicationControllerDocs {
     })
     ApiResponse<LoanApplicationResumeResponse> getResumeData(
             @Parameter(description = "대출 신청 ID", required = true, example = "1") Long applicationId,
+            HttpServletRequest httpRequest
+    );
+
+    @Operation(summary = "최종 제출 (심사 요청)", description = "DRAFT 상태의 대출 신청을 최종 제출하여 심사를 요청합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "심사 요청 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "DRAFT 상태가 아닌 신청"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "신청 건을 찾을 수 없음")
+    })
+    ApiResponse<LoanApplicationSubmitResponse> submitApplication(
+            @Parameter(description = "대출 신청 ID", required = true, example = "1") Long applicationId,
+            LoanApplicationSubmitRequest request,
             HttpServletRequest httpRequest
     );
 

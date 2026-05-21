@@ -12,9 +12,11 @@ import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import com.sofit.user.domain.loan.converter.LoanApplicationConverter;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
+import com.sofit.user.domain.loan.dto.request.LoanApplicationSubmitRequest;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
+import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -102,5 +104,35 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         }
 
         return LoanApplicationConverter.toResumeResponse(application);
+    }
+
+    /**
+     * 최종 제출 (심사 요청)
+     * - DRAFT 상태인 신청을 SUBMITTED로 변경하고 applied_at을 기록
+     * - 희망 대출 조건(금액, 기간, 상환방식, 용도)을 저장
+     */
+    @Override
+    @Transactional
+    public LoanApplicationSubmitResponse submitApplication(Long userId, Long applicationId,
+                                                           LoanApplicationSubmitRequest request) {
+        // 1. 본인 소유 확인
+        LoanApplication application = loanApplicationRepository
+                .findByApplicationIdAndUser_UserId(applicationId, userId)
+                .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
+
+        // 2. DRAFT 상태 확인
+        if (application.getStatus() != ApplicationStatus.DRAFT) {
+            throw new BaseException(LoanErrorCode.APPLICATION_NOT_DRAFT);
+        }
+
+        // 3. 제출 처리 (status → SUBMITTED, appliedAt 기록)
+        application.submit(
+                request.getRequestedAmount(),
+                request.getRequestedTerm(),
+                request.getRepaymentMethod(),
+                request.getPurpose()
+        );
+
+        return LoanApplicationConverter.toSubmitResponse(application);
     }
 }
