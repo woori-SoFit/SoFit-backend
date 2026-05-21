@@ -1,6 +1,8 @@
 package com.sofit.common.entity.user;
 
 import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.user.enums.UserStatus;
+import com.sofit.common.entity.user.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 

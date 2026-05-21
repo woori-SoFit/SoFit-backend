@@ -170,16 +170,16 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
 - [x] 8. Phase 4 Checkpoint
   - 컴파일 확인, Step 2 API 동작 확인. 문제 발생 시 사용자에게 질문.
 
-- [ ] 9. Phase 5: 회원가입 Step 3 가입 완료 [SOFIT-23]
+- [x] 9. Phase 5: 회원가입 Step 3 가입 완료 [SOFIT-23]
   - 신규 구현. Step 2 완료 후 고객정보를 입력받아 회원가입을 완료한다.
   - 커밋: `[SOFIT-23] Feat: 회원가입 Step 3 가입 완료 API 구현`
 
-  - [ ] 9.1 SignupCompleteRequest / SignupCompleteResponse DTO 생성
+  - [x] 9.1 SignupCompleteRequest / SignupCompleteResponse DTO 생성
     - SignupCompleteRequest.java (class: @NotBlank registrationId, @NotBlank @Pattern loginId, @NotBlank @Pattern password, @NotBlank name, @NotBlank @Pattern residentNumber 7자리, @NotBlank @Pattern phoneNumber 11자리)
     - SignupCompleteResponse.java (record: userId, loginId, name, role)
     - _Requirements: 4.1, 4.5, 4.6, 4.7, 4.8_
 
-  - [ ] 9.2 AuthService에 completeSignup 메서드 추가 및 구현
+  - [x] 9.2 AuthService에 completeSignup 메서드 추가 및 구현
     - `SignupCompleteResponse completeSignup(SignupCompleteRequest request)` 추가
     - `@Transactional`로 User 생성 + BusinessProfile 생성 + RegistrationProcess 갱신을 하나의 트랜잭션으로 묶어 처리
     - registrationId로 RegistrationProcess 조회 + 만료 체크 + Step 2 완료 확인
@@ -190,7 +190,7 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
     - KYC 데이터를 기반으로 BusinessProfile 생성하여 User에 연결
     - _Requirements: 1.4, 4.1, 4.2, 4.3, 4.4, 4.9, 4.10, 4.11_
 
-  - [ ] 9.3 AuthController에 가입 완료 엔드포인트 추가
+  - [x] 9.3 AuthController에 가입 완료 엔드포인트 추가
     - `POST /api/auth/signup/complete` 엔드포인트 추가
     - AuthControllerDocs 인터페이스 업데이트
     - 응답: `ApiResponse.onSuccess(AuthSuccessCode.AUTH2003, response)`
@@ -201,10 +201,10 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
     - **Property 6: 회원가입 완료 상태 전이**
     - **Validates: Requirements 1.4, 4.2, 4.3, 4.4**
 
-- [ ] 10. Phase 5 Checkpoint
+- [x] 10. Phase 5 Checkpoint
   - 컴파일 확인, Step 3 API 동작 확인, 전체 회원가입 플로우(Step 1→2→3) 연결 확인. 문제 발생 시 사용자에게 질문.
 
-- [ ] 11. Phase 6: 로그아웃 [SOFIT-23]
+- [ ] 11. Phase 6: 로그아웃 [SOFIT-26]
   - 세션 삭제를 통한 로그아웃 기능을 구현한다.
   - 커밋: `[SOFIT-23] Feat: 로그아웃 API 구현`
 

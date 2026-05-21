@@ -7,6 +7,7 @@ import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
 import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
+import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 
 import java.time.LocalDateTime;
 
@@ -49,6 +50,15 @@ public class AuthConverter {
     public static LoginResponse toLoginResponse(User user) {
         return new LoginResponse(
                 user.getUserId(),
+                user.getName(),
+                user.getRole().name()
+        );
+    }
+
+    public static SignupCompleteResponse toSignupCompleteResponse(User user) {
+        return new SignupCompleteResponse(
+                user.getUserId(),
+                user.getLoginId(),
                 user.getName(),
                 user.getRole().name()
         );

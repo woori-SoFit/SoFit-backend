@@ -4,9 +4,12 @@ import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
 import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
 import com.sofit.user.domain.auth.dto.request.LoginRequest;
+import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
+import com.sofit.user.domain.auth.dto.response.CheckLoginIdResponse;
 import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
+import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,6 +42,17 @@ public interface AuthControllerDocs {
             HttpSession session
     );
 
+    @Operation(summary = "회원가입 완료", description = "회원가입 Step 3 - 고객 정보를 입력받아 회원가입을 완료합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "회원가입 완료"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "단계 미완료, 만료"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "아이디 중복")
+    })
+    ApiResponse<SignupCompleteResponse> completeSignup(
+            SignupCompleteRequest request,
+            HttpSession session
+    );
+
     @Operation(summary = "로그인", description = "아이디와 비밀번호로 로그인합니다. 세션 쿠키가 발급됩니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공"),
@@ -50,4 +64,10 @@ public interface AuthControllerDocs {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse
     );
+
+    @Operation(summary = "로그인 아이디 중복 확인", description = "회원가입 시 로그인 아이디의 사용 가능 여부를 확인합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "확인 완료")
+    })
+    ApiResponse<CheckLoginIdResponse> checkLoginId(String loginId);
 }

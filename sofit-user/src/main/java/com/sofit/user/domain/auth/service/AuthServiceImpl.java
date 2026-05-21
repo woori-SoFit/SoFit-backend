@@ -1,27 +1,33 @@
 package com.sofit.user.domain.auth.service;
 
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.auth.RegistrationProcess;
 import com.sofit.common.entity.auth.enums.RegistrationStep;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.entity.user.UserStatus;
+import com.sofit.common.entity.user.enums.UserStatus;
+import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.auth.RegistrationProcessRepository;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.auth.converter.AuthConverter;
 import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
 import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
 import com.sofit.user.domain.auth.dto.request.LoginRequest;
+import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalMockApiResponse;
 import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
+import com.sofit.user.domain.auth.dto.response.CheckLoginIdResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
+import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -31,10 +37,12 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -42,24 +50,37 @@ public class AuthServiceImpl implements AuthService {
     private final ExternalMockClient externalMockClient;
     private final UserRepository userRepository;
     private final RegistrationProcessRepository registrationProcessRepository;
+    private final BusinessProfileRepository businessProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final HttpSessionSecurityContextRepository securityContextRepository;
+    private final TransactionTemplate transactionTemplate;
+
+    private final String REGISTRATIONPROCESSID = "registrationProcessId";
 
     @Override
     public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session) {
-        RegistrationProcess existingProcess = registrationProcessRepository
-                .findByBusinessNumber(request.getBusinessNumber())
-                .orElse(null);
+        // 1. 이미 가입 완료된 사업자 체크 + 기존 프로세스 조회 (트랜잭션)
+        RegistrationProcess existingProcess = transactionTemplate.execute(status -> {
+            businessProfileRepository.findByBusinessNumber(request.getBusinessNumber())
+                    .filter(bp -> bp.getUser().getStatus() == UserStatus.ACTIVE)
+                    .ifPresent(bp -> {
+                        throw new BaseException(AuthErrorCode.BUSINESS_ALREADY_REGISTERED);
+                    });
 
-        // 유효한 레코드면 기존 결과 반환
+            return registrationProcessRepository
+                    .findByBusinessNumber(request.getBusinessNumber())
+                    .orElse(null);
+        });
+
+        // 2. 유효한 레코드면 기존 결과 반환 (DB 작업 없음)
         if (existingProcess != null
-                && existingProcess.getStep() == RegistrationStep.STEP_1_COMPLETED
+                && existingProcess.getStep() == RegistrationStep.KYC_VERIFIED
                 && existingProcess.getUpdatedAt().plusMinutes(30).isAfter(LocalDateTime.now())) {
-            session.setAttribute("registrationProcessId", existingProcess.getId());
+            session.setAttribute(REGISTRATIONPROCESSID, existingProcess.getId());
             return AuthConverter.toBusinessVerificationResponse(existingProcess);
         }
 
-        // External Mock 호출
+        // 3. External Mock 호출 (트랜잭션 밖 — DB 커넥션 미점유)
         ExternalMockApiResponse<ExternalKycResponse> mockResponse =
                 externalMockClient.callKycVerify(request.getBusinessNumber());
 
@@ -69,36 +90,45 @@ public class AuthServiceImpl implements AuthService {
 
         ExternalKycResponse kycResult = mockResponse.result();
 
-        // 만료된 레코드 있으면 재활용, 없으면 신규 생성
-        RegistrationProcess process;
-        if (existingProcess != null) {
-            existingProcess.updateKycResult(
-                    kycResult.businessNumber(),
-                    kycResult.businessName(),
-                    kycResult.representativeName(),
-                    kycResult.openDate(),
-                    kycResult.businessType()
-            );
-            process = registrationProcessRepository.save(existingProcess);
-        } else {
-            process = RegistrationProcess.createForStep1(
-                    kycResult.businessNumber(),
-                    kycResult.businessName(),
-                    kycResult.representativeName(),
-                    kycResult.openDate(),
-                    kycResult.businessType()
-            );
-            registrationProcessRepository.save(process);
-        }
+        // 4. DB 저장 (트랜잭션)
+        final RegistrationProcess finalExistingProcess = existingProcess;
+        RegistrationProcess process = transactionTemplate.execute(status -> {
+            if (finalExistingProcess != null && finalExistingProcess.getStep() == RegistrationStep.KYC_VERIFIED) {
+                finalExistingProcess.updateKycResult(
+                        kycResult.businessNumber(),
+                        kycResult.businessName(),
+                        kycResult.representativeName(),
+                        kycResult.openDate(),
+                        kycResult.businessType(),
+                        kycResult.businessCategory(),
+                        kycResult.businessAddress()
+                );
+                return registrationProcessRepository.save(finalExistingProcess);
+            } else {
+                if (finalExistingProcess != null) {
+                    registrationProcessRepository.delete(finalExistingProcess);
+                    registrationProcessRepository.flush();
+                }
+                RegistrationProcess newProcess = RegistrationProcess.createForStep1(
+                        kycResult.businessNumber(),
+                        kycResult.businessName(),
+                        kycResult.representativeName(),
+                        kycResult.openDate(),
+                        kycResult.businessType(),
+                        kycResult.businessCategory(),
+                        kycResult.businessAddress()
+                );
+                return registrationProcessRepository.save(newProcess);
+            }
+        });
 
-        session.setAttribute("registrationProcessId", process.getId());
+        session.setAttribute(REGISTRATIONPROCESSID, process.getId());
         return AuthConverter.toBusinessVerificationResponse(kycResult);
     }
 
     @Override
-    @Transactional
     public FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
-        // 1. External Mock 서버에 PIN 인증 요청
+        // 1. External Mock 서버에 PIN 인증 요청 (트랜잭션 밖 — DB 커넥션 미점유)
         ExternalMockApiResponse<ExternalFinancialCertResponse> mockResponse =
                 externalMockClient.callFinancialCertVerify(request.getPhoneNumber(), request.getPin());
 
@@ -117,35 +147,133 @@ public class AuthServiceImpl implements AuthService {
             throw new BaseException(AuthErrorCode.CERT_VERIFICATION_FAILED);
         }
 
-        // 3. 회원가입 플로우인 경우 RegistrationProcess 후처리
-        Long processId = (Long) session.getAttribute("registrationProcessId");
+        // 3. 회원가입 플로우인 경우 RegistrationProcess 후처리 (트랜잭션)
+        Long processId = (Long) session.getAttribute(REGISTRATIONPROCESSID);
         if (processId != null) {
-            RegistrationProcess process = registrationProcessRepository.findById(processId)
-                    .orElse(null);
-
-            if (process != null) {
-                // 만료 체크
-                if (process.getUpdatedAt().plusMinutes(30).isBefore(LocalDateTime.now())) {
-                    process.expire();
-                    registrationProcessRepository.save(process);
-                    throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
-                }
-
-                // Step 1 완료 여부 확인
-                if (process.getStep() == RegistrationStep.STEP_2_COMPLETED
-                        || process.getStep() == RegistrationStep.COMPLETED) {
-                    throw new BaseException(AuthErrorCode.STEP_ALREADY_COMPLETED);
-                }
-                if (process.getStep() != RegistrationStep.STEP_1_COMPLETED) {
-                    throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
-                }
-
-                process.completeStep2();
-                registrationProcessRepository.save(process);
-            }
+            processRegistrationStep2(processId);
         }
 
         return AuthConverter.toFinancialCertVerifyResponse(certResult);
+    }
+
+    /**
+     * 금융인증서 검증 성공 후 RegistrationProcess Step 2 처리.
+     * 외부 API 호출 이후 DB 작업만 수행하므로 커넥션 점유 시간 최소화.
+     * 만료 시에도 EXPIRED 상태가 DB에 반영되도록 만료 저장을 별도 트랜잭션으로 처리.
+     */
+    private void processRegistrationStep2(Long processId) {
+        RegistrationProcess process = transactionTemplate.execute(status -> {
+            return registrationProcessRepository.findById(processId)
+                    .orElseThrow(() -> {
+                        log.warn("[verifyFinancialCertificate] processId={} 세션에 있지만 DB 레코드 없음", processId);
+                        return new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
+                    });
+        });
+
+        // 만료 체크 — 만료 상태를 별도 트랜잭션으로 저장 후 예외 전파
+        if (process.getUpdatedAt().plusMinutes(30).isBefore(LocalDateTime.now())) {
+            transactionTemplate.executeWithoutResult(status -> {
+                process.expire();
+                registrationProcessRepository.save(process);
+            });
+            throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
+        }
+
+        // KYC 인증 완료 여부 확인
+        if (process.getStep() == RegistrationStep.PIN_VERIFIED) {
+            throw new BaseException(AuthErrorCode.STEP_ALREADY_COMPLETED);
+        }
+        if (process.getStep() != RegistrationStep.KYC_VERIFIED) {
+            throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
+        }
+
+        // Step 2 완료 처리
+        transactionTemplate.executeWithoutResult(status -> {
+            process.completeStep2();
+            registrationProcessRepository.save(process);
+        });
+    }
+
+    @Override
+    public SignupCompleteResponse completeSignup(SignupCompleteRequest request, HttpSession session) {
+        // 1. 세션에서 registrationProcessId 조회
+        Long processId = (Long) session.getAttribute(REGISTRATIONPROCESSID);
+        if (processId == null) {
+            throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
+        }
+
+        RegistrationProcess process = transactionTemplate.execute(status ->
+                registrationProcessRepository.findById(processId)
+                        .orElseThrow(() -> new BaseException(AuthErrorCode.REGISTRATION_EXPIRED))
+        );
+
+        // 2. 만료 체크 — 만료 상태를 별도 트랜잭션으로 저장 후 예외 전파
+        if (process.getUpdatedAt().plusMinutes(30).isBefore(LocalDateTime.now())) {
+            transactionTemplate.executeWithoutResult(status -> {
+                process.expire();
+                registrationProcessRepository.save(process);
+            });
+            throw new BaseException(AuthErrorCode.REGISTRATION_EXPIRED);
+        }
+
+        // 3. PIN 인증 완료 여부 확인
+        if (process.getStep() != RegistrationStep.PIN_VERIFIED) {
+            throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
+        }
+
+        // 4~8. 가입 처리 (트랜잭션)
+        User user = transactionTemplate.execute(status -> {
+            // loginId 중복 체크
+            if (userRepository.existsByLoginId(request.getLoginId())) {
+                throw new BaseException(AuthErrorCode.LOGIN_ID_DUPLICATED);
+            }
+
+            // User 생성
+            String encodedPassword = passwordEncoder.encode(request.getPassword());
+            User newUser = User.createUser(
+                    request.getLoginId(),
+                    encodedPassword,
+                    request.getName(),
+                    request.getPhoneNumber(),
+                    request.getResidentNumber()
+            );
+            userRepository.save(newUser);
+
+            // BusinessProfile 생성 (KYC 데이터 기반)
+            BusinessProfile businessProfile = BusinessProfile.createVerified(
+                    newUser,
+                    process.getBusinessNumber(),
+                    process.getRepresentativeName(),
+                    process.getBusinessCategory(),
+                    process.getBusinessType(),
+                    process.getBusinessName(),
+                    process.getBusinessAddress(),
+                    process.getOpenDate() != null ? java.time.LocalDate.parse(process.getOpenDate()) : null
+            );
+            businessProfileRepository.save(businessProfile);
+
+            // RegistrationProcess 삭제 (가입 완료)
+            registrationProcessRepository.delete(process);
+
+            return newUser;
+        });
+
+        // 세션에서 registrationProcessId 제거
+        session.removeAttribute(REGISTRATIONPROCESSID);
+
+        return AuthConverter.toSignupCompleteResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public CheckLoginIdResponse checkLoginId(String loginId) {
+        // loginId 유효성 검증: 영문/숫자 4~20자
+        if (loginId == null || !loginId.matches("^[a-zA-Z0-9]{4,20}$")) {
+            throw new BaseException(AuthErrorCode.INVALID_LOGIN_ID_FORMAT);
+        }
+
+        boolean exists = userRepository.existsByLoginId(loginId);
+        return new CheckLoginIdResponse(loginId, !exists);
     }
 
     @Override
