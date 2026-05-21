@@ -92,7 +92,7 @@ class TermServiceImplTest {
         ));
 
         Term term = createTerm(100L, TermType.PERSONAL_INFO, true);
-        given(termRepository.findAllById(List.of(100L, 200L))).willReturn(List.of(term));
+        given(termRepository.findAllByTermIdInAndIsActiveTrue(List.of(100L, 200L))).willReturn(List.of(term));
 
         // when & then
         assertThatThrownBy(() -> termService.createConsents(session, request))
@@ -119,7 +119,7 @@ class TermServiceImplTest {
         ));
 
         Term term = createTerm(1L, TermType.MYDATA, true);
-        given(termRepository.findAllById(List.of(1L))).willReturn(List.of(term));
+        given(termRepository.findAllByTermIdInAndIsActiveTrue(List.of(1L))).willReturn(List.of(term));
 
         // when & then
         assertThatThrownBy(() -> termService.createConsents(session, request))
@@ -146,7 +146,7 @@ class TermServiceImplTest {
         ));
 
         Term requiredTerm = createTerm(1L, TermType.PERSONAL_INFO, true);
-        given(termRepository.findAllById(List.of(1L))).willReturn(List.of(requiredTerm));
+        given(termRepository.findAllByTermIdInAndIsActiveTrue(List.of(1L))).willReturn(List.of(requiredTerm));
 
         // when & then
         assertThatThrownBy(() -> termService.createConsents(session, request))
@@ -174,7 +174,7 @@ class TermServiceImplTest {
         ));
 
         Term term = createTerm(1L, TermType.LOAN_APPLICATION, true);
-        given(termRepository.findAllById(List.of(1L))).willReturn(List.of(term));
+        given(termRepository.findAllByTermIdInAndIsActiveTrue(List.of(1L))).willReturn(List.of(term));
         given(loanApplicationRepository.findByApplicationIdAndUser_UserId(applicationId, userId))
                 .willReturn(Optional.empty());
 
@@ -203,7 +203,7 @@ class TermServiceImplTest {
         ));
 
         Term term = createTerm(1L, TermType.PERSONAL_INFO, true);
-        given(termRepository.findAllById(List.of(1L))).willReturn(List.of(term));
+        given(termRepository.findAllByTermIdInAndIsActiveTrue(List.of(1L))).willReturn(List.of(term));
 
         ConsentHistory existingHistory = createConsentHistory(1L, userId, 1L, null, true);
         given(consentHistoryRepository.findExistingConsents(userId, List.of(1L), null))
@@ -233,7 +233,7 @@ class TermServiceImplTest {
         ));
 
         Term term = createTerm(1L, TermType.PERSONAL_INFO, true);
-        given(termRepository.findAllById(List.of(1L))).willReturn(List.of(term));
+        given(termRepository.findAllByTermIdInAndIsActiveTrue(List.of(1L))).willReturn(List.of(term));
         given(consentHistoryRepository.findExistingConsents(userId, List.of(1L), null)).willReturn(List.of());
 
         List<ConsentHistory> savedHistories = List.of(
@@ -267,7 +267,7 @@ class TermServiceImplTest {
 
         Term requiredTerm = createTerm(1L, TermType.LOAN_APPLICATION, true);
         Term optionalTerm = createTerm(2L, TermType.LOAN_APPLICATION, false);
-        given(termRepository.findAllById(List.of(1L, 2L))).willReturn(List.of(requiredTerm, optionalTerm));
+        given(termRepository.findAllByTermIdInAndIsActiveTrue(List.of(1L, 2L))).willReturn(List.of(requiredTerm, optionalTerm));
 
         given(loanApplicationRepository.findByApplicationIdAndUser_UserId(applicationId, userId))
                 .willReturn(Optional.of(mock(LoanApplication.class)));

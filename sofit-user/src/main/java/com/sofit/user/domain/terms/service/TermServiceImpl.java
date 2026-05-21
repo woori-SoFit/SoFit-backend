@@ -67,8 +67,8 @@ public class TermServiceImpl implements TermService {
                 .map(ConsentItem::getTermId)
                 .toList();
 
-        // 2. 약관 존재 여부 검증
-        List<Term> foundTerms = termRepository.findAllById(termIds);
+        // 2. 약관 존재 및 활성화 여부 검증
+        List<Term> foundTerms = termRepository.findAllByTermIdInAndIsActiveTrue(termIds);
         if (foundTerms.size() != termIds.size()) {
             throw new BaseException(TermErrorCode.TERM_NOT_FOUND);
         }

@@ -29,7 +29,7 @@ public class RegistrationProcess extends BaseEntity {
     private RegistrationStep step;
 
     // KYC 인증 결과 (사업자 정보)
-    @Column(name = "business_number", length = 10)
+    @Column(name = "business_number", length = 10, unique = true)
     private String businessNumber;
 
     @Column(name = "business_name", length = 50)
