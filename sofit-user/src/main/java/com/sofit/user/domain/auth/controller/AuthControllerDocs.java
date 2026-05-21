@@ -20,7 +20,7 @@ public interface AuthControllerDocs {
     @Operation(summary = "사업자등록번호 진위 확인", description = "KYC 인증 - 사업자등록번호 진위를 확인합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "인증 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청 또는 이미 가입된 사업자"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사업자 정보를 찾을 수 없음")
     })
     ApiResponse<BusinessVerificationResponse> verifyBusiness(
@@ -28,14 +28,15 @@ public interface AuthControllerDocs {
             HttpSession session
     );
 
-    @Operation(summary = "금융인증서 검증", description = "금융인증서 유효성 및 실명 일치 여부를 확인합니다.")
+    @Operation(summary = "금융인증서 PIN 인증", description = "금융인증서 PIN 인증 및 실명 검증을 수행합니다. 회원가입/대출 등 세션 컨텍스트에 따라 후처리가 분기됩니다.")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "인증 성공"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "PIN 인증 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "PIN 불일치, 단계 미완료, 만료, 인증서 검증 실패"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "인증서를 찾을 수 없음")
     })
     ApiResponse<FinancialCertVerifyResponse> verifyFinancialCertificate(
-            FinancialCertVerifyRequest request
+            FinancialCertVerifyRequest request,
+            HttpSession session
     );
 
     @Operation(summary = "로그인", description = "아이디와 비밀번호로 로그인합니다. 세션 쿠키가 발급됩니다.")

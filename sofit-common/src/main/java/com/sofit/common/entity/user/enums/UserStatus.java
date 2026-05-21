@@ -1,4 +1,4 @@
-package com.sofit.common.entity.user.enums;
+package com.sofit.common.entity.user;
 
 public enum UserStatus {
     ACTIVE,

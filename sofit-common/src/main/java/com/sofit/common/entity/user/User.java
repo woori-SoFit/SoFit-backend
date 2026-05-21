@@ -1,8 +1,6 @@
 package com.sofit.common.entity.user;
 
 import com.sofit.common.entity.BaseEntity;
-import com.sofit.common.entity.user.enums.UserStatus;
-import com.sofit.common.entity.user.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -50,7 +48,7 @@ public class User extends BaseEntity {
      * role=USER, status=ACTIVE로 생성
      */
     public static User createUser(String loginId, String passwordHash, String name,
-                                  String phoneNumber, String residentNumber) {
+                                   String phoneNumber, String residentNumber) {
         User user = new User();
         user.loginId = loginId;
         user.passwordHash = passwordHash;

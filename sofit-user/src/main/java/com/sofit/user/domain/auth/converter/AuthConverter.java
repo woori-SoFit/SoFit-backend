@@ -38,7 +38,6 @@ public class AuthConverter {
 
     public static FinancialCertVerifyResponse toFinancialCertVerifyResponse(ExternalFinancialCertResponse certResult) {
         return new FinancialCertVerifyResponse(
-                null,
                 certResult.certNumber(),
                 certResult.holderName(),
                 certResult.phoneNumber(),
