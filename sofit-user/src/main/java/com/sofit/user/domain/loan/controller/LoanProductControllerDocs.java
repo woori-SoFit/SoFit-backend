@@ -3,6 +3,7 @@ package com.sofit.user.domain.loan.controller;
 import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.user.domain.loan.dto.response.LoanProductDetailResponse;
 import com.sofit.user.domain.loan.dto.response.LoanProductListResponse;
+import com.sofit.user.domain.loan.dto.response.LoanProductOptionsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -23,6 +24,15 @@ public interface LoanProductControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "상품을 찾을 수 없음")
     })
     ApiResponse<LoanProductDetailResponse> getProduct(
+            @Parameter(description = "대출 상품 ID", required = true, example = "1") Long productId
+    );
+
+    @Operation(summary = "대출 상품 옵션 조회", description = "대출 상품별 자금용도/상환방식/최대기간/한도 옵션을 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "상품을 찾을 수 없음")
+    })
+    ApiResponse<LoanProductOptionsResponse> getProductOptions(
             @Parameter(description = "대출 상품 ID", required = true, example = "1") Long productId
     );
 }
