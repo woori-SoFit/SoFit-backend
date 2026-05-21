@@ -19,7 +19,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Swagger UI 허용
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .anyRequest().permitAll()
+                        // 로그인 엔드포인트 허용
+                        .requestMatchers("/api/admin/auth/login").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED));
