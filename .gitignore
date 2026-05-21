@@ -41,3 +41,6 @@ out/
 
 ### Claude ###
 .claude/
+
+### MAC metadata ###
+*.DS_Store
