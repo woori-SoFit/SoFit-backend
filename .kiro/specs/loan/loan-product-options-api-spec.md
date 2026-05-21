@@ -1,8 +1,7 @@
 # 대출 상품 옵션 조회 API 명세서
 
 **API 명**: Loan Product Options API  
-**버전**: v1.6  
-**작성일**: 2026-05-21
+
 
 ---
 
@@ -65,7 +64,7 @@ loan_products (1) ──────< loan_product_options (N)
 CREATE TABLE loan_product_options (
     option_id        BIGINT       NOT NULL AUTO_INCREMENT,
     product_id       BIGINT       NOT NULL,
-    purpose          ENUM('WORKING_CAPITAL', 'FACILITY')              NOT NULL,
+    purpose          ENUM('WORKING_CAPITAL', 'FACILITY_CAPITAL')              NOT NULL,
     repayment_method ENUM('BULLET', 'EQUAL_PRINCIPAL', 'EQUAL_PAYMENT') NOT NULL,
     max_term_months  INT          NOT NULL,
     PRIMARY KEY (option_id),
@@ -87,9 +86,9 @@ INSERT INTO loan_product_options (product_id, purpose, repayment_method, max_ter
 (1, 'WORKING_CAPITAL', 'BULLET',           12),  -- 운전자금 / 만기일시상환 / 1년
 (1, 'WORKING_CAPITAL', 'EQUAL_PRINCIPAL',  60),  -- 운전자금 / 원금균등상환 / 5년
 (1, 'WORKING_CAPITAL', 'EQUAL_PAYMENT',    60),  -- 운전자금 / 원리금균등상환 / 5년
-(1, 'FACILITY',        'BULLET',           36),  -- 시설자금 / 만기일시상환 / 3년
-(1, 'FACILITY',        'EQUAL_PRINCIPAL', 240),  -- 시설자금 / 원금균등상환 / 20년
-(1, 'FACILITY',        'EQUAL_PAYMENT',   240);  -- 시설자금 / 원리금균등상환 / 20년
+(1, 'FACILITY_CAPITAL',        'BULLET',           36),  -- 시설자금 / 만기일시상환 / 3년
+(1, 'FACILITY_CAPITAL',        'EQUAL_PRINCIPAL', 240),  -- 시설자금 / 원금균등상환 / 20년
+(1, 'FACILITY_CAPITAL',        'EQUAL_PAYMENT',   240);  -- 시설자금 / 원리금균등상환 / 20년
 ```
 
 ### 조회 쿼리 (단건)
@@ -118,7 +117,7 @@ WHERE p.product_id = :productId;
 |------|------|
 | Method | `GET` |
 | URL | `/api/v1/loan-products/{productId}/options` |
-| 인증 | Bearer Token (Authorization 헤더) |
+| 인증 | 세션 (Session Cookie) |
 
 #### Path Parameters
 
@@ -130,7 +129,7 @@ WHERE p.product_id = :productId;
 
 ```http
 GET /api/v1/loan-products/1/options
-Authorization: Bearer {access_token}
+Cookie: JSESSIONID={session_id}
 ```
 
 ---
@@ -149,9 +148,9 @@ Authorization: Bearer {access_token}
     { "purpose": "WORKING_CAPITAL", "repaymentMethod": "BULLET",          "maxTermMonths": 12  },
     { "purpose": "WORKING_CAPITAL", "repaymentMethod": "EQUAL_PRINCIPAL", "maxTermMonths": 60  },
     { "purpose": "WORKING_CAPITAL", "repaymentMethod": "EQUAL_PAYMENT",   "maxTermMonths": 60  },
-    { "purpose": "FACILITY",        "repaymentMethod": "BULLET",          "maxTermMonths": 36  },
-    { "purpose": "FACILITY",        "repaymentMethod": "EQUAL_PRINCIPAL", "maxTermMonths": 240 },
-    { "purpose": "FACILITY",        "repaymentMethod": "EQUAL_PAYMENT",   "maxTermMonths": 240 }
+    { "purpose": "FACILITY_CAPITAL",        "repaymentMethod": "BULLET",          "maxTermMonths": 36  },
+    { "purpose": "FACILITY_CAPITAL",        "repaymentMethod": "EQUAL_PRINCIPAL", "maxTermMonths": 240 },
+    { "purpose": "FACILITY_CAPITAL",        "repaymentMethod": "EQUAL_PAYMENT",   "maxTermMonths": 240 }
   ]
 }
 ```
@@ -193,6 +192,7 @@ Authorization: Bearer {access_token}
 
 ```json
 {
+  "isSuccess": false,
   "code": "PRODUCT_NOT_FOUND",
   "message": "존재하지 않는 상품입니다."
 }
@@ -214,7 +214,7 @@ Authorization: Bearer {access_token}
 | 코드 | 설명 |
 |------|------|
 | `WORKING_CAPITAL` | 운전자금 |
-| `FACILITY` | 시설자금 |
+| `FACILITY_CAPITAL` | 시설자금 |
 
 ---
 
