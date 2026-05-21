@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "loan_product")
@@ -75,4 +77,7 @@ public class LoanProduct extends BaseEntity {
 
     @Column(name = "scb_limit")
     private Integer scbLimit;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<LoanProductOption> options = new ArrayList<>();
 }
