@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @Tag(name = "대출 신청", description = "대출 신청 및 심사 현황 조회 API")
 public interface LoanApplicationControllerDocs {
 
-    @Operation(summary = "대출 신청 생성", description = "1차 필터링 통과 후 DRAFT 상태의 대출 신청을 생성합니다.")
+    @Operation(summary = "대출 신청 시작", description = "1차 필터링 통과 후 DRAFT 상태의 대출 신청을 시작합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "신청 생성 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "상품이 비활성 상태"),
