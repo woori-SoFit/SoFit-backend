@@ -8,8 +8,8 @@ public enum LastCompletedStep {
     AUTH_DONE("BIZ_INFO"),          // 본인인증(금융인증서) 완료 → 다음: 사업자 정보 확인
     BIZ_INFO_DONE("COLLECT_DATA"), // 사업자 정보 확인 완료 → 다음: 마이데이터 수집
     DATA_COLLECTED("MYBIZ"),        // 마이데이터 수집 완료 → 다음: 마이비즈데이터 연동
-    MYBIZ_CONNECTED("LOAN_CONDITION"),     // 마이비즈데이터 연동 완료 → 다음: 대출 조건 입력
-    LOAN_CONDITION_DONE("SUBMIT");      // 추가: 대출 조건 입력 완료 → 최종 제출
+    MYBIZ_CONNECTED("LOAN_CONDITION");    // 마이비즈데이터 연동 완료 → 다음: 대출 조건 입력
+  
 
     private final String nextStep;
 
