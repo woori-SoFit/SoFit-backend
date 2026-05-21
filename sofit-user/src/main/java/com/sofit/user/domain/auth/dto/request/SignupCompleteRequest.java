@@ -1,6 +1,11 @@
 package com.sofit.user.domain.auth.dto.request;
 
+import java.util.List;
+
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,4 +33,19 @@ public class SignupCompleteRequest {
     @NotBlank(message = "전화번호는 필수입니다.")
     @Pattern(regexp = "^\\d{11}$", message = "전화번호는 하이픈 없는 11자리 숫자여야 합니다.")
     private String phoneNumber;
+
+    @Valid
+    @NotEmpty(message = "약관 동의 항목은 필수입니다.")
+    private List<ConsentItem> consents;
+
+    @Getter
+    @NoArgsConstructor
+    public static class ConsentItem {
+
+        @NotNull(message = "약관 ID는 필수입니다.")
+        private Long termId;
+
+        @NotNull(message = "동의 여부는 필수입니다.")
+        private Boolean isConsented;
+    }
 }
