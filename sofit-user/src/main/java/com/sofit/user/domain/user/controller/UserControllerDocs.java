@@ -22,8 +22,7 @@ public interface UserControllerDocs {
     @Operation(summary = "회원탈퇴", description = "회원탈퇴를 처리합니다. Soft Delete 방식으로 상태를 INACTIVE로 변경하고 모든 활성 세션을 삭제합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "탈퇴 완료"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사용자 미존재")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패")
     })
     ApiResponse<Void> withdraw(HttpServletRequest request);
 }
