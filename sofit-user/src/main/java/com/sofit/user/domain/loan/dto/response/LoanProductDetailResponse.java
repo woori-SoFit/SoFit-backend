@@ -1,5 +1,6 @@
 package com.sofit.user.domain.loan.dto.response;
 
+import com.sofit.common.entity.loan.enums.IncomeType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -17,7 +18,17 @@ public class LoanProductDetailResponse {
     private Long maxLimit;
     private Integer maxTerm;
     private String targetDescription;
+    private FilterConditions filterConditions;
     private InterestRate interestRate;
+
+    @Getter
+    @Builder
+    public static class FilterConditions {
+        private BigDecimal annualIncomeLimit;
+        private Short creditScoreLimit;
+        private IncomeType incomeTypeCodeLimit;
+        private BigDecimal existingLoanAmtLimit;
+    }
 
     @Getter
     @Builder
