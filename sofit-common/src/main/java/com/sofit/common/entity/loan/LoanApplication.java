@@ -124,9 +124,6 @@ public class LoanApplication extends BaseEntity {
     }
 
     public void assignBanker(Long bankerId) {
-        if (bankerId == null) {
-            throw new IllegalArgumentException("bankerId must not be null");
-        }
         this.assignedBankerId = bankerId;
     }
 }

@@ -30,6 +30,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     private final LoanApplicationRepository loanApplicationRepository;
     private final LoanProductRepository loanProductRepository;
     private final UserRepository userRepository;
+    private final BankerAssignmentService bankerAssignmentService;
 
     /**
      * 대출 신청 생성 (DRAFT 상태)
@@ -125,7 +126,11 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             throw new BaseException(LoanErrorCode.APPLICATION_NOT_DRAFT);
         }
 
-        // 3. 제출 처리 (status → SUBMITTED, appliedAt 기록)
+        // 3. 담당 은행원 배정 (실패 시 예외 → 트랜잭션 롤백)
+        Long bankerId = bankerAssignmentService.assignBanker();
+        application.assignBanker(bankerId);
+
+        // 4. 제출 처리 (status → SUBMITTED, appliedAt 기록)
         application.submit(
                 request.getRequestedAmount(),
                 request.getRequestedTerm(),
