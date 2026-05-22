@@ -1,6 +1,7 @@
 package com.sofit.common.entity.loan;
 
 import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.loan.enums.IncomeType;
 import com.sofit.common.entity.loan.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -66,8 +67,9 @@ public class LoanProduct extends BaseEntity {
     @Column(name = "annual_income_limit", precision = 18, scale = 0)
     private BigDecimal annualIncomeLimit;
 
-    @Column(name = "income_type_code_limit", length = 2)
-    private String incomeTypeCodeLimit;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "income_type_code_limit")
+    private IncomeType incomeTypeCodeLimit;
 
     @Column(name = "credit_score_limit")
     private Short creditScoreLimit;
