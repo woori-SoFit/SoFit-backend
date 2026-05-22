@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sofit.common.apiPayload.ApiResponse;
-import com.sofit.common.apiPayload.BaseException;
-import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
@@ -22,9 +20,8 @@ import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
 import com.sofit.user.domain.loan.exception.LoanSuccessCode;
 import com.sofit.user.domain.loan.service.LoanApplicationService;
 import com.sofit.user.domain.loan.service.LoanService;
+import com.sofit.user.global.util.SecurityUtil;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -45,9 +42,8 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
     @PostMapping("/loan-products/{productId}/applications")
     public ApiResponse<LoanApplicationCreateResponse> createApplication(
             @PathVariable Long productId,
-            @Valid @RequestBody LoanApplicationCreateRequest request,
-            HttpServletRequest httpRequest) {
-        Long userId = extractUserId(httpRequest);
+            @Valid @RequestBody LoanApplicationCreateRequest request) {
+        Long userId = SecurityUtil.getCurrentUserId();
         LoanApplicationCreateResponse response = loanApplicationService.createApplication(userId, productId, request);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_APPLICATION_CREATED, response);
     }
@@ -58,9 +54,8 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
      */
     @GetMapping("/loan-applications/draft")
     public ApiResponse<DraftCheckResponse> checkDraft(
-            @RequestParam Long productId,
-            HttpServletRequest httpRequest) {
-        Long userId = extractUserId(httpRequest);
+            @RequestParam Long productId) {
+        Long userId = SecurityUtil.getCurrentUserId();
         DraftCheckResponse response = loanApplicationService.checkDraft(userId, productId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_DRAFT_CHECK_OK, response);
     }
@@ -71,17 +66,13 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
      */
     @GetMapping("/loan-applications/{applicationId}/resume")
     public ApiResponse<LoanApplicationResumeResponse> getResumeData(
-            @PathVariable Long applicationId,
-            HttpServletRequest httpRequest) {
-        Long userId = extractUserId(httpRequest);
+            @PathVariable Long applicationId) {
+        Long userId = SecurityUtil.getCurrentUserId();
         LoanApplicationResumeResponse response = loanApplicationService.getResumeData(userId, applicationId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_RESUME_OK, response);
     }
 
     // === 기존 심사 현황 조회 API ===
-
-    // TODO: 세션 인증 구현 후 SecurityContext에서 userId 추출하도록 변경
-    private static final Long TEMP_USER_ID = 1L;
 
     /**
      * 심사 중인 대출 목록 조회
@@ -89,7 +80,8 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
      */
     @GetMapping("/loan-applications")
     public ApiResponse<LoanApplicationListResponse> getUnderReviewLoans() {
-        LoanApplicationListResponse response = loanService.findUnderReviewLoans(TEMP_USER_ID);
+        Long userId = SecurityUtil.getCurrentUserId();
+        LoanApplicationListResponse response = loanService.findUnderReviewLoans(userId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_APPLICATION_LIST_OK, response);
     }
 
@@ -100,7 +92,8 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
     @GetMapping("/loan-applications/{applicationId}")
     public ApiResponse<LoanApplicationDetailResponse> getLoanDetail(
             @PathVariable Long applicationId) {
-        LoanApplicationDetailResponse response = loanService.findLoanDetail(TEMP_USER_ID, applicationId);
+        Long userId = SecurityUtil.getCurrentUserId();
+        LoanApplicationDetailResponse response = loanService.findLoanDetail(userId, applicationId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_APPLICATION_DETAIL_OK, response);
     }
 
@@ -110,7 +103,8 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
      */
     @GetMapping("/loan-applications/completed")
     public ApiResponse<CompletedLoanListResponse> getCompletedLoans() {
-        CompletedLoanListResponse response = loanService.findCompletedLoans(TEMP_USER_ID);
+        Long userId = SecurityUtil.getCurrentUserId();
+        CompletedLoanListResponse response = loanService.findCompletedLoans(userId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_APPLICATION_COMPLETED_LIST_OK, response);
     }
 
@@ -121,22 +115,8 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
     @GetMapping("/loan-applications/completed/{applicationId}")
     public ApiResponse<CompletedLoanDetailResponse> getCompletedLoanDetail(
             @PathVariable Long applicationId) {
-        CompletedLoanDetailResponse response = loanService.findCompletedLoanDetail(TEMP_USER_ID, applicationId);
+        Long userId = SecurityUtil.getCurrentUserId();
+        CompletedLoanDetailResponse response = loanService.findCompletedLoanDetail(userId, applicationId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_APPLICATION_COMPLETED_DETAIL_OK, response);
-    }
-
-    // === Private Helper ===
-
-    /**
-     * 세션에서 userId를 추출한다.
-     * 세션이 없거나 userId가 없으면 UNAUTHORIZED 예외 발생
-     */
-    private Long extractUserId(HttpServletRequest httpRequest) {
-        HttpSession session = httpRequest.getSession(false);
-        if (session == null || session.getAttribute("userId") == null) {
-            throw new BaseException(GeneralErrorCode.UNAUTHORIZED);
-        }
-        Object userIdAttr = session.getAttribute("userId");
-        return (userIdAttr instanceof Long) ? (Long) userIdAttr : Long.valueOf(userIdAttr.toString());
     }
 }

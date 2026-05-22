@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sofit.common.apiPayload.BaseException;
-import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.term.ConsentHistory;
 import com.sofit.common.entity.term.Term;
@@ -28,7 +27,6 @@ import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
 import com.sofit.user.domain.terms.dto.response.TermListResponse;
 import com.sofit.user.domain.terms.exception.TermErrorCode;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -52,14 +50,7 @@ public class TermServiceImpl implements TermService {
 
     @Override
     @Transactional
-    public ConsentCreateResponse createConsents(HttpSession session, ConsentCreateRequest request) {
-        // 1. 세션에서 userId 추출
-        Object userIdAttr = session.getAttribute("userId");
-        if (userIdAttr == null) {
-            throw new BaseException(GeneralErrorCode.UNAUTHORIZED);
-        }
-        Long userId = (userIdAttr instanceof Long) ? (Long) userIdAttr : Long.valueOf(userIdAttr.toString());
-
+    public ConsentCreateResponse createConsents(Long userId, ConsentCreateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(AuthErrorCode.USER_NOT_FOUND));
 
