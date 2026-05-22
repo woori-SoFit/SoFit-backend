@@ -1,11 +1,14 @@
 package com.sofit.user.domain.user.controller;
 
 import com.sofit.common.apiPayload.ApiResponse;
+import com.sofit.user.domain.auth.exception.AuthSuccessCode;
 import com.sofit.user.domain.user.dto.response.UserProfileResponse;
 import com.sofit.user.domain.user.exception.UserSuccessCode;
 import com.sofit.user.domain.user.service.UserService;
 import com.sofit.user.global.util.SecurityUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,5 +28,12 @@ public class UserController implements UserControllerDocs {
         Long userId = SecurityUtil.getCurrentUserId();
         UserProfileResponse response = userService.findUser(userId);
         return ApiResponse.onSuccess(UserSuccessCode.USER_PROFILE_OK, response);
+    }
+
+    @DeleteMapping("/me")
+    public ApiResponse<Void> withdraw(HttpServletRequest request) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        userService.withdraw(userId, request);
+        return ApiResponse.onSuccess(AuthSuccessCode.WITHDRAW_SUCCESS, null);
     }
 }
