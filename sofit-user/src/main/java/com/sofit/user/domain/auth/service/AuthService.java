@@ -24,4 +24,6 @@ public interface AuthService {
     LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
 
     CheckLoginIdResponse checkLoginId(String loginId);
+
+    void logout(HttpServletRequest request);
 }
