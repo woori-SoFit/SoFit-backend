@@ -54,7 +54,7 @@ class TermConverterTest {
             ReflectionTestUtils.setField(request, "consents", List.of(item1, item2));
 
             // when
-            List<ConsentHistory> result = TermConverter.toConsentHistoryList(user, termMap, application, request);
+            List<ConsentHistory> result = TermConverter.toConsentHistoryList(user, termMap, application, request.getConsents());
 
             // then
             assertThat(result).hasSize(2);
@@ -93,7 +93,7 @@ class TermConverterTest {
             ReflectionTestUtils.setField(request, "consents", List.of(item));
 
             // when
-            List<ConsentHistory> result = TermConverter.toConsentHistoryList(user, termMap, null, request);
+            List<ConsentHistory> result = TermConverter.toConsentHistoryList(user, termMap, null, request.getConsents());
 
             // then
             assertThat(result).hasSize(1);

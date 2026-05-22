@@ -22,7 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.sofit.common.apiPayload.BaseException;
-import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.term.ConsentHistory;
 import com.sofit.common.entity.term.Term;
@@ -32,12 +31,11 @@ import com.sofit.common.repository.ConsentHistoryRepository;
 import com.sofit.common.repository.LoanApplicationRepository;
 import com.sofit.common.repository.TermRepository;
 import com.sofit.common.repository.user.UserRepository;
+import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
 import com.sofit.user.domain.terms.exception.TermErrorCode;
-
-import jakarta.servlet.http.HttpSession;
 
 @ExtendWith(MockitoExtension.class)
 class TermServiceImplTest {
@@ -58,22 +56,22 @@ class TermServiceImplTest {
     private TermServiceImpl termService;
 
     @Test
-    @DisplayName("세션에 userId가 없으면 UNAUTHORIZED 예외가 발생한다")
-    void 세션_userId_없으면_UNAUTHORIZED_예외_발생() {
+    @DisplayName("존재하지 않는 userId로 요청 시 USER_NOT_FOUND 예외가 발생한다")
+    void 존재하지_않는_userId_요청시_USER_NOT_FOUND_예외_발생() {
         // given
-        HttpSession session = mock(HttpSession.class);
-        given(session.getAttribute("userId")).willReturn(null);
+        Long userId = 999L;
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
 
         ConsentCreateRequest request = createRequest(TermType.PERSONAL_INFO, null, List.of(
                 createConsentItem(1L, true)
         ));
 
         // when & then
-        assertThatThrownBy(() -> termService.createConsents(session, request))
+        assertThatThrownBy(() -> termService.createConsents(userId, request))
                 .isInstanceOf(BaseException.class)
                 .satisfies(ex -> {
                     BaseException baseEx = (BaseException) ex;
-                    assertThat(baseEx.getErrorCode()).isEqualTo(GeneralErrorCode.UNAUTHORIZED);
+                    assertThat(baseEx.getErrorCode()).isEqualTo(AuthErrorCode.USER_NOT_FOUND);
                 });
     }
 
@@ -82,7 +80,6 @@ class TermServiceImplTest {
     void 존재하지_않는_termId_요청시_TERM_NOT_FOUND_예외_발생() {
         // given
         Long userId = 1L;
-        HttpSession session = sessionOf(userId);
         User user = createUser(userId);
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
@@ -95,7 +92,7 @@ class TermServiceImplTest {
         given(termRepository.findAllByTermIdInAndIsActiveTrue(List.of(100L, 200L))).willReturn(List.of(term));
 
         // when & then
-        assertThatThrownBy(() -> termService.createConsents(session, request))
+        assertThatThrownBy(() -> termService.createConsents(userId, request))
                 .isInstanceOf(BaseException.class)
                 .satisfies(ex -> {
                     BaseException baseEx = (BaseException) ex;
@@ -110,7 +107,6 @@ class TermServiceImplTest {
     void termType_불일치시_TERM_TYPE_MISMATCH_예외_발생() {
         // given
         Long userId = 1L;
-        HttpSession session = sessionOf(userId);
         User user = createUser(userId);
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
@@ -122,7 +118,7 @@ class TermServiceImplTest {
         given(termRepository.findAllByTermIdInAndIsActiveTrue(List.of(1L))).willReturn(List.of(term));
 
         // when & then
-        assertThatThrownBy(() -> termService.createConsents(session, request))
+        assertThatThrownBy(() -> termService.createConsents(userId, request))
                 .isInstanceOf(BaseException.class)
                 .satisfies(ex -> {
                     BaseException baseEx = (BaseException) ex;
@@ -137,7 +133,6 @@ class TermServiceImplTest {
     void 필수_약관_미동의시_REQUIRED_TERM_NOT_CONSENTED_예외_발생() {
         // given
         Long userId = 1L;
-        HttpSession session = sessionOf(userId);
         User user = createUser(userId);
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
@@ -149,7 +144,7 @@ class TermServiceImplTest {
         given(termRepository.findAllByTermIdInAndIsActiveTrue(List.of(1L))).willReturn(List.of(requiredTerm));
 
         // when & then
-        assertThatThrownBy(() -> termService.createConsents(session, request))
+        assertThatThrownBy(() -> termService.createConsents(userId, request))
                 .isInstanceOf(BaseException.class)
                 .satisfies(ex -> {
                     BaseException baseEx = (BaseException) ex;
@@ -165,7 +160,6 @@ class TermServiceImplTest {
         // given
         Long userId = 1L;
         Long applicationId = 99L;
-        HttpSession session = sessionOf(userId);
         User user = createUser(userId);
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
@@ -179,7 +173,7 @@ class TermServiceImplTest {
                 .willReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> termService.createConsents(session, request))
+        assertThatThrownBy(() -> termService.createConsents(userId, request))
                 .isInstanceOf(BaseException.class)
                 .satisfies(ex -> {
                     BaseException baseEx = (BaseException) ex;
@@ -194,7 +188,6 @@ class TermServiceImplTest {
     void 이미_전부_동의한_약관_재요청시_기존_이력_반환() {
         // given
         Long userId = 1L;
-        HttpSession session = sessionOf(userId);
         User user = createUser(userId);
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
@@ -210,7 +203,7 @@ class TermServiceImplTest {
                 .willReturn(List.of(existingHistory));
 
         // when
-        ConsentCreateResponse response = termService.createConsents(session, request);
+        ConsentCreateResponse response = termService.createConsents(userId, request);
 
         // then
         verify(consentHistoryRepository, never()).saveAll(anyList());
@@ -224,7 +217,6 @@ class TermServiceImplTest {
     void applicationId_null이면_소유권_검증_건너뛰기() {
         // given
         Long userId = 1L;
-        HttpSession session = sessionOf(userId);
         User user = createUser(userId);
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
@@ -242,7 +234,7 @@ class TermServiceImplTest {
         given(consentHistoryRepository.saveAll(anyList())).willReturn(savedHistories);
 
         // when
-        ConsentCreateResponse response = termService.createConsents(session, request);
+        ConsentCreateResponse response = termService.createConsents(userId, request);
 
         // then
         verify(loanApplicationRepository, never()).findByApplicationIdAndUser_UserId(any(), any());
@@ -256,7 +248,6 @@ class TermServiceImplTest {
         // given
         Long userId = 1L;
         Long applicationId = 10L;
-        HttpSession session = sessionOf(userId);
         User user = createUser(userId);
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
@@ -285,7 +276,7 @@ class TermServiceImplTest {
         given(consentHistoryRepository.saveAll(anyList())).willReturn(savedHistories);
 
         // when
-        ConsentCreateResponse response = termService.createConsents(session, request);
+        ConsentCreateResponse response = termService.createConsents(userId, request);
 
         // then
         verify(consentHistoryRepository).saveAll(anyList());
@@ -300,12 +291,6 @@ class TermServiceImplTest {
     }
 
     // === Helper Methods ===
-
-    private HttpSession sessionOf(Long userId) {
-        HttpSession session = mock(HttpSession.class);
-        given(session.getAttribute("userId")).willReturn(userId);
-        return session;
-    }
 
     private User createUser(Long userId) {
         try {

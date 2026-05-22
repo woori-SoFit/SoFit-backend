@@ -355,10 +355,8 @@ public class AuthServiceImpl implements AuthService {
         // 5. HttpSessionSecurityContextRepository를 통해 세션에 영속화
         securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
 
-        // 6. 세션에 사용자 정보 저장
+        // 6. 세션에 절대 만료 체크용 loginTime 저장
         HttpSession session = httpRequest.getSession();
-        session.setAttribute("userId", user.getUserId());
-        session.setAttribute("role", user.getRole().name());
         session.setAttribute("loginTime", LocalDateTime.now());
         session.setAttribute(
                 FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME,

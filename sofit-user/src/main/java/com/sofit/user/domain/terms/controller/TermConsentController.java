@@ -10,8 +10,8 @@ import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
 import com.sofit.user.domain.terms.exception.TermSuccessCode;
 import com.sofit.user.domain.terms.service.TermService;
+import com.sofit.user.global.util.SecurityUtil;
 
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -25,9 +25,9 @@ public class TermConsentController implements TermConsentControllerDocs {
     @Override
     @PostMapping("/consents")
     public ApiResponse<ConsentCreateResponse> createConsents(
-            @Valid @RequestBody ConsentCreateRequest request,
-            HttpSession session) {
-        ConsentCreateResponse response = termService.createConsents(session, request);
+            @Valid @RequestBody ConsentCreateRequest request) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        ConsentCreateResponse response = termService.createConsents(userId, request);
         return ApiResponse.onSuccess(TermSuccessCode.CONSENT_OK, response);
     }
 }

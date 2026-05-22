@@ -9,7 +9,6 @@ import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
 @Tag(name = "약관 동의", description = "약관 동의 이력 저장 API")
@@ -22,6 +21,5 @@ public interface TermConsentControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 약관 또는 대출 신청")
     })
     ApiResponse<ConsentCreateResponse> createConsents(
-            @Valid @RequestBody ConsentCreateRequest request,
-            HttpSession session);
+            @Valid @RequestBody ConsentCreateRequest request);
 }

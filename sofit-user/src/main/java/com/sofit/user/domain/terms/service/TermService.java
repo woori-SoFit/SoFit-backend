@@ -5,11 +5,9 @@ import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
 import com.sofit.user.domain.terms.dto.response.TermListResponse;
 
-import jakarta.servlet.http.HttpSession;
-
 public interface TermService {
 
     TermListResponse findTerms(TermType termType);
 
-    ConsentCreateResponse createConsents(HttpSession session, ConsentCreateRequest request);
+    ConsentCreateResponse createConsents(Long userId, ConsentCreateRequest request);
 }
