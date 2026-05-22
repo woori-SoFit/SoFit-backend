@@ -22,7 +22,6 @@ import com.sofit.user.domain.loan.service.LoanApplicationService;
 import com.sofit.user.domain.loan.service.LoanService;
 import com.sofit.user.global.util.SecurityUtil;
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
