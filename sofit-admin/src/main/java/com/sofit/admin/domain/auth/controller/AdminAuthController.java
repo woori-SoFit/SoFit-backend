@@ -2,12 +2,14 @@ package com.sofit.admin.domain.auth.controller;
 
 import com.sofit.admin.domain.auth.dto.request.AdminLoginRequest;
 import com.sofit.admin.domain.auth.dto.response.AdminLoginResponse;
+import com.sofit.admin.domain.auth.dto.response.AdminMeResponse;
 import com.sofit.admin.domain.auth.exception.AdminAuthSuccessCode;
 import com.sofit.admin.domain.auth.service.AdminAuthService;
 import com.sofit.common.apiPayload.ApiResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,5 +28,12 @@ public class AdminAuthController implements AdminAuthControllerDocs {
                                                   HttpSession session) {
         AdminLoginResponse response = adminAuthService.login(request, session);
         return ApiResponse.onSuccess(AdminAuthSuccessCode.LOGIN_SUCCESS, response);
+    }
+
+    @GetMapping("/me")
+    @Override
+    public ApiResponse<AdminMeResponse> findMe(HttpSession session) {
+        AdminMeResponse response = adminAuthService.findMe(session);
+        return ApiResponse.onSuccess(AdminAuthSuccessCode.ME_SUCCESS, response);
     }
 }

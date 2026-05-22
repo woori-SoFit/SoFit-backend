@@ -4,11 +4,17 @@ import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.auth.RegistrationProcess;
 import com.sofit.common.entity.auth.enums.RegistrationStep;
+import com.sofit.common.entity.term.ConsentHistory;
+import com.sofit.common.entity.term.Term;
+import com.sofit.common.entity.term.enums.TermType;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserStatus;
+import com.sofit.common.repository.ConsentHistoryRepository;
+import com.sofit.common.repository.TermRepository;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.auth.RegistrationProcessRepository;
 import com.sofit.common.repository.user.UserRepository;
+import com.sofit.user.domain.terms.exception.TermErrorCode;
 import com.sofit.user.domain.auth.converter.AuthConverter;
 import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
 import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
@@ -51,6 +57,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RegistrationProcessRepository registrationProcessRepository;
     private final BusinessProfileRepository businessProfileRepository;
+    private final TermRepository termRepository;
+    private final ConsentHistoryRepository consentHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final HttpSessionSecurityContextRepository securityContextRepository;
     private final TransactionTemplate transactionTemplate;
@@ -221,7 +229,38 @@ public class AuthServiceImpl implements AuthService {
             throw new BaseException(AuthErrorCode.STEP_NOT_COMPLETED);
         }
 
-        // 4~8. 가입 처리 (트랜잭션)
+        // 4. 약관 검증
+        List<Long> termIds = request.getConsents().stream()
+                .map(SignupCompleteRequest.ConsentItem::getTermId)
+                .toList();
+
+        List<Term> terms = termRepository.findAllByTermIdInAndIsActiveTrue(termIds);
+        if (terms.size() != termIds.size()) {
+            throw new BaseException(TermErrorCode.TERM_NOT_FOUND);
+        }
+
+        boolean hasTypeMismatch = terms.stream()
+                .anyMatch(term -> !term.getTermType().equals(TermType.PERSONAL_INFO));
+        if (hasTypeMismatch) {
+            throw new BaseException(TermErrorCode.TERM_TYPE_MISMATCH);
+        }
+
+        java.util.Map<Long, Boolean> consentMap = request.getConsents().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        SignupCompleteRequest.ConsentItem::getTermId,
+                        SignupCompleteRequest.ConsentItem::getIsConsented));
+
+        boolean hasRequiredNotConsented = terms.stream()
+                .filter(term -> Boolean.TRUE.equals(term.getIsRequired()))
+                .anyMatch(term -> !Boolean.TRUE.equals(consentMap.get(term.getTermId())));
+        if (hasRequiredNotConsented) {
+            throw new BaseException(TermErrorCode.REQUIRED_TERM_NOT_CONSENTED);
+        }
+
+        // 5~9. 가입 처리 (트랜잭션)
+        java.util.Map<Long, Term> termMap = terms.stream()
+                .collect(java.util.stream.Collectors.toMap(Term::getTermId, t -> t));
+
         User user = transactionTemplate.execute(status -> {
             // loginId 중복 체크
             if (userRepository.existsByLoginId(request.getLoginId())) {
@@ -251,6 +290,17 @@ public class AuthServiceImpl implements AuthService {
                     process.getOpenDate() != null ? java.time.LocalDate.parse(process.getOpenDate()) : null
             );
             businessProfileRepository.save(businessProfile);
+
+            // PERSONAL_INFO 약관 동의 이력 저장
+            List<ConsentHistory> consentHistories = request.getConsents().stream()
+                    .map(item -> ConsentHistory.builder()
+                            .user(newUser)
+                            .term(termMap.get(item.getTermId()))
+                            .application(null)
+                            .isConsented(item.getIsConsented())
+                            .build())
+                    .toList();
+            consentHistoryRepository.saveAll(consentHistories);
 
             // RegistrationProcess 삭제 (가입 완료)
             registrationProcessRepository.delete(process);
@@ -305,10 +355,8 @@ public class AuthServiceImpl implements AuthService {
         // 5. HttpSessionSecurityContextRepository를 통해 세션에 영속화
         securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
 
-        // 6. 세션에 사용자 정보 저장
+        // 6. 세션에 절대 만료 체크용 loginTime 저장
         HttpSession session = httpRequest.getSession();
-        session.setAttribute("userId", user.getUserId());
-        session.setAttribute("role", user.getRole().name());
         session.setAttribute("loginTime", LocalDateTime.now());
         session.setAttribute(
                 FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME,

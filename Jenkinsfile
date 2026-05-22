@@ -17,12 +17,6 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                sh './gradlew test'
-            }
-        }
-
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {

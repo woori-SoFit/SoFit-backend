@@ -10,4 +10,6 @@ import com.sofit.common.entity.term.enums.TermType;
 public interface TermRepository extends JpaRepository<Term, Long> {
 
     List<Term> findByTermTypeAndIsActiveTrue(TermType termType);
+
+    List<Term> findAllByTermIdInAndIsActiveTrue(List<Long> termIds);
 }

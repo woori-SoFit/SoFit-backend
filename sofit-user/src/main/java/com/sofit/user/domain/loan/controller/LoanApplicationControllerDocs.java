@@ -15,7 +15,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 
 @Tag(name = "대출 신청", description = "대출 신청 및 심사 현황 조회 API")
 public interface LoanApplicationControllerDocs {
@@ -30,18 +29,14 @@ public interface LoanApplicationControllerDocs {
     })
     ApiResponse<LoanApplicationCreateResponse> createApplication(
             @Parameter(description = "대출 상품 ID", required = true, example = "1") Long productId,
-            LoanApplicationCreateRequest request,
-            HttpServletRequest httpRequest
-    );
+            LoanApplicationCreateRequest request);
 
     @Operation(summary = "DRAFT 존재 여부 확인", description = "특정 상품에 대해 현재 사용자의 DRAFT 상태 신청이 있는지 확인합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
     })
     ApiResponse<DraftCheckResponse> checkDraft(
-            @Parameter(description = "대출 상품 ID", required = true, example = "1") Long productId,
-            HttpServletRequest httpRequest
-    );
+            @Parameter(description = "대출 상품 ID", required = true, example = "1") Long productId);
 
     @Operation(summary = "이어가기 데이터 조회", description = "DRAFT 상태인 대출 신청의 저장된 데이터를 조회합니다.")
     @ApiResponses(value = {
@@ -49,9 +44,7 @@ public interface LoanApplicationControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "신청 건을 찾을 수 없음")
     })
     ApiResponse<LoanApplicationResumeResponse> getResumeData(
-            @Parameter(description = "대출 신청 ID", required = true, example = "1") Long applicationId,
-            HttpServletRequest httpRequest
-    );
+            @Parameter(description = "대출 신청 ID", required = true, example = "1") Long applicationId);
 
     @Operation(summary = "최종 제출 (심사 요청)", description = "DRAFT 상태의 대출 신청을 최종 제출하여 심사를 요청합니다.")
     @ApiResponses(value = {
