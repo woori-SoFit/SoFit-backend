@@ -54,8 +54,7 @@ public interface LoanApplicationControllerDocs {
     })
     ApiResponse<LoanApplicationSubmitResponse> submitApplication(
             @Parameter(description = "대출 신청 ID", required = true, example = "1") Long applicationId,
-            LoanApplicationSubmitRequest request,
-            HttpServletRequest httpRequest
+            LoanApplicationSubmitRequest request
     );
 
     @Operation(summary = "심사 중인 대출 목록 조회", description = "현재 사용자의 심사 중인 대출 신청 목록을 조회합니다.")

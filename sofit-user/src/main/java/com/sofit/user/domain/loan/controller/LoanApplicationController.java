@@ -81,9 +81,8 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
     @PostMapping("/loan-applications/{applicationId}/submit")
     public ApiResponse<LoanApplicationSubmitResponse> submitApplication(
             @PathVariable Long applicationId,
-            @Valid @RequestBody LoanApplicationSubmitRequest request,
-            HttpServletRequest httpRequest) {
-        Long userId = extractUserId(httpRequest);
+            @Valid @RequestBody LoanApplicationSubmitRequest request) {
+        Long userId = SecurityUtil.getCurrentUserId();
         LoanApplicationSubmitResponse response = loanApplicationService.submitApplication(userId, applicationId, request);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_SUBMIT_OK, response);
     }
