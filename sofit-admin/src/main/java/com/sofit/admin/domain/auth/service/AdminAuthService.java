@@ -9,5 +9,5 @@ public interface AdminAuthService {
 
     AdminLoginResponse login(AdminLoginRequest request, HttpSession session);
 
-    AdminMeResponse findMe(HttpSession session);
+    AdminMeResponse findMe();
 }

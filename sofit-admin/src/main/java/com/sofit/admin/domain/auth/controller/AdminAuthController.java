@@ -32,8 +32,8 @@ public class AdminAuthController implements AdminAuthControllerDocs {
 
     @GetMapping("/me")
     @Override
-    public ApiResponse<AdminMeResponse> findMe(HttpSession session) {
-        AdminMeResponse response = adminAuthService.findMe(session);
+    public ApiResponse<AdminMeResponse> findMe() {
+        AdminMeResponse response = adminAuthService.findMe();
         return ApiResponse.onSuccess(AdminAuthSuccessCode.ME_SUCCESS, response);
     }
 }

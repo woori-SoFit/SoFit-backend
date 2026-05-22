@@ -13,6 +13,7 @@ import com.sofit.common.repository.user.UserRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -51,12 +51,8 @@ public class AdminAuthServiceImpl implements AdminAuthService {
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
-        // 5. 세션에 사용자 정보 저장
-        session.setAttribute("userId", user.getUserId());
-        session.setAttribute("role", user.getRole().name());
-        session.setAttribute("loginTime", LocalDateTime.now());
-
-        // 6. Spring Security SecurityContext에 Authentication 설정 및 세션에 명시적 저장
+        // 5. SecurityContext 설정 (단일 인증 정보 소스)
+        // 세션 고정 공격 방지는 SecurityConfig의 sessionFixation().newSession()이 자동 처리
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         user.getUserId(),
@@ -68,14 +64,24 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         SecurityContextHolder.setContext(securityContext);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
 
-        // 7. 응답 반환
+        // 6. 응답 반환
         return AdminAuthConverter.toLoginResponse(user);
     }
 
     @Override
-    public AdminMeResponse findMe(HttpSession session) {
-        // 1. 세션에서 userId 추출
-        Long userId = (Long) session.getAttribute("userId");
+    public AdminMeResponse findMe() {
+        // 1. SecurityContextHolder에서 userId 추출
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new BaseException(AdminAuthErrorCode.SESSION_EXPIRED);
+        }
+
+        Long userId;
+        try {
+            userId = (Long) authentication.getPrincipal();
+        } catch (ClassCastException e) {
+            throw new BaseException(AdminAuthErrorCode.SESSION_EXPIRED);
+        }
 
         // 2. UserRepository로 사용자 조회
         User user = userRepository.findById(userId)

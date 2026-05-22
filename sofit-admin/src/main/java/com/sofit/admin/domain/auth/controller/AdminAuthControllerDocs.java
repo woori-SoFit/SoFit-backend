@@ -31,5 +31,5 @@ public interface AdminAuthControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "세션 만료"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사용자 미존재")
     })
-    ApiResponse<AdminMeResponse> findMe(HttpSession session);
+    ApiResponse<AdminMeResponse> findMe();
 }
