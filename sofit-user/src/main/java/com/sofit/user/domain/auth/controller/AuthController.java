@@ -78,4 +78,10 @@ public class AuthController implements AuthControllerDocs {
         CheckLoginIdResponse response = authService.checkLoginId(loginId);
         return ApiResponse.onSuccess(AuthSuccessCode.LOGIN_ID_CHECKED, response);
     }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(HttpServletRequest httpRequest) {
+        authService.logout(httpRequest);
+        return ApiResponse.onSuccess(AuthSuccessCode.LOGOUT_SUCCESS, null);
+    }
 }

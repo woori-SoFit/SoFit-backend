@@ -365,4 +365,16 @@ public class AuthServiceImpl implements AuthService {
 
         return AuthConverter.toLoginResponse(user);
     }
+
+    @Override
+    public void logout(HttpServletRequest request) {
+        // 1. SecurityContext 클리어
+        SecurityContextHolder.clearContext();
+
+        // 2. 세션 무효화 (Redis에서 삭제)
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+    }
 }

@@ -75,4 +75,11 @@ public interface AuthControllerDocs {
             @Parameter(description = "중복 확인할 로그인 아이디 (영문/숫자 4~20자)", required = true, example = "testuser1")
             String loginId
     );
+
+    @Operation(summary = "로그아웃", description = "현재 세션을 무효화하고 로그아웃합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 요청")
+    })
+    ApiResponse<Void> logout(HttpServletRequest request);
 }
