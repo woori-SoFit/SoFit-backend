@@ -43,8 +43,7 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
     @PostMapping("/loan-products/{productId}/applications")
     public ApiResponse<LoanApplicationCreateResponse> createApplication(
             @PathVariable Long productId,
-            @Valid @RequestBody LoanApplicationCreateRequest request,
-            HttpServletRequest httpRequest) {
+            @Valid @RequestBody LoanApplicationCreateRequest request) {
         Long userId = SecurityUtil.getCurrentUserId();
         LoanApplicationCreateResponse response = loanApplicationService.createApplication(userId, productId, request);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_APPLICATION_CREATED, response);
@@ -56,8 +55,7 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
      */
     @GetMapping("/loan-applications/draft")
     public ApiResponse<DraftCheckResponse> checkDraft(
-            @RequestParam Long productId,
-            HttpServletRequest httpRequest) {
+            @RequestParam Long productId) {
         Long userId = SecurityUtil.getCurrentUserId();
         DraftCheckResponse response = loanApplicationService.checkDraft(userId, productId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_DRAFT_CHECK_OK, response);
@@ -69,8 +67,7 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
      */
     @GetMapping("/loan-applications/{applicationId}/resume")
     public ApiResponse<LoanApplicationResumeResponse> getResumeData(
-            @PathVariable Long applicationId,
-            HttpServletRequest httpRequest) {
+            @PathVariable Long applicationId) {
         Long userId = SecurityUtil.getCurrentUserId();
         LoanApplicationResumeResponse response = loanApplicationService.getResumeData(userId, applicationId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_RESUME_OK, response);
