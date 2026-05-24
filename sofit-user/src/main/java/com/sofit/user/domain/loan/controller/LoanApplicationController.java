@@ -9,9 +9,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sofit.common.apiPayload.ApiResponse;
+import com.sofit.user.domain.loan.dto.request.ContractRequest;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
+import com.sofit.user.domain.loan.dto.response.ContractResponse;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationDetailResponse;
@@ -118,5 +120,20 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
         Long userId = SecurityUtil.getCurrentUserId();
         CompletedLoanDetailResponse response = loanService.findCompletedLoanDetail(userId, applicationId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_APPLICATION_COMPLETED_DETAIL_OK, response);
+    }
+
+    // === 약정 체결 API ===
+
+    /**
+     * 약정 체결
+     * POST /api/loan-applications/{applicationId}/contract
+     */
+    @PostMapping("/loan-applications/{applicationId}/contract")
+    public ApiResponse<ContractResponse> contractLoan(
+            @PathVariable Long applicationId,
+            @Valid @RequestBody ContractRequest request) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        ContractResponse response = loanApplicationService.contractLoan(userId, applicationId, request);
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_CONTRACT_OK, response);
     }
 }

@@ -1,14 +1,17 @@
 package com.sofit.user.domain.loan.controller;
 
 import com.sofit.common.apiPayload.ApiResponse;
+import com.sofit.user.domain.loan.dto.request.ContractRequest;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
+import com.sofit.user.domain.loan.dto.response.ContractResponse;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -76,4 +79,14 @@ public interface LoanApplicationControllerDocs {
     ApiResponse<CompletedLoanDetailResponse> getCompletedLoanDetail(
             @Parameter(description = "대출 신청 ID", required = true, example = "5") Long applicationId
     );
+
+    @Operation(summary = "약정 체결", description = "승인된 대출 신청에 대해 약정 체결을 요청합니다. 요청 금액은 승인 금액 이하여야 합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "약정 체결 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "상태 불일치 또는 금액 초과"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "신청 건 또는 심사 결정을 찾을 수 없음")
+    })
+    ApiResponse<ContractResponse> contractLoan(
+            @Parameter(description = "대출 신청 ID", required = true, example = "1") Long applicationId,
+            ContractRequest request);
 }
