@@ -2,16 +2,21 @@ package com.sofit.user.domain.loan.service;
 
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.LoanApplication;
+import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
+import com.sofit.common.entity.loan.enums.Decision;
 import com.sofit.common.entity.loan.enums.ProductStatus;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.repository.LoanApplicationRepository;
+import com.sofit.common.repository.LoanDecisionRepository;
 import com.sofit.common.repository.LoanProductRepository;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import com.sofit.user.domain.loan.converter.LoanApplicationConverter;
+import com.sofit.user.domain.loan.dto.request.ContractRequest;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
+import com.sofit.user.domain.loan.dto.response.ContractResponse;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
@@ -28,6 +33,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     private final LoanApplicationRepository loanApplicationRepository;
     private final LoanProductRepository loanProductRepository;
     private final UserRepository userRepository;
+    private final LoanDecisionRepository loanDecisionRepository;
 
     /**
      * 대출 신청 생성 (DRAFT 상태)
@@ -102,5 +108,46 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         }
 
         return LoanApplicationConverter.toResumeResponse(application);
+    }
+
+    /**
+     * 약정 체결
+     * - APPROVED 상태인 대출 신청에 대해 약정 체결 처리
+     * - 신청 금액이 승인 금액 이하인지 검증 후 상태를 CONTRACTED로 변경
+     * - Dirty Checking으로 자동 저장
+     */
+    @Override
+    @Transactional
+    public ContractResponse contractLoan(Long userId, Long applicationId, ContractRequest request) {
+        // 1. 대출 신청 조회 (본인 소유 검증 포함)
+        LoanApplication application = loanApplicationRepository
+                .findByApplicationIdAndUser_UserId(applicationId, userId)
+                .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
+
+        // 2. 상태 검증 (APPROVED만 약정 체결 가능)
+        if (application.getStatus() != ApplicationStatus.APPROVED) {
+            throw new BaseException(LoanErrorCode.INVALID_STATUS);
+        }
+
+        // 3. 심사 결정 조회
+        LoanDecision loanDecision = loanDecisionRepository
+                .findByApplication_ApplicationId(applicationId)
+                .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
+
+        // 4. 심사 결정이 APPROVED인지 검증 (approvedAmount null 방지)
+        if (loanDecision.getDecision() != Decision.APPROVED || loanDecision.getApprovedAmount() == null) {
+            throw new BaseException(LoanErrorCode.INVALID_STATUS);
+        }
+
+        // 5. 신청 금액 검증 (승인 금액 초과 불가)
+        if (request.getRequestedAmount() > loanDecision.getApprovedAmount()) {
+            throw new BaseException(LoanErrorCode.AMOUNT_EXCEEDS_APPROVED);
+        }
+
+        // 6. 약정 체결 처리 (상태 변경 - Dirty Checking)
+        application.contract(request.getRequestedAmount());
+
+        // 7. 응답 반환
+        return LoanApplicationConverter.toContractResponse(application);
     }
 }

@@ -2,6 +2,7 @@ package com.sofit.user.domain.loan.converter;
 
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.LastCompletedStep;
+import com.sofit.user.domain.loan.dto.response.ContractResponse;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
@@ -32,6 +33,17 @@ public class LoanApplicationConverter {
         String resumeStep = LastCompletedStep.getResumeStep(step);
 
         return new DraftCheckResponse(true, application.getApplicationId(), lastStep, resumeStep);
+    }
+
+    /**
+     * 약정 체결 응답 변환
+     * Entity → ContractResponse (applicationId, status 반환)
+     */
+    public static ContractResponse toContractResponse(LoanApplication application) {
+        return new ContractResponse(
+                application.getApplicationId(),
+                application.getStatus().name()
+        );
     }
 
     /**
