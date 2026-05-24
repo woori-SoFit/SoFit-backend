@@ -34,8 +34,8 @@ public class MyBizServiceImpl implements MyBizService {
         // 2. 기준월의 referenceMonth 추출
         LocalDate referenceMonth = baseData.getReferenceMonth();
 
-        // 3. revenueTrend 조회 (기준월 포함 이전 5개월, 오름차순)
-        List<MyBizData> revenueTrendData = myBizDataRepository
+        // 3. 5개월 추이 조회 (revenueTrend / ratingTrend 공통, 기준월 포함 이전 5개월, 오름차순)
+        List<MyBizData> fiveMonthTrendData = myBizDataRepository
                 .findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
                         userId, referenceMonth.minusMonths(4), referenceMonth);
 
@@ -45,7 +45,7 @@ public class MyBizServiceImpl implements MyBizService {
                         userId, referenceMonth.minusMonths(2), referenceMonth);
 
         // 5. Converter로 DTO 변환 후 반환
-        return MyBizConverter.toMyBizDashboardResponse(baseData, revenueTrendData, cashFlowTrendData);
+        return MyBizConverter.toMyBizDashboardResponse(baseData, fiveMonthTrendData, cashFlowTrendData);
     }
 
     private MyBizData resolveBaseData(Long userId, String month) {

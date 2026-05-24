@@ -5,3 +5,9 @@ spring:
     url: jdbc:mysql://us.loclx.io:56703/sofit?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+
+  # 로컬 개발용 Redis (SSH 포트 포워딩: localhost:16379 → 172.21.33.238:6379)
+  data:
+    redis:
+      host: localhost
+      port: 16379

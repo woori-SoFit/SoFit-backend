@@ -7,6 +7,7 @@ import com.sofit.common.entity.mybiz.MyBizData;
 import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse;
 import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse.CashFlowTrendResponse;
 import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse.IndustryCompareResponse;
+import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse.RatingTrendResponse;
 import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse.RevenueTrendResponse;
 
 public class MyBizConverter {
@@ -18,18 +19,19 @@ public class MyBizConverter {
 
     public static MyBizDashboardResponse toMyBizDashboardResponse(
             MyBizData baseData,
-            List<MyBizData> revenueTrendData,
+            List<MyBizData> fiveMonthTrendData,
             List<MyBizData> cashFlowTrendData) {
 
         String referenceMonth = baseData.getReferenceMonth().format(YEAR_MONTH_FORMATTER);
 
         IndustryCompareResponse industryCompare = new IndustryCompareResponse(
+                baseData.getIndustryName(),
                 baseData.getIndustrySalesRank(),
                 baseData.getIndustryProfitRank(),
                 baseData.getIndustryStabilityRank()
         );
 
-        List<RevenueTrendResponse> revenueTrend = revenueTrendData.stream()
+        List<RevenueTrendResponse> revenueTrend = fiveMonthTrendData.stream()
                 .map(data -> new RevenueTrendResponse(
                         data.getReferenceMonth().format(YEAR_MONTH_FORMATTER),
                         data.getMonthlyRevenue()
@@ -44,6 +46,13 @@ public class MyBizConverter {
                 ))
                 .toList();
 
+        List<RatingTrendResponse> ratingTrend = fiveMonthTrendData.stream()
+                .map(data -> new RatingTrendResponse(
+                        data.getReferenceMonth().format(YEAR_MONTH_FORMATTER),
+                        data.getReviewRating()
+                ))
+                .toList();
+
         return new MyBizDashboardResponse(
                 referenceMonth,
                 baseData.getMonthlyRevenue(),
@@ -53,6 +62,7 @@ public class MyBizConverter {
                 industryCompare,
                 revenueTrend,
                 cashFlowTrend,
+                ratingTrend,
                 baseData.getReviewRating(),
                 baseData.getReviewCount(),
                 baseData.getOnlineReorderRate(),

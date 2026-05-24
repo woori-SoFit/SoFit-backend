@@ -44,6 +44,9 @@ public class MyBizData {
     @Column(name = "industry_code", length = 20)
     private String industryCode;
 
+    @Column(name = "industry_name", length = 100)
+    private String industryName;
+
     @Column(name = "district_code", length = 20)
     private String districtCode;
 

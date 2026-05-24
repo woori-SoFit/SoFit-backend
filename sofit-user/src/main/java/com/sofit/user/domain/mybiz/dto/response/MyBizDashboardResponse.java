@@ -12,6 +12,7 @@ public record MyBizDashboardResponse(
         IndustryCompareResponse industryCompare,
         List<RevenueTrendResponse> revenueTrend,
         List<CashFlowTrendResponse> cashFlowTrend,
+        List<RatingTrendResponse> ratingTrend,
         BigDecimal naverRating,
         Integer reviewCount,
         BigDecimal deliveryReorderRate,
@@ -19,6 +20,7 @@ public record MyBizDashboardResponse(
 ) {
 
     public record IndustryCompareResponse(
+            String industryName,
             BigDecimal industrySalesRank,
             BigDecimal industryProfitRank,
             BigDecimal industryStabilityRank
@@ -33,5 +35,10 @@ public record MyBizDashboardResponse(
             String referenceMonth,
             Long monthlyInflow,
             Long monthlyOutflow
+    ) {}
+
+    public record RatingTrendResponse(
+            String referenceMonth,
+            BigDecimal reviewRating
     ) {}
 }
