@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 
 @Tag(name = "My Biz Data", description = "소상공인 My Biz Data 대시보드 조회 API")
 public interface MyBizControllerDocs {
@@ -21,7 +20,6 @@ public interface MyBizControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "My Biz Data 미존재")
     })
     ApiResponse<MyBizDashboardResponse> findDashboard(
-            HttpServletRequest request,
             @Parameter(description = "조회 기준월 (yyyy-MM 형식)", required = false, example = "2024-05")
             String month);
 }
