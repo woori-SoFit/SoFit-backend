@@ -28,8 +28,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/auth/login").permitAll()
                         // 세분화된 역할 규칙 (구체적 경로 우선)
                         .requestMatchers("/api/admin/manager/loan-applications/*/approve").hasAuthority("ADMIN_BANK_MANAGER")
-                        .requestMatchers("/api/admin/dev/batch/s-grade").hasAuthority("ADMIN_DEV")
-                        .requestMatchers("/api/admin/dev/logs/api").hasAuthority("ADMIN_DEV")
+                        .requestMatchers("/api/admin/dev/**").hasAuthority("ADMIN_DEV")
                         // 나머지 admin 경로: 모든 관리자 역할 허용
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ADMIN_BANK_TELLER", "ADMIN_BANK_MANAGER", "ADMIN_DEV")
                         .anyRequest().authenticated()
