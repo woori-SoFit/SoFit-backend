@@ -76,10 +76,10 @@ public interface AuthControllerDocs {
             String loginId
     );
 
-    @Operation(summary = "로그아웃", description = "현재 세션을 무효화하고 로그아웃합니다.")
+    @Operation(summary = "로그아웃", description = "현재 세션을 무효화하고 로그아웃합니다. JSESSIONID 쿠키도 만료 처리됩니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 요청")
     })
-    ApiResponse<Void> logout(HttpServletRequest request);
+    ApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response);
 }
