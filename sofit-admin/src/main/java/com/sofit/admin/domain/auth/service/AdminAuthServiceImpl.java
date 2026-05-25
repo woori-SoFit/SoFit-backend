@@ -41,34 +41,35 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     @Override
     public AdminLoginResponse login(AdminLoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         String loginId = request.getLoginId();
+        String ipAddress = getClientIp(httpRequest);
 
-        // 0. 브루트포스 방어: 로그인 시도 횟수 초과 시 차단
-        if (loginAttemptService.isBlocked(loginId)) {
+        // 0. 브루트포스 방어: IP 또는 계정 잠금 시 차단
+        if (loginAttemptService.isBlocked(loginId, ipAddress)) {
             throw new BaseException(AdminAuthErrorCode.ACCOUNT_LOCKED);
         }
 
         // 1. loginId로 User 조회
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> {
-                    loginAttemptService.loginFailed(loginId);
+                    loginAttemptService.loginFailed(loginId, ipAddress);
                     return new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
                 });
 
         // 2. 비활성 사용자 체크
         if (user.getStatus() == UserStatus.INACTIVE) {
-            loginAttemptService.loginFailed(loginId);
+            loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
         // 3. 일반 사용자(USER) 접근 차단
         if (user.getRole() == UserRole.USER) {
-            loginAttemptService.loginFailed(loginId);
+            loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
         // 4. 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            loginAttemptService.loginFailed(loginId);
+            loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
@@ -127,5 +128,18 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
         // 4. 응답 반환
         return AdminAuthConverter.toMeResponse(user);
+    }
+
+    /**
+     * 클라이언트 IP를 추출한다.
+     * 프록시/로드밸런서 뒤에 있을 경우 X-Forwarded-For 헤더를 우선 사용한다.
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+            // 여러 프록시를 거친 경우 첫 번째가 실제 클라이언트 IP
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }
