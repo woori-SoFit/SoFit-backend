@@ -32,13 +32,13 @@ public class UserWithdrawnEventListener {
 
         log.info("[회원탈퇴] userId={} 세션 {}개 삭제 완료", event.userId(), userSessions.size());
 
-        // 2. SecurityContext 클리어
-        SecurityContextHolder.clearContext();
-
-        // 3. 현재 세션 무효화
+        // 2. 현재 세션 무효화
         HttpSession session = event.request().getSession(false);
         if (session != null) {
             session.invalidate();
         }
+
+        // 3. SecurityContext 클리어
+        SecurityContextHolder.clearContext();
     }
 }
