@@ -111,8 +111,8 @@ class AdminAuthRealIntegrationTest {
     class ConcurrentLoginRealTest {
 
         @Test
-        @DisplayName("첫 번째 로그인 성공 후 두 번째 로그인 시도")
-        void shouldHandleSecondLoginAttempt() throws Exception {
+        @DisplayName("첫 번째 로그인 성공 후 두 번째 로그인 시도 시 409 차단")
+        void shouldBlockSecondLoginAttempt() throws Exception {
             // 첫 번째 로그인 (세션 A 생성)
             MvcResult firstLogin = mockMvc.perform(post(LOGIN_URL)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -124,24 +124,14 @@ class AdminAuthRealIntegrationTest {
             MockHttpSession sessionA = (MockHttpSession) firstLogin.getRequest().getSession(false);
             assertThat(sessionA).isNotNull();
 
-            // 두 번째 로그인 (다른 세션으로 시도)
-            // maximumSessions(1) + maxSessionsPreventsLogin(true) 설정에 의해
-            // 이미 세션이 존재하면 새 로그인이 차단되어야 함
-            MvcResult secondLogin = mockMvc.perform(post(LOGIN_URL)
+            // 두 번째 로그인 (다른 세션으로 시도) → 409 차단
+            mockMvc.perform(post(LOGIN_URL)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(loginJson(VALID_LOGIN_ID, VALID_PASSWORD)))
-                    .andReturn();
-
-            // 결과 출력 (디버깅용)
-            int secondStatus = secondLogin.getResponse().getStatus();
-            String secondBody = secondLogin.getResponse().getContentAsString();
-            System.out.println("=== 두 번째 로그인 시도 결과 ===");
-            System.out.println("Status: " + secondStatus);
-            System.out.println("Body: " + secondBody);
-
-            // 참고: Spring Security의 maximumSessions는 AuthenticationManager를 통한 인증에서만
-            // 자동 적용됩니다. 서비스 레벨에서 직접 SecurityContext를 설정하는 현재 방식에서는
-            // 별도 처리가 필요할 수 있습니다. 이 테스트로 실제 동작을 확인합니다.
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.isSuccess").value(false))
+                    .andExpect(jsonPath("$.code").value("AUTH4091"))
+                    .andExpect(jsonPath("$.message").value("이미 다른 기기에서 로그인되어 있습니다."));
         }
     }
 

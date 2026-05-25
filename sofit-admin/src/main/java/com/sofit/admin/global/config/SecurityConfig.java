@@ -8,9 +8,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.session.FindByIndexNameSessionRepository;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisIndexedHttpSession;
+import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -19,11 +21,13 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableRedisIndexedHttpSession
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final FindByIndexNameSessionRepository<?> sessionRepository;
 
     @Value("${app.cors.allowed-origins:http://localhost:3001}")
     private String allowedOrigins;
@@ -62,8 +66,9 @@ public class SecurityConfig {
     }
 
     @Bean
+    @SuppressWarnings("unchecked")
     public SessionRegistry sessionRegistry() {
-        return new SessionRegistryImpl();
+        return new SpringSessionBackedSessionRegistry(sessionRepository);
     }
 
     @Bean
