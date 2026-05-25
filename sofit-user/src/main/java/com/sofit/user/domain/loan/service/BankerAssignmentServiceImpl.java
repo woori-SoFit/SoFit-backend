@@ -37,9 +37,12 @@ public class BankerAssignmentServiceImpl implements BankerAssignmentService {
 
         // 3. Redis INCR로 인덱스 원자적 증가
         Long index = redisTemplate.opsForValue().increment(ROUND_ROBIN_KEY);
+        if (index == null) {
+            throw new BaseException(LoanErrorCode.NO_AVAILABLE_BANKER);
+        }
 
-        // 4. modulo 연산으로 배정 대상 결정
-        int targetIndex = (int) (index % activeBankers.size());
+        // 4. modulo 연산으로 배정 대상 결정 (오버플로 시 음수 방지)
+        int targetIndex = (int) (Math.abs(index) % activeBankers.size());
 
         return activeBankers.get(targetIndex).getUserId();
     }
