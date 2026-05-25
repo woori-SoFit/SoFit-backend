@@ -1,0 +1,182 @@
+package com.sofit.common.entity.mybiz;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import com.sofit.common.entity.mybiz.enums.InsurancePaymentStatus;
+import com.sofit.common.entity.mybiz.enums.VatFilingStatus;
+import com.sofit.common.entity.user.User;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "my_biz_data")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class MyBizData {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "biz_data_id")
+    private Long bizDataId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(name = "business_number", nullable = false, length = 20)
+    private String businessNumber;
+
+    @Column(name = "industry_code", length = 20)
+    private String industryCode;
+
+    @Column(name = "industry_name", length = 100)
+    private String industryName;
+
+    @Column(name = "district_code", length = 20)
+    private String districtCode;
+
+    @Column(name = "reference_month", nullable = false)
+    private LocalDate referenceMonth;
+
+    @Column(name = "business_age_months")
+    private Integer businessAgeMonths;
+
+    // --- 매출 ---
+
+    @Column(name = "monthly_revenue")
+    private Long monthlyRevenue;
+
+    @Column(name = "prev_month_revenue")
+    private Long prevMonthRevenue;
+
+    @Column(name = "monthly_revenue_growth_rate", precision = 5, scale = 2)
+    private BigDecimal monthlyRevenueGrowthRate;
+
+    // --- 거래 ---
+
+    @Column(name = "monthly_transaction_amount", precision = 15, scale = 2)
+    private BigDecimal monthlyTransactionAmount;
+
+    @Column(name = "monthly_transaction_count")
+    private Integer monthlyTransactionCount;
+
+    @Column(name = "avg_transaction_amount", precision = 15, scale = 2)
+    private BigDecimal avgTransactionAmount;
+
+    @Column(name = "days_since_last_transaction")
+    private Integer daysSinceLastTransaction;
+
+    @Column(name = "max_inactive_days")
+    private Integer maxInactiveDays;
+
+    // --- 계좌 입출금 ---
+
+    @Column(name = "monthly_inflow")
+    private Long monthlyInflow;
+
+    @Column(name = "monthly_outflow")
+    private Long monthlyOutflow;
+
+    @Column(name = "account_balance")
+    private Long accountBalance;
+
+    // --- 수익 ---
+
+    @Column(name = "estimated_profit")
+    private Long estimatedProfit;
+
+    @Column(name = "cash_flow")
+    private Long cashFlow;
+
+    // --- 배달/온라인 ---
+
+    @Column(name = "delivery_sales_amount")
+    private Long deliverySalesAmount;
+
+    @Column(name = "delivery_order_count")
+    private Integer deliveryOrderCount;
+
+    @Column(name = "delivery_rating", precision = 3, scale = 1)
+    private BigDecimal deliveryRating;
+
+    @Column(name = "online_reorder_rate", precision = 5, scale = 2)
+    private BigDecimal onlineReorderRate;
+
+    @Column(name = "online_reply_rate", precision = 5, scale = 2)
+    private BigDecimal onlineReplyRate;
+
+    @Column(name = "online_info_update_count")
+    private Integer onlineInfoUpdateCount;
+
+    // --- 리뷰/평점 ---
+
+    @Column(name = "review_rating", precision = 3, scale = 1)
+    private BigDecimal reviewRating;
+
+    @Column(name = "review_count")
+    private Integer reviewCount;
+
+    @Column(name = "positive_review_ratio", precision = 5, scale = 2)
+    private BigDecimal positiveReviewRatio;
+
+    // --- 업종 순위 ---
+
+    @Column(name = "industry_sales_rank", precision = 5, scale = 2)
+    private BigDecimal industrySalesRank;
+
+    @Column(name = "industry_profit_rank", precision = 5, scale = 2)
+    private BigDecimal industryProfitRank;
+
+    @Column(name = "industry_stability_rank", precision = 5, scale = 2)
+    private BigDecimal industryStabilityRank;
+
+    // --- 세금/보험 ---
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vat_filing_status", length = 10)
+    private VatFilingStatus vatFilingStatus;
+
+    @Column(name = "vat_filing_date")
+    private LocalDate vatFilingDate;
+
+    @Column(name = "tax_overdue")
+    private Boolean taxOverdue;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "insurance_payment_status", length = 10)
+    private InsurancePaymentStatus insurancePaymentStatus;
+
+    // --- 인력/사업장 ---
+
+    @Column(name = "employee_count")
+    private Integer employeeCount;
+
+    @Column(name = "has_sns")
+    private Boolean hasSns;
+
+    @Column(name = "has_online_reservation")
+    private Boolean hasOnlineReservation;
+
+    @Column(name = "is_near_subway")
+    private Boolean isNearSubway;
+
+    // --- 메타 ---
+
+    @Column(name = "generated_at")
+    private LocalDateTime generatedAt;
+}

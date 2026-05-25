@@ -11,6 +11,7 @@ import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,7 +68,18 @@ public interface AuthControllerDocs {
 
     @Operation(summary = "로그인 아이디 중복 확인", description = "회원가입 시 로그인 아이디의 사용 가능 여부를 확인합니다.")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "확인 완료")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "확인 완료"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "아이디 형식 오류 (영문/숫자 4~20자)")
     })
-    ApiResponse<CheckLoginIdResponse> checkLoginId(String loginId);
+    ApiResponse<CheckLoginIdResponse> checkLoginId(
+            @Parameter(description = "중복 확인할 로그인 아이디 (영문/숫자 4~20자)", required = true, example = "testuser1")
+            String loginId
+    );
+
+    @Operation(summary = "로그아웃", description = "현재 세션을 무효화하고 로그아웃합니다. JSESSIONID 쿠키도 만료 처리됩니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 요청")
+    })
+    ApiResponse<Void> logout(HttpServletRequest request, HttpServletResponse response);
 }

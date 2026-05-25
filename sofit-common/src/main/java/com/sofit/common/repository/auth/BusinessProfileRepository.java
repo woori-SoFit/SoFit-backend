@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface BusinessProfileRepository extends JpaRepository<BusinessProfile, Long> {
 
     Optional<BusinessProfile> findByBusinessNumber(String businessNumber);
+
+    Optional<BusinessProfile> findByUser_UserId(Long userId);
 }

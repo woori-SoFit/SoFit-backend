@@ -12,6 +12,7 @@ import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import com.sofit.user.domain.auth.exception.AuthSuccessCode;
 import com.sofit.user.domain.auth.service.AuthService;
+import com.sofit.user.global.util.SessionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -77,5 +78,12 @@ public class AuthController implements AuthControllerDocs {
 
         CheckLoginIdResponse response = authService.checkLoginId(loginId);
         return ApiResponse.onSuccess(AuthSuccessCode.LOGIN_ID_CHECKED, response);
+    }
+
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        SessionUtil.invalidateSession(httpRequest, httpResponse);
+
+        return ApiResponse.onSuccess(AuthSuccessCode.LOGOUT_SUCCESS, null);
     }
 }

@@ -16,6 +16,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -28,13 +33,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> {})
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // Swagger UI 허용
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 인증 불필요 경로
-                        .requestMatchers("/api/auth/signup/**", "/api/auth/login", "/api/auth/verify-pin", "/api/users/me").permitAll()
+                        .requestMatchers("/api/auth/signup/**", "/api/auth/login", "/api/auth/verify-pin").permitAll()
+                        // 내 정보 조회는 비로그인 상태에서도 접근 가능 (로그인 여부에 따라 분기)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/me").permitAll()
                         // 약관 목록 조회는 비로그인 상태에서 접근 가능 (회원가입 플로우)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/terms/**").permitAll()
                         // 나머지는 인증 필요
@@ -64,6 +71,22 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of(
+                "http://localhost:13000",
+                "http://172.21.33.214:3000"
+        ));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean

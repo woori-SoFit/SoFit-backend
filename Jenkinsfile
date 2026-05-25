@@ -1,19 +1,30 @@
 pipeline {
     agent any
 
+    options {
+        disableConcurrentBuilds()
+    }
+
     triggers {
         githubPush()
     }
 
     environment {
         REGISTRY = '172.21.33.225:5000'
-        APP_SERVER = '172.21.33.238'
+        USER_SERVER = '172.21.33.210'
+        ADMIN_SERVER = '172.21.33.249'
     }
 
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh './gradlew :sofit-user:bootJar :sofit-admin:bootJar -x test --rerun-tasks'
             }
         }
 
@@ -27,12 +38,6 @@ pipeline {
                             -Dsonar.java.binaries=sofit-user/build/classes/java/main,sofit-admin/build/classes/java/main,sofit-common/build/classes/java/main
                     """
                 }
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh './gradlew :sofit-user:bootJar :sofit-admin:bootJar -x test --rerun-tasks'
             }
         }
 
@@ -54,10 +59,16 @@ pipeline {
             steps {
                 sshagent(['sofit-app-ssh']) {
                     sh '''
-                        ssh -o StrictHostKeyChecking=no ubuntu@$APP_SERVER "
+                        ssh -o StrictHostKeyChecking=no ubuntu@$USER_SERVER "
                             docker pull $REGISTRY/sofit-user-back:latest &&
+                            docker-compose -f /home/ubuntu/docker-compose.yml down &&
+                            docker-compose -f /home/ubuntu/docker-compose.yml up -d
+                        "
+
+                        ssh -o StrictHostKeyChecking=no ubuntu@$ADMIN_SERVER "
                             docker pull $REGISTRY/sofit-admin-back:latest &&
-                            docker-compose -f /home/ubuntu/docker-compose.yml up -d --force-recreate
+                            docker-compose -f /home/ubuntu/docker-compose.yml down &&
+                            docker-compose -f /home/ubuntu/docker-compose.yml up -d
                         "
                     '''
                 }
