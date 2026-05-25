@@ -23,11 +23,17 @@ public class UserWithdrawnEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserWithdrawn(UserWithdrawnEvent event) {
-        // 해당 사용자의 모든 활성 세션 삭제 (Redis에서 역조회)
-        Map<String, ? extends Session> userSessions =
-                sessionRepository.findByPrincipalName(event.userId().toString());
-        userSessions.keySet().forEach(sessionRepository::deleteById);
+        try {
+            // 해당 사용자의 모든 활성 세션 삭제 (Redis에서 역조회)
+            Map<String, ? extends Session> userSessions =
+                    sessionRepository.findByPrincipalName(event.userId().toString());
+            userSessions.keySet().forEach(sessionRepository::deleteById);
 
-        log.info("[회원탈퇴] userId={} 세션 {}개 삭제 완료", event.userId(), userSessions.size());
+            log.info("[회원탈퇴] userId={} 세션 {}개 삭제 완료", event.userId(), userSessions.size());
+        } catch (Exception e) {
+            // Redis 장애 시에도 DB 탈퇴 처리는 이미 완료된 상태
+            // 세션은 Redis TTL(30분)로 자연 만료되므로 로그만 남기고 진행
+            log.warn("[회원탈퇴] userId={} Redis 세션 삭제 실패 — TTL 만료 대기", event.userId(), e);
+        }
     }
 }
