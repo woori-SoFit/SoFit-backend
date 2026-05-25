@@ -1,5 +1,6 @@
 package com.sofit.user.domain.mybiz.converter;
 
+import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -24,6 +25,11 @@ public class MyBizConverter {
 
         String referenceMonth = baseData.getReferenceMonth().format(YEAR_MONTH_FORMATTER);
 
+        // 전월 데이터 없으면 증감률 null (0은 "변화 없음", null은 "비교 불가" — 프론트 UI 구분)
+        BigDecimal revenueGrowthRate = baseData.getPrevMonthRevenue() == null
+                ? null
+                : baseData.getMonthlyRevenueGrowthRate();
+
         IndustryCompareResponse industryCompare = new IndustryCompareResponse(
                 baseData.getIndustryName(),
                 baseData.getIndustrySalesRank(),
@@ -32,6 +38,7 @@ public class MyBizConverter {
         );
 
         List<RevenueTrendResponse> revenueTrend = fiveMonthTrendData.stream()
+                .filter(data -> data.getMonthlyRevenue() != null)
                 .map(data -> new RevenueTrendResponse(
                         data.getReferenceMonth().format(YEAR_MONTH_FORMATTER),
                         data.getMonthlyRevenue()
@@ -39,6 +46,7 @@ public class MyBizConverter {
                 .toList();
 
         List<CashFlowTrendResponse> cashFlowTrend = cashFlowTrendData.stream()
+                .filter(data -> data.getMonthlyInflow() != null && data.getMonthlyOutflow() != null)
                 .map(data -> new CashFlowTrendResponse(
                         data.getReferenceMonth().format(YEAR_MONTH_FORMATTER),
                         data.getMonthlyInflow(),
@@ -47,6 +55,7 @@ public class MyBizConverter {
                 .toList();
 
         List<RatingTrendResponse> ratingTrend = fiveMonthTrendData.stream()
+                .filter(data -> data.getReviewRating() != null)
                 .map(data -> new RatingTrendResponse(
                         data.getReferenceMonth().format(YEAR_MONTH_FORMATTER),
                         data.getReviewRating()
@@ -56,7 +65,7 @@ public class MyBizConverter {
         return new MyBizDashboardResponse(
                 referenceMonth,
                 baseData.getMonthlyRevenue(),
-                baseData.getMonthlyRevenueGrowthRate(),
+                revenueGrowthRate,
                 baseData.getCashFlow(),
                 baseData.getEstimatedProfit(),
                 industryCompare,
