@@ -84,6 +84,9 @@ public class LoanApplication extends BaseEntity {
     @Column(name = "applied_at")
     private LocalDateTime appliedAt;
 
+    @Column(name = "assigned_banker_id")
+    private Long assignedBankerId;
+
     // === 비즈니스 메서드 ===
 
     public static LoanApplication createDraft(User user, LoanProduct product,
@@ -118,5 +121,9 @@ public class LoanApplication extends BaseEntity {
 
     public void updateLastCompletedStep(LastCompletedStep step) {
         this.lastCompletedStep = step;
+    }
+
+    public void assignBanker(Long bankerId) {
+        this.assignedBankerId = bankerId;
     }
 }
