@@ -7,7 +7,8 @@ import com.sofit.common.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Tag(name = "관리자 인증")
 public interface AdminAuthControllerDocs {
@@ -20,7 +21,7 @@ public interface AdminAuthControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그인 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "아이디 또는 비밀번호 불일치")
     })
-    ApiResponse<AdminLoginResponse> login(AdminLoginRequest request, HttpSession session);
+    ApiResponse<AdminLoginResponse> login(AdminLoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
 
     @Operation(
             summary = "관리자 내 정보 조회",

@@ -5,12 +5,14 @@ import com.sofit.admin.domain.auth.dto.request.AdminLoginRequest;
 import com.sofit.admin.domain.auth.dto.response.AdminLoginResponse;
 import com.sofit.admin.domain.auth.dto.response.AdminMeResponse;
 import com.sofit.admin.domain.auth.exception.AdminAuthErrorCode;
+import com.sofit.admin.global.config.LoginAttemptService;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserRole;
 import com.sofit.common.entity.user.enums.UserStatus;
 import com.sofit.common.repository.user.UserRepository;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,6 +21,7 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,29 +32,47 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LoginAttemptService loginAttemptService;
+    private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     @Override
-    public AdminLoginResponse login(AdminLoginRequest request, HttpSession session) {
+    public AdminLoginResponse login(AdminLoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        String loginId = request.getLoginId();
+
+        // 0. 브루트포스 방어: 로그인 시도 횟수 초과 시 차단
+        if (loginAttemptService.isBlocked(loginId)) {
+            throw new BaseException(AdminAuthErrorCode.ACCOUNT_LOCKED);
+        }
+
         // 1. loginId로 User 조회
-        User user = userRepository.findByLoginId(request.getLoginId())
-                .orElseThrow(() -> new BaseException(AdminAuthErrorCode.LOGIN_FAILED));
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(() -> {
+                    loginAttemptService.loginFailed(loginId);
+                    return new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
+                });
 
         // 2. 비활성 사용자 체크
         if (user.getStatus() == UserStatus.INACTIVE) {
+            loginAttemptService.loginFailed(loginId);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
         // 3. 일반 사용자(USER) 접근 차단
         if (user.getRole() == UserRole.USER) {
+            loginAttemptService.loginFailed(loginId);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
         // 4. 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            loginAttemptService.loginFailed(loginId);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
-        // 5. SecurityContext 설정 (단일 인증 정보 소스)
+        // 5. 로그인 성공 → 시도 횟수 초기화
+        loginAttemptService.loginSucceeded(loginId);
+
+        // 6. SecurityContext 설정 (단일 인증 정보 소스)
         // 세션 고정 공격 방지는 SecurityConfig의 sessionFixation().newSession()이 자동 처리
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
@@ -62,9 +83,9 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
-        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+        securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
 
-        // 6. 응답 반환
+        // 7. 응답 반환
         return AdminAuthConverter.toLoginResponse(user);
     }
 

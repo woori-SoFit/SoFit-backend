@@ -1,6 +1,7 @@
 package com.sofit.admin.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,13 +27,15 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                        HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException, ServletException {
 
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        GeneralErrorCode errorCode = GeneralErrorCode.FORBIDDEN;
+
+        response.setStatus(errorCode.getHttpStatus().value());
         response.setContentType("application/json;charset=UTF-8");
 
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("isSuccess", false);
-        body.put("code", "COMMON4003");
-        body.put("message", "권한이 없습니다.");
+        body.put("code", errorCode.getCode());
+        body.put("message", errorCode.getMessage());
         body.put("result", null);
 
         response.getWriter().write(objectMapper.writeValueAsString(body));
