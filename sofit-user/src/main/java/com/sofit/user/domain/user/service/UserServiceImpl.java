@@ -6,24 +6,20 @@ import com.sofit.common.entity.user.enums.UserStatus;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.user.converter.UserConverter;
 import com.sofit.user.domain.user.dto.response.UserProfileResponse;
+import com.sofit.user.domain.user.event.UserWithdrawnEvent;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.session.FindByIndexNameSessionRepository;
-import org.springframework.session.Session;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
-    private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public UserProfileResponse findUser(Long userId) {
@@ -50,18 +46,7 @@ public class UserServiceImpl implements UserService {
         // 2. Soft Delete (status=INACTIVE, inactivatedAt 기록)
         user.inactivate();
 
-        // 3. 해당 사용자의 모든 활성 세션 삭제 (Redis에서 역조회)
-        Map<String, ? extends Session> userSessions =
-                sessionRepository.findByPrincipalName(userId.toString());
-        userSessions.keySet().forEach(sessionRepository::deleteById);
-
-        // 4. SecurityContext 클리어
-        SecurityContextHolder.clearContext();
-
-        // 5. 현재 세션 무효화
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
+        // 3. DB 커밋 완료 후 세션 삭제를 위한 이벤트 발행
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userId, request));
     }
 }
