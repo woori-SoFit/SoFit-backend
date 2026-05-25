@@ -88,6 +88,7 @@ public class AuthController implements AuthControllerDocs {
         Cookie cookie = new Cookie("JSESSIONID", null);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
+        cookie.setSecure(httpRequest.isSecure());
         cookie.setMaxAge(0);
         httpResponse.addCookie(cookie);
 
