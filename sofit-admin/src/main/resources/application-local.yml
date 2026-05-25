@@ -5,3 +5,8 @@ spring:
     url: jdbc:mysql://us.loclx.io:50375/sofit?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+
+# 로컬 개발 CORS (여러 Origin 허용 시 콤마로 구분)
+app:
+  cors:
+    allowed-origins: http://localhost:3001
