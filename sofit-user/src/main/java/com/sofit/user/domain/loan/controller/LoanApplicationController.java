@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.user.domain.loan.dto.request.ContractRequest;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
+import com.sofit.user.domain.loan.dto.request.LoanApplicationSubmitRequest;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
 import com.sofit.user.domain.loan.dto.response.ContractResponse;
@@ -19,6 +20,7 @@ import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
+import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
 import com.sofit.user.domain.loan.exception.LoanSuccessCode;
 import com.sofit.user.domain.loan.service.LoanApplicationService;
 import com.sofit.user.domain.loan.service.LoanService;
@@ -72,6 +74,19 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
         Long userId = SecurityUtil.getCurrentUserId();
         LoanApplicationResumeResponse response = loanApplicationService.getResumeData(userId, applicationId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_RESUME_OK, response);
+    }
+
+    /**
+     * 최종 제출 (심사 요청)
+     * POST /api/loan-applications/{applicationId}/submit
+     */
+    @PostMapping("/loan-applications/{applicationId}/submit")
+    public ApiResponse<LoanApplicationSubmitResponse> submitApplication(
+            @PathVariable Long applicationId,
+            @Valid @RequestBody LoanApplicationSubmitRequest request) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        LoanApplicationSubmitResponse response = loanApplicationService.submitApplication(userId, applicationId, request);
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_SUBMIT_OK, response);
     }
 
     // === 기존 심사 현황 조회 API ===

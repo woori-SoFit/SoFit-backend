@@ -6,6 +6,7 @@ import com.sofit.user.domain.loan.dto.response.ContractResponse;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
+import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
 
 /**
  * LoanApplication 엔티티 ↔ 대출 신청 관련 DTO 변환 클래스
@@ -70,6 +71,22 @@ public class LoanApplicationConverter {
                 application.getApplicationId(),
                 resumeStep,
                 savedData
+        );
+    }
+
+    /**
+     * 최종 제출(심사 요청) 후 응답 변환
+     * Entity → LoanApplicationSubmitResponse
+     */
+    public static LoanApplicationSubmitResponse toSubmitResponse(LoanApplication application) {
+        return new LoanApplicationSubmitResponse(
+                application.getApplicationId(),
+                application.getProduct().getProductName(),
+                application.getRequestedAmount(),
+                application.getAppliedAt(),
+                application.getRepaymentMethod().name(),
+                application.getPurpose().name(),
+                application.getRequestedTerm()
         );
     }
 }
