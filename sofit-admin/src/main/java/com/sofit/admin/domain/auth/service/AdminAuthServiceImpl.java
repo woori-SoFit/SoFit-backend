@@ -19,9 +19,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
@@ -35,7 +35,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
-    private final SessionRegistry sessionRegistry;
+    private final SessionAuthenticationStrategy sessionAuthenticationStrategy;
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     @Override
@@ -72,30 +72,30 @@ public class AdminAuthServiceImpl implements AdminAuthService {
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
-        // 5. 동시 로그인 제한: 이미 활성 세션이 있으면 차단
-        List<SessionInformation> activeSessions = sessionRegistry.getAllSessions(user.getUserId(), false);
-        if (!activeSessions.isEmpty()) {
-            throw new BaseException(AdminAuthErrorCode.CONCURRENT_LOGIN);
-        }
-
-        // 6. 로그인 성공 → 시도 횟수 초기화
+        // 5. 로그인 성공 → 시도 횟수 초기화
         loginAttemptService.loginSucceeded(loginId);
 
-        // 7. SecurityContext 설정 (단일 인증 정보 소스)
+        // 6. SecurityContext 설정 (단일 인증 정보 소스)
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         user.getUserId(),
                         null,
                         List.of(new SimpleGrantedAuthority(user.getRole().name()))
                 );
+
+        // 7. 동시 로그인 제한 — Spring Security SessionAuthenticationStrategy에 위임
+        // 세션 고정 공격 방지 + 세션 등록 + 동시 세션 제한을 일관되게 처리
+        try {
+            sessionAuthenticationStrategy.onAuthentication(authentication, httpRequest, httpResponse);
+        } catch (SessionAuthenticationException e) {
+            throw new BaseException(AdminAuthErrorCode.CONCURRENT_LOGIN);
+        }
+
+        // 8. SecurityContext 저장
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
         securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
-
-        // 8. SessionRegistry에 세션 등록 (동시 로그인 추적용)
-        String sessionId = httpRequest.getSession().getId();
-        sessionRegistry.registerNewSession(sessionId, user.getUserId());
 
         // 9. 응답 반환
         return AdminAuthConverter.toLoginResponse(user);

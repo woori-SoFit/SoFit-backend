@@ -9,6 +9,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.ConcurrentSessionControlAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionFixationProtectionStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisIndexedHttpSession;
@@ -69,6 +74,27 @@ public class SecurityConfig {
     @SuppressWarnings("unchecked")
     public SessionRegistry sessionRegistry() {
         return new SpringSessionBackedSessionRegistry(sessionRepository);
+    }
+
+    /**
+     * 서비스 레이어에서 호출할 SessionAuthenticationStrategy Bean.
+     * Spring Security의 동시 세션 제어를 단일 지점에서 처리한다.
+     */
+    @Bean
+    public SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        ConcurrentSessionControlAuthenticationStrategy concurrencyStrategy =
+                new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry());
+        concurrencyStrategy.setMaximumSessions(1);
+        concurrencyStrategy.setExceptionIfMaximumExceeded(true);
+
+        SessionFixationProtectionStrategy fixationStrategy = new SessionFixationProtectionStrategy();
+
+        RegisterSessionAuthenticationStrategy registerStrategy =
+                new RegisterSessionAuthenticationStrategy(sessionRegistry());
+
+        return new CompositeSessionAuthenticationStrategy(
+                List.of(concurrencyStrategy, fixationStrategy, registerStrategy)
+        );
     }
 
     @Bean
