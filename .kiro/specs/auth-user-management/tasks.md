@@ -204,16 +204,16 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
 - [x] 10. Phase 5 Checkpoint
   - 컴파일 확인, Step 3 API 동작 확인, 전체 회원가입 플로우(Step 1→2→3) 연결 확인. 문제 발생 시 사용자에게 질문.
 
-- [ ] 11. Phase 6: 로그아웃 [SOFIT-26]
+- [x] 11. Phase 6: 로그아웃 [SOFIT-26]
   - 세션 삭제를 통한 로그아웃 기능을 구현한다.
-  - 커밋: `[SOFIT-23] Feat: 로그아웃 API 구현`
+  - 커밋: `[SOFIT-26] Feat: 로그아웃 API 구현`
 
-  - [ ] 11.1 AuthService에 logout 메서드 추가 및 구현
-    - `void logout(HttpSession session)` 추가
-    - session.invalidate() 호출하여 세션 삭제
+  - [x] 11.1 AuthService에 logout 메서드 추가 및 구현
+    - `void logout(HttpServletRequest request)` 추가
+    - SecurityContextHolder.clearContext() + session.invalidate() 호출하여 SecurityContext 클리어 및 세션 삭제
     - _Requirements: 7.1, 7.2_
 
-  - [ ] 11.2 AuthController에 로그아웃 엔드포인트 추가
+  - [x] 11.2 AuthController에 로그아웃 엔드포인트 추가
     - `POST /api/auth/logout` 엔드포인트 추가 (인증 필요)
     - AuthControllerDocs 인터페이스 업데이트
     - 응답: `ApiResponse.onSuccess(AuthSuccessCode.AUTH2005, null)`
@@ -224,7 +224,7 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
     - **Property 11: 로그아웃 세션 무효화**
     - **Validates: Requirements 7.1, 7.5**
 
-- [ ] 12. Phase 6 Checkpoint
+- [x] 12. Phase 6 Checkpoint
   - 컴파일 확인, 로그아웃 API 동작 확인. 문제 발생 시 사용자에게 질문.
 
 - [ ] 13. Phase 7: 회원탈퇴 [SOFIT-27]

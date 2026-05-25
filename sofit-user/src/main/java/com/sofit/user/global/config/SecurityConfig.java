@@ -39,7 +39,9 @@ public class SecurityConfig {
                         // Swagger UI 허용
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 인증 불필요 경로
-                        .requestMatchers("/api/auth/signup/**", "/api/auth/login", "/api/auth/verify-pin", "/api/users/me").permitAll()
+                        .requestMatchers("/api/auth/signup/**", "/api/auth/login", "/api/auth/verify-pin").permitAll()
+                        // 내 정보 조회는 비로그인 상태에서도 접근 가능 (로그인 여부에 따라 분기)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/me").permitAll()
                         // 약관 목록 조회는 비로그인 상태에서 접근 가능 (회원가입 플로우)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/terms/**").permitAll()
                         // 나머지는 인증 필요

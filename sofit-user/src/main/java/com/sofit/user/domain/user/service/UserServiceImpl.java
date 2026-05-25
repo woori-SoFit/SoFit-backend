@@ -6,15 +6,19 @@ import com.sofit.common.entity.user.enums.UserStatus;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.user.converter.UserConverter;
 import com.sofit.user.domain.user.dto.response.UserProfileResponse;
+import com.sofit.user.domain.user.event.UserWithdrawnEvent;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public UserProfileResponse findUser(Long userId) {
@@ -29,5 +33,19 @@ public class UserServiceImpl implements UserService {
 
         // 3. Entity → DTO 변환 후 반환
         return UserConverter.toUserProfileResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public void withdraw(Long userId) {
+        // 1. 사용자 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(AuthErrorCode.USER_NOT_FOUND));
+
+        // 2. Soft Delete (status=INACTIVE, inactivatedAt 기록)
+        user.inactivate();
+
+        // 3. DB 커밋 완료 후 세션 삭제를 위한 이벤트 발행
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
     }
 }
