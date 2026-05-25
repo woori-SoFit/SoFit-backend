@@ -8,7 +8,6 @@ import com.sofit.user.domain.user.converter.UserConverter;
 import com.sofit.user.domain.user.dto.response.UserProfileResponse;
 import com.sofit.user.domain.user.event.UserWithdrawnEvent;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -38,7 +37,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void withdraw(Long userId, HttpServletRequest request) {
+    public void withdraw(Long userId) {
         // 1. 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(AuthErrorCode.USER_NOT_FOUND));
@@ -47,6 +46,6 @@ public class UserServiceImpl implements UserService {
         user.inactivate();
 
         // 3. DB 커밋 완료 후 세션 삭제를 위한 이벤트 발행
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userId, request));
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userId));
     }
 }

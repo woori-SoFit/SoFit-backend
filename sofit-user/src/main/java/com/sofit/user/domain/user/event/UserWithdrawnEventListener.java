@@ -1,9 +1,7 @@
 package com.sofit.user.domain.user.event;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
 import org.springframework.stereotype.Component;
@@ -25,20 +23,11 @@ public class UserWithdrawnEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleUserWithdrawn(UserWithdrawnEvent event) {
-        // 1. 해당 사용자의 모든 활성 세션 삭제 (Redis에서 역조회)
+        // 해당 사용자의 모든 활성 세션 삭제 (Redis에서 역조회)
         Map<String, ? extends Session> userSessions =
                 sessionRepository.findByPrincipalName(event.userId().toString());
         userSessions.keySet().forEach(sessionRepository::deleteById);
 
         log.info("[회원탈퇴] userId={} 세션 {}개 삭제 완료", event.userId(), userSessions.size());
-
-        // 2. 현재 세션 무효화
-        HttpSession session = event.request().getSession(false);
-        if (session != null) {
-            session.invalidate();
-        }
-
-        // 3. SecurityContext 클리어
-        SecurityContextHolder.clearContext();
     }
 }

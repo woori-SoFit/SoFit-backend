@@ -12,7 +12,7 @@ import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import com.sofit.user.domain.auth.exception.AuthSuccessCode;
 import com.sofit.user.domain.auth.service.AuthService;
-import jakarta.servlet.http.Cookie;
+import com.sofit.user.global.util.SessionUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -82,15 +82,7 @@ public class AuthController implements AuthControllerDocs {
 
     @PostMapping("/logout")
     public ApiResponse<Void> logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-        authService.logout(httpRequest);
-
-        // JSESSIONID 쿠키 만료 처리 — 클라이언트 측 세션 상태 명확히 정리
-        Cookie cookie = new Cookie("JSESSIONID", null);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(httpRequest.isSecure());
-        cookie.setMaxAge(0);
-        httpResponse.addCookie(cookie);
+        SessionUtil.invalidateSession(httpRequest, httpResponse);
 
         return ApiResponse.onSuccess(AuthSuccessCode.LOGOUT_SUCCESS, null);
     }
