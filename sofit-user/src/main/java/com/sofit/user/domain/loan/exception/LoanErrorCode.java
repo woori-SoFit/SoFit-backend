@@ -17,7 +17,9 @@ public enum LoanErrorCode implements BaseErrorCode {
     EXECUTION_NOT_FOUND(HttpStatus.NOT_FOUND, "LOAN4044", "실행 건을 찾을 수 없습니다."),
     KYC_NOT_COMPLETED(HttpStatus.FORBIDDEN, "LOAN4031", "KYC 인증이 완료되지 않았습니다."),
     DUPLICATE_APPLICATION(HttpStatus.CONFLICT, "LOAN4091", "이미 해당 상품에 대출 신청이 존재합니다."),
-    PRODUCT_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "LOAN4001", "현재 신청할 수 없는 상품입니다.");
+    PRODUCT_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "LOAN4001", "현재 신청할 수 없는 상품입니다."),
+    APPLICATION_NOT_DRAFT(HttpStatus.BAD_REQUEST, "LOAN4002", "DRAFT 상태가 아닌 신청은 제출할 수 없습니다."),
+    NO_AVAILABLE_BANKER(HttpStatus.INTERNAL_SERVER_ERROR, "LOAN5001", "배정 가능한 은행원이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;

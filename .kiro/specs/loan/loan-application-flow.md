@@ -71,10 +71,10 @@ POST /api/loans/applications/{applicationId}/submit
 **요청값**
 ```json
 {
-  "requestedAmount": 100000000,
-  "term": 60,
+  "purpose": "WORKING_CAPITAL",
   "repaymentMethod": "EQUAL_PRINCIPAL_INTEREST",
-  "purpose": "WORKING_CAPITAL"
+  "term": 60,
+  "requestedAmount": 100000000
 }
 ```
 
@@ -92,8 +92,7 @@ POST /api/loans/applications/{applicationId}/submit
     "productName": "카카오뱅크 개인사업자 신용대출",
     "requestedAmount": 100000000,
     "applied_at": "2024-05-12T14:35:00",
-    "repaymentMethod": "EQUAL_PRINCIPAL_INTEREST",
-    "notification_enabled": true
+    "repaymentMethod": "EQUAL_PRINCIPAL_INTEREST"
   }
 }
 
@@ -123,6 +122,8 @@ POST /api/loans/applications/{applicationId}/submit
 | `AUTH_DONE` | 본인인증 완료 |
 | `BIZ_INFO_DONE` | 사업자 정보 확인 완료 |
 | `DATA_COLLECTED` | 마이데이터 수집 완료 |
+| `MYBIZ_CONNECTED` | 마이비즈데이터 연동 완료 |
+| `LOAN_CONDITION_DONE` | 대출 조건 입력 완료 |
 
 ### DRAFT 만료 시간
 - 세션 만료 시간과 동일하게 설정
