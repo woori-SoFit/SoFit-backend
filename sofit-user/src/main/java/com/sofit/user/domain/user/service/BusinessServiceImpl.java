@@ -8,6 +8,7 @@ import com.sofit.user.domain.user.dto.response.BusinessProfileResponse;
 import com.sofit.user.domain.user.exception.BusinessErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,5 +24,13 @@ public class BusinessServiceImpl implements BusinessService {
 
         // 2. Entity → DTO 변환 후 반환
         return BusinessConverter.toBusinessProfileResponse(businessProfile);
+    }
+
+    @Transactional
+    @Override
+    public void connectMybiz(Long userId) {
+        BusinessProfile profile = businessProfileRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new BaseException(BusinessErrorCode.BUSINESS_PROFILE_NOT_FOUND));
+        profile.connectMybiz();
     }
 }
