@@ -14,11 +14,10 @@ import com.sofit.common.entity.loan.enums.ApplicationStatus;
 
 public interface LoanApplicationRepository extends JpaRepository<LoanApplication, Long> {
 
-    // 대시보드 조회: status 필터만 적용 (JOIN FETCH User, LoanProduct + LEFT JOIN Banker)
+    // 대시보드 조회: status 필터만 적용 (JOIN FETCH User, LoanProduct)
     @Query(value = "SELECT la FROM LoanApplication la " +
             "JOIN FETCH la.user u " +
             "JOIN FETCH la.product p " +
-            "LEFT JOIN User banker ON banker.userId = la.assignedBankerId " +
             "WHERE la.status IN :statuses " +
             "ORDER BY la.appliedAt DESC",
             countQuery = "SELECT COUNT(la) FROM LoanApplication la WHERE la.status IN :statuses")
