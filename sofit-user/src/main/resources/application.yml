@@ -4,7 +4,7 @@ spring:
 
   # 활성 프로파일 (local / dev / release)
   profiles:
-    active: local
+    active: dev
 
   # JPA
   jpa:
