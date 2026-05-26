@@ -16,7 +16,8 @@ public record MyBizDashboardResponse(
         BigDecimal reviewRating,
         Integer reviewCount,
         BigDecimal onlineReorderRate,
-        Integer deliveryOrderCount
+        Integer deliveryOrderCount,
+        List<String> availableMonths
 ) {
 
     public record IndustryCompareResponse(
