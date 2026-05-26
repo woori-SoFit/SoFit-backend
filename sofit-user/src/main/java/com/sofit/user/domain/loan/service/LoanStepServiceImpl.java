@@ -5,11 +5,6 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.loan.enums.LastCompletedStep;
 import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.user.domain.auth.converter.AuthConverter;
-import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
-import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
-import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
-import com.sofit.user.domain.auth.service.FinancialCertService;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
@@ -29,10 +24,9 @@ public class LoanStepServiceImpl implements LoanStepService {
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final TermService termService;
-    private final FinancialCertService financialCertService;
     private final BusinessService businessService;
 
-    // Step 2: 대출 약관 동의 
+    // ==================== Step 2: 대출 약관 동의 ====================
     @Override
     public ConsentCreateResponse processConsent(Long userId, Long applicationId, ConsentCreateRequest request) {
         LoanApplication application = validateAndGetApplication(userId, applicationId, null);
@@ -43,22 +37,10 @@ public class LoanStepServiceImpl implements LoanStepService {
         return response;
     }
 
-    // Step 3: 본인인증 (금융인증서 PIN) 
-    @Override
-    public FinancialCertVerifyResponse processAuth(Long userId, Long applicationId,
-                                                    FinancialCertVerifyRequest request) {
-        LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.CONSENT_DONE);
-
-        ExternalFinancialCertResponse certResult = financialCertService.verify(request);
-
-        application.updateLastCompletedStep(LastCompletedStep.AUTH_DONE);
-        return AuthConverter.toFinancialCertVerifyResponse(certResult);
-    }
-
-    // Step 4: 사업자 정보 확인 
+    // ==================== Step 3: 사업자 정보 확인 ====================
     @Override
     public BusinessProfileResponse processBizInfo(Long userId, Long applicationId) {
-        LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.AUTH_DONE);
+        LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.CONSENT_DONE);
 
         BusinessProfileResponse response = businessService.findBusinessProfile(userId);
 
@@ -66,7 +48,7 @@ public class LoanStepServiceImpl implements LoanStepService {
         return response;
     }
 
-    // Step 5: 마이데이터 약관 동의
+    // ==================== Step 4: 마이데이터 약관 동의 ====================
     @Override
     public ConsentCreateResponse processMydata(Long userId, Long applicationId, ConsentCreateRequest request) {
         LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.BIZ_INFO_DONE);
@@ -77,6 +59,7 @@ public class LoanStepServiceImpl implements LoanStepService {
         return response;
     }
 
+    // ==================== 공통 검증 ====================
 
     /**
      * 공통 검증 로직.

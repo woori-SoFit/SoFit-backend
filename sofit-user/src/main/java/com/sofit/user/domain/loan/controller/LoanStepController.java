@@ -1,8 +1,6 @@
 package com.sofit.user.domain.loan.controller;
 
 import com.sofit.common.apiPayload.ApiResponse;
-import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
-import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.loan.exception.LoanSuccessCode;
 import com.sofit.user.domain.loan.service.LoanStepService;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
@@ -31,18 +29,7 @@ public class LoanStepController implements LoanStepControllerDocs {
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_STEP_CONSENT_OK, response);
     }
 
-    // Step 3: 본인인증 (금융인증서 PIN)
-    @PostMapping("/verify-pin")
-    @Override
-    public ApiResponse<FinancialCertVerifyResponse> processAuth(
-            @PathVariable Long applicationId,
-            @Valid @RequestBody FinancialCertVerifyRequest request) {
-        Long userId = SecurityUtil.getCurrentUserId();
-        FinancialCertVerifyResponse response = loanStepService.processAuth(userId, applicationId, request);
-        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_STEP_AUTH_OK, response);
-    }
-
-    // Step 4: 사업자 정보 확인
+    // Step 3: 사업자 정보 확인
     @PostMapping("/biz-info")
     @Override
     public ApiResponse<BusinessProfileResponse> processBizInfo(
@@ -52,7 +39,7 @@ public class LoanStepController implements LoanStepControllerDocs {
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_STEP_BIZ_INFO_OK, response);
     }
 
-    // Step 5: 마이데이터 약관 동의
+    // Step 4: 마이데이터 약관 동의
     @PostMapping("/mydata")
     @Override
     public ApiResponse<ConsentCreateResponse> processMydata(
