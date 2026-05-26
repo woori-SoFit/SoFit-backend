@@ -3,12 +3,40 @@ package com.sofit.common.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 
 public interface LoanApplicationRepository extends JpaRepository<LoanApplication, Long> {
+
+    // 대시보드 조회: status 필터만 적용 (JOIN FETCH User, LoanProduct + LEFT JOIN Banker)
+    @Query(value = "SELECT la FROM LoanApplication la " +
+            "JOIN FETCH la.user u " +
+            "JOIN FETCH la.product p " +
+            "LEFT JOIN User banker ON banker.userId = la.assignedBankerId " +
+            "WHERE la.status IN :statuses " +
+            "ORDER BY la.appliedAt DESC",
+            countQuery = "SELECT COUNT(la) FROM LoanApplication la WHERE la.status IN :statuses")
+    Page<LoanApplication> findDashboardApplications(
+            @Param("statuses") List<ApplicationStatus> statuses, Pageable pageable);
+
+    // 대시보드 조회: status + assignedBankerId 필터 적용
+    @Query(value = "SELECT la FROM LoanApplication la " +
+            "JOIN FETCH la.user u " +
+            "JOIN FETCH la.product p " +
+            "WHERE la.status IN :statuses AND la.assignedBankerId = :assignedBankerId " +
+            "ORDER BY la.appliedAt DESC",
+            countQuery = "SELECT COUNT(la) FROM LoanApplication la " +
+                    "WHERE la.status IN :statuses AND la.assignedBankerId = :assignedBankerId")
+    Page<LoanApplication> findDashboardApplicationsByBankerId(
+            @Param("statuses") List<ApplicationStatus> statuses,
+            @Param("assignedBankerId") Long assignedBankerId,
+            Pageable pageable);
 
     // 특정 사용자의 심사 중 상태 목록 조회
     List<LoanApplication> findByUser_UserIdAndStatusIn(Long userId, List<ApplicationStatus> statuses);
