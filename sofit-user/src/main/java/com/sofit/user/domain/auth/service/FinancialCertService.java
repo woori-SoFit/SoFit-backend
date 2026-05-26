@@ -1,9 +1,11 @@
 package com.sofit.user.domain.auth.service;
 
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.user.domain.auth.converter.AuthConverter;
 import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
 import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalMockApiResponse;
+import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +25,9 @@ public class FinancialCertService {
 
     /**
      * 금융인증서 PIN 인증을 수행한다.
-     * 성공 시 ExternalFinancialCertResponse를 반환하고, 실패 시 예외를 던진다.
+     * 성공 시 FinancialCertVerifyResponse를 반환하고, 실패 시 예외를 던진다.
      */
-    public ExternalFinancialCertResponse verify(FinancialCertVerifyRequest request) {
+    public FinancialCertVerifyResponse verify(FinancialCertVerifyRequest request) {
         ExternalMockApiResponse<ExternalFinancialCertResponse> mockResponse =
                 externalMockClient.callFinancialCertVerify(request.getPhoneNumber(), request.getPin());
 
@@ -43,6 +45,6 @@ public class FinancialCertService {
             throw new BaseException(AuthErrorCode.CERT_VERIFICATION_FAILED);
         }
 
-        return certResult;
+        return AuthConverter.toFinancialCertVerifyResponse(certResult);
     }
 }

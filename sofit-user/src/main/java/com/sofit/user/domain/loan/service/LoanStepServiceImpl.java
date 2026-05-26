@@ -26,7 +26,7 @@ public class LoanStepServiceImpl implements LoanStepService {
     private final TermService termService;
     private final BusinessService businessService;
 
-    // ==================== Step 2: 대출 약관 동의 ====================
+    // Step 2: 대출 약관 동의
     @Override
     public ConsentCreateResponse processConsent(Long userId, Long applicationId, ConsentCreateRequest request) {
         LoanApplication application = validateAndGetApplication(userId, applicationId, null);
@@ -37,7 +37,7 @@ public class LoanStepServiceImpl implements LoanStepService {
         return response;
     }
 
-    // ==================== Step 3: 사업자 정보 확인 ====================
+    // Step 3: 사업자 정보 확인
     @Override
     public BusinessProfileResponse processBizInfo(Long userId, Long applicationId) {
         LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.CONSENT_DONE);
@@ -48,7 +48,7 @@ public class LoanStepServiceImpl implements LoanStepService {
         return response;
     }
 
-    // ==================== Step 4: 마이데이터 약관 동의 ====================
+    // Step 4: 마이데이터 약관 동의
     @Override
     public ConsentCreateResponse processMydata(Long userId, Long applicationId, ConsentCreateRequest request) {
         LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.BIZ_INFO_DONE);
@@ -59,7 +59,7 @@ public class LoanStepServiceImpl implements LoanStepService {
         return response;
     }
 
-    // ==================== 공통 검증 ====================
+    // 공통 검증
 
     /**
      * 공통 검증 로직.

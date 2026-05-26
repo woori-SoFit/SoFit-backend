@@ -138,7 +138,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
         // 1. 인증은 FinancialCertService에 위임
-        ExternalFinancialCertResponse certResult = financialCertService.verify(request);
+        FinancialCertVerifyResponse response = financialCertService.verify(request);
 
         // 2. 회원가입 플로우인 경우 RegistrationProcess 후처리 (트랜잭션)
         Long processId = (Long) session.getAttribute(REGISTRATIONPROCESSID);
@@ -146,7 +146,7 @@ public class AuthServiceImpl implements AuthService {
             processRegistrationStep2(processId);
         }
 
-        return AuthConverter.toFinancialCertVerifyResponse(certResult);
+        return response;
     }
 
     /**
