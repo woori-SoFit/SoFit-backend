@@ -64,6 +64,11 @@ public class BusinessProfile extends BaseEntity {
     @Column(name = "mydata_all_agreed_at")
     private LocalDateTime mydataAllAgreedAt;
 
+    public void connectMybiz() {
+        this.isMybizConnected = true;
+        this.mybizConnectedAt = LocalDateTime.now();
+    }
+
     // 정적 팩토리 메서드 — KYC 인증 성공 시 사용
     public static BusinessProfile createVerified(User user, String businessNumber,
                                                   String representativeName, String businessCategory,
