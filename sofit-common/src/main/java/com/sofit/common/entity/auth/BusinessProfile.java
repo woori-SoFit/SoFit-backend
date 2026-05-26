@@ -8,6 +8,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "business_profile")
@@ -66,7 +67,7 @@ public class BusinessProfile extends BaseEntity {
 
     public void connectMybiz() {
         this.isMybizConnected = true;
-        this.mybizConnectedAt = LocalDateTime.now();
+        this.mybizConnectedAt = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
     // 정적 팩토리 메서드 — KYC 인증 성공 시 사용
