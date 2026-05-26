@@ -7,6 +7,7 @@ import com.sofit.user.domain.user.service.BusinessService;
 import com.sofit.user.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,5 +24,13 @@ public class BusinessController implements BusinessControllerDocs {
         Long userId = SecurityUtil.getCurrentUserId();
         BusinessProfileResponse response = businessService.findBusinessProfile(userId);
         return ApiResponse.onSuccess(BusinessSuccessCode.BUSINESS_PROFILE_OK, response);
+    }
+
+    @Override
+    @PostMapping("/me/mybiz-connect")
+    public ApiResponse<Void> connectMybiz() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        businessService.connectMybiz(userId);
+        return ApiResponse.onSuccess(BusinessSuccessCode.MYBIZ_CONNECT_OK, null);
     }
 }

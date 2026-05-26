@@ -1,6 +1,7 @@
 package com.sofit.user.domain.mybiz.converter;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -21,7 +22,8 @@ public class MyBizConverter {
     public static MyBizDashboardResponse toMyBizDashboardResponse(
             MyBizData baseData,
             List<MyBizData> fiveMonthTrendData,
-            List<MyBizData> cashFlowTrendData) {
+            List<MyBizData> cashFlowTrendData,
+            List<LocalDate> availableMonths) {
 
         String referenceMonth = baseData.getReferenceMonth().format(YEAR_MONTH_FORMATTER);
 
@@ -62,6 +64,10 @@ public class MyBizConverter {
                 ))
                 .toList();
 
+        List<String> availableMonthStrings = availableMonths.stream()
+                .map(date -> date.format(YEAR_MONTH_FORMATTER))
+                .toList();
+
         return new MyBizDashboardResponse(
                 referenceMonth,
                 baseData.getMonthlyRevenue(),
@@ -75,7 +81,8 @@ public class MyBizConverter {
                 baseData.getReviewRating(),
                 baseData.getReviewCount(),
                 baseData.getOnlineReorderRate(),
-                baseData.getDeliveryOrderCount()
+                baseData.getDeliveryOrderCount(),
+                availableMonthStrings
         );
     }
 }
