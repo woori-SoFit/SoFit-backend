@@ -37,6 +37,7 @@ class MyBizConverterTest {
         }
         ReflectionTestUtils.setField(data, "referenceMonth", referenceMonth);
         ReflectionTestUtils.setField(data, "monthlyRevenue", monthlyRevenue);
+        ReflectionTestUtils.setField(data, "prevMonthRevenue", monthlyRevenue);
         ReflectionTestUtils.setField(data, "monthlyRevenueGrowthRate", monthlyRevenueGrowthRate);
         ReflectionTestUtils.setField(data, "cashFlow", cashFlow);
         ReflectionTestUtils.setField(data, "estimatedProfit", estimatedProfit);
@@ -90,9 +91,9 @@ class MyBizConverterTest {
         assertThat(response.monthlyRevenueGrowthRate()).isEqualByComparingTo(new BigDecimal("12.50"));
         assertThat(response.cashFlow()).isEqualTo(3000000L);
         assertThat(response.estimatedProfit()).isEqualTo(2000000L);
-        assertThat(response.naverRating()).isEqualByComparingTo(new BigDecimal("4.5"));
+        assertThat(response.reviewRating()).isEqualByComparingTo(new BigDecimal("4.5"));
         assertThat(response.reviewCount()).isEqualTo(120);
-        assertThat(response.deliveryReorderRate()).isEqualByComparingTo(new BigDecimal("35.20"));
+        assertThat(response.onlineReorderRate()).isEqualByComparingTo(new BigDecimal("35.20"));
         assertThat(response.deliveryOrderCount()).isEqualTo(85);
     }
 
