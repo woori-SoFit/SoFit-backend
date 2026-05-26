@@ -44,12 +44,12 @@ public class MyBizServiceImpl implements MyBizService {
                 .findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
                         userId, referenceMonth.minusMonths(2), referenceMonth);
 
-        // 5. 드롭다운용 전체 월 목록 조회 (내림차순)
-        List<MyBizData> allMonthsData = myBizDataRepository
-                .findByUser_UserIdOrderByReferenceMonthDesc(userId);
+        // 5. 드롭다운용 전체 월 목록 조회 (referenceMonth만 내림차순)
+        List<LocalDate> availableMonths = myBizDataRepository
+                .findReferenceMonthsByUserId(userId);
 
         // 6. Converter로 DTO 변환 후 반환
-        return MyBizConverter.toMyBizDashboardResponse(baseData, fiveMonthTrendData, cashFlowTrendData, allMonthsData);
+        return MyBizConverter.toMyBizDashboardResponse(baseData, fiveMonthTrendData, cashFlowTrendData, availableMonths);
     }
 
     private MyBizData resolveBaseData(Long userId, String month) {

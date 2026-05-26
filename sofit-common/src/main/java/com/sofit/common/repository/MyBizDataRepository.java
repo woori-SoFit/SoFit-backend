@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.sofit.common.entity.mybiz.MyBizData;
 
@@ -20,6 +22,7 @@ public interface MyBizDataRepository extends JpaRepository<MyBizData, Long> {
     List<MyBizData> findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
             Long userId, LocalDate startMonth, LocalDate endMonth);
 
-    // 사용자의 모든 reference_month 내림차순 조회
-    List<MyBizData> findByUser_UserIdOrderByReferenceMonthDesc(Long userId);
+    // 사용자의 모든 reference_month만 내림차순 조회 (availableMonths 드롭다운용)
+    @Query("SELECT m.referenceMonth FROM MyBizData m WHERE m.user.userId = :userId ORDER BY m.referenceMonth DESC")
+    List<LocalDate> findReferenceMonthsByUserId(@Param("userId") Long userId);
 }
