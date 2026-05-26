@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public enum LoanDashboardErrorCode implements BaseErrorCode {
 
-    INVALID_STATUS_FILTER(HttpStatus.BAD_REQUEST, "LOAN4001", "유효하지 않은 심사 상태입니다.");
+    INVALID_STATUS_FILTER(HttpStatus.BAD_REQUEST, "LOAN4001", "유효하지 않은 심사 상태입니다."),
+    LOAN_APPLICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON4004", "요청한 리소스를 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
