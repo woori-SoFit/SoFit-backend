@@ -36,7 +36,7 @@ public class BusinessProfile extends BaseEntity {
     @Column(name = "business_type", length = 50)
     private String businessType;
 
-    @Column(name = "business_name", length = 50)
+    @Column(name = "business_name", nullable=false, length = 50)
     private String businessName;
 
     @Column(name = "business_address", length = 200)
