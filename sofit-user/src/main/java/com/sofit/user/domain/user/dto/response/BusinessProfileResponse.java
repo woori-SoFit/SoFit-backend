@@ -10,5 +10,6 @@ public record BusinessProfileResponse(
     LocalDate openDate,
     String businessCategory,
     String businessType,
-    String businessAddress
+    String businessAddress,
+    boolean isMybizConnected
 ) {}

@@ -23,7 +23,8 @@ public class BusinessConverter {
                 profile.getOpenDate(),
                 profile.getBusinessCategory(),
                 profile.getBusinessType(),
-                profile.getBusinessAddress()
+                profile.getBusinessAddress(),
+                profile.isMybizConnected()
         );
     }
 }
