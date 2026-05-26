@@ -1,7 +1,11 @@
 package com.sofit.admin.domain.loan.service;
 
 import com.sofit.admin.domain.loan.converter.LoanDashboardConverter;
+import com.sofit.admin.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
+import com.sofit.admin.domain.loan.exception.LoanDashboardErrorCode;
+import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
@@ -80,5 +84,28 @@ public class LoanDashboardServiceImpl implements LoanDashboardService {
                 ));
 
         return LoanDashboardConverter.toLoanDashboardResponse(page, businessNameMap, bankerNameMap);
+    }
+
+    @Override
+    public LoanApplicationDetailResponse findLoanApplicationDetail(Long applicationId) {
+        // 1. LoanApplication 조회
+        LoanApplication app = loanApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
+
+        // 2. BusinessProfile에서 businessName 조회
+        String businessName = businessProfileRepository.findByUser_UserId(app.getUser().getUserId())
+                .map(BusinessProfile::getBusinessName)
+                .orElse(null);
+
+        // 3. assignedBankerId가 존재하면 은행원 이름 조회
+        String assigneeName = null;
+        if (app.getAssignedBankerId() != null) {
+            assigneeName = userRepository.findById(app.getAssignedBankerId())
+                    .map(User::getName)
+                    .orElse(null);
+        }
+
+        // 4. Converter로 DTO 변환
+        return LoanDashboardConverter.toLoanApplicationDetailResponse(app, businessName, assigneeName);
     }
 }

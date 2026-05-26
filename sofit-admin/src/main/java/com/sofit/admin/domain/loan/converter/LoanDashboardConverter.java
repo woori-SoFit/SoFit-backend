@@ -1,10 +1,12 @@
 package com.sofit.admin.domain.loan.converter;
 
+import com.sofit.admin.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationItemResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
 import com.sofit.common.entity.loan.LoanApplication;
 import org.springframework.data.domain.Page;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 public class LoanDashboardConverter {
@@ -44,6 +46,27 @@ public class LoanDashboardConverter {
                 businessName,
                 app.getProduct().getProductName(),
                 app.getStatus(),
+                app.getAssignedBankerId(),
+                assigneeName
+        );
+    }
+
+    public static LoanApplicationDetailResponse toLoanApplicationDetailResponse(
+            LoanApplication app,
+            String businessName,
+            String assigneeName) {
+
+        String appliedAtFormatted = app.getAppliedAt() != null
+                ? app.getAppliedAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                : null;
+
+        return new LoanApplicationDetailResponse(
+                app.getApplicationId(),
+                app.getUser().getName(),
+                businessName,
+                app.getProduct().getProductName(),
+                app.getStatus().name(),
+                appliedAtFormatted,
                 app.getAssignedBankerId(),
                 assigneeName
         );
