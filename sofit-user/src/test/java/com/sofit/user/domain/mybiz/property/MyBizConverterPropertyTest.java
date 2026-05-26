@@ -37,7 +37,7 @@ class MyBizConverterPropertyTest {
     ) {
         // when
         MyBizDashboardResponse response = MyBizConverter.toMyBizDashboardResponse(
-                baseData, revenueTrendData, cashFlowTrendData);
+                baseData, revenueTrendData, cashFlowTrendData, List.of());
 
         // then - 1. 모든 필수 필드가 non-null
         assertThat(response.referenceMonth()).isNotNull();

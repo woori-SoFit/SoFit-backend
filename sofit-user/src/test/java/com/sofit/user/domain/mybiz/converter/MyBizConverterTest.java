@@ -84,7 +84,7 @@ class MyBizConverterTest {
 
         // when
         MyBizDashboardResponse response = MyBizConverter.toMyBizDashboardResponse(
-                baseData, revenueTrend, cashFlowTrend);
+                baseData, revenueTrend, cashFlowTrend, List.of());
 
         // then
         assertThat(response.monthlyRevenue()).isEqualTo(15000000L);
@@ -105,7 +105,7 @@ class MyBizConverterTest {
 
         // when
         MyBizDashboardResponse response = MyBizConverter.toMyBizDashboardResponse(
-                baseData, Collections.emptyList(), Collections.emptyList());
+                baseData, Collections.emptyList(), Collections.emptyList(), List.of());
 
         // then
         assertThat(response.referenceMonth()).isEqualTo("2024-05");
@@ -132,7 +132,7 @@ class MyBizConverterTest {
 
         // when
         MyBizDashboardResponse response = MyBizConverter.toMyBizDashboardResponse(
-                baseData, revenueTrendData, Collections.emptyList());
+                baseData, revenueTrendData, Collections.emptyList(), List.of());
 
         // then
         List<RevenueTrendResponse> revenueTrend = response.revenueTrend();
@@ -168,7 +168,7 @@ class MyBizConverterTest {
 
         // when
         MyBizDashboardResponse response = MyBizConverter.toMyBizDashboardResponse(
-                baseData, Collections.emptyList(), cashFlowTrendData);
+                baseData, Collections.emptyList(), cashFlowTrendData, List.of());
 
         // then
         List<CashFlowTrendResponse> cashFlowTrend = response.cashFlowTrend();
@@ -195,7 +195,7 @@ class MyBizConverterTest {
 
         // when
         MyBizDashboardResponse response = MyBizConverter.toMyBizDashboardResponse(
-                baseData, Collections.emptyList(), Collections.emptyList());
+                baseData, Collections.emptyList(), Collections.emptyList(), List.of());
 
         // then
         IndustryCompareResponse industryCompare = response.industryCompare();
