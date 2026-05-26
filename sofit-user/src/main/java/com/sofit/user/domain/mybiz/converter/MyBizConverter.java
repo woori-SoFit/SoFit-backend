@@ -21,7 +21,8 @@ public class MyBizConverter {
     public static MyBizDashboardResponse toMyBizDashboardResponse(
             MyBizData baseData,
             List<MyBizData> fiveMonthTrendData,
-            List<MyBizData> cashFlowTrendData) {
+            List<MyBizData> cashFlowTrendData,
+            List<MyBizData> allMonthsData) {
 
         String referenceMonth = baseData.getReferenceMonth().format(YEAR_MONTH_FORMATTER);
 
@@ -62,6 +63,10 @@ public class MyBizConverter {
                 ))
                 .toList();
 
+        List<String> availableMonths = allMonthsData.stream()
+                .map(data -> data.getReferenceMonth().format(YEAR_MONTH_FORMATTER))
+                .toList();
+
         return new MyBizDashboardResponse(
                 referenceMonth,
                 baseData.getMonthlyRevenue(),
@@ -75,7 +80,8 @@ public class MyBizConverter {
                 baseData.getReviewRating(),
                 baseData.getReviewCount(),
                 baseData.getOnlineReorderRate(),
-                baseData.getDeliveryOrderCount()
+                baseData.getDeliveryOrderCount(),
+                availableMonths
         );
     }
 }
