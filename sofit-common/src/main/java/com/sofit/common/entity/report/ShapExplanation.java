@@ -1,0 +1,51 @@
+package com.sofit.common.entity.report;
+
+import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.user.User;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Entity
+@Table(name = "shap_explanation")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class ShapExplanation extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "evaluation_id")
+    private Long evaluationId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(name = "s_grade", nullable = false)
+    private String sGrade;
+
+    @Column(name = "target_grade")
+    private String targetGrade;
+
+    @Convert(converter = StringListConverter.class)
+    @Column(name = "strength_keywords", columnDefinition = "TEXT")
+    private List<String> strengthKeywords;
+
+    @Convert(converter = StringListConverter.class)
+    @Column(name = "improvement_keywords", columnDefinition = "TEXT")
+    private List<String> improvementKeywords;
+
+    @Convert(converter = StringListConverter.class)
+    @Column(name = "strength_details", columnDefinition = "TEXT")
+    private List<String> strengthDetails;
+
+    @Convert(converter = StringListConverter.class)
+    @Column(name = "improvement_details", columnDefinition = "TEXT")
+    private List<String> improvementDetails;
+
+    @Column(name = "advice", columnDefinition = "TEXT")
+    private String advice;
+}
