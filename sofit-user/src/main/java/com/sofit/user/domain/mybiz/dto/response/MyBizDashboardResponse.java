@@ -13,9 +13,9 @@ public record MyBizDashboardResponse(
         List<RevenueTrendResponse> revenueTrend,
         List<CashFlowTrendResponse> cashFlowTrend,
         List<RatingTrendResponse> ratingTrend,
-        BigDecimal naverRating,
+        BigDecimal reviewRating,
         Integer reviewCount,
-        BigDecimal deliveryReorderRate,
+        BigDecimal onlineReorderRate,
         Integer deliveryOrderCount
 ) {
 

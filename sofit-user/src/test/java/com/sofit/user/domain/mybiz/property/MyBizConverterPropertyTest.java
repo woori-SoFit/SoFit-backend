@@ -48,9 +48,9 @@ class MyBizConverterPropertyTest {
         assertThat(response.industryCompare()).isNotNull();
         assertThat(response.revenueTrend()).isNotNull();
         assertThat(response.cashFlowTrend()).isNotNull();
-        assertThat(response.naverRating()).isNotNull();
+        assertThat(response.reviewRating()).isNotNull();
         assertThat(response.reviewCount()).isNotNull();
-        assertThat(response.deliveryReorderRate()).isNotNull();
+        assertThat(response.onlineReorderRate()).isNotNull();
         assertThat(response.deliveryOrderCount()).isNotNull();
 
         // then - 2. referenceMonth가 yyyy-MM 형식
@@ -104,6 +104,7 @@ class MyBizConverterPropertyTest {
             MyBizData data = createMyBizDataInstance();
             ReflectionTestUtils.setField(data, "referenceMonth", refMonth);
             ReflectionTestUtils.setField(data, "monthlyRevenue", revenue);
+            ReflectionTestUtils.setField(data, "prevMonthRevenue", revenue);
             ReflectionTestUtils.setField(data, "monthlyRevenueGrowthRate", growthRate);
             ReflectionTestUtils.setField(data, "cashFlow", cashFlow);
             ReflectionTestUtils.setField(data, "estimatedProfit", profit);
