@@ -19,4 +19,7 @@ public interface MyBizDataRepository extends JpaRepository<MyBizData, Long> {
     // 사용자의 reference_month 범위 데이터 조회 (오름차순)
     List<MyBizData> findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
             Long userId, LocalDate startMonth, LocalDate endMonth);
+
+    // 사용자의 모든 reference_month 내림차순 조회
+    List<MyBizData> findByUser_UserIdOrderByReferenceMonthDesc(Long userId);
 }
