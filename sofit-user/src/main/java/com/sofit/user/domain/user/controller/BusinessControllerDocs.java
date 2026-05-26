@@ -16,4 +16,12 @@ public interface BusinessControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사업자 정보 미존재")
     })
     ApiResponse<BusinessProfileResponse> findBusinessProfile();
+
+    @Operation(summary = "마이비즈 데이터 연동 완료", description = "마이비즈 데이터 수집 완료 후 연동 상태를 true로 업데이트합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "연동 완료"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증 실패"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사업자 정보 미존재")
+    })
+    ApiResponse<Void> connectMybiz();
 }
