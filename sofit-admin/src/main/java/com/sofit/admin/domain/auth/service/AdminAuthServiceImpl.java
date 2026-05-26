@@ -5,22 +5,27 @@ import com.sofit.admin.domain.auth.dto.request.AdminLoginRequest;
 import com.sofit.admin.domain.auth.dto.response.AdminLoginResponse;
 import com.sofit.admin.domain.auth.dto.response.AdminMeResponse;
 import com.sofit.admin.domain.auth.exception.AdminAuthErrorCode;
+import com.sofit.admin.global.config.LoginAttemptService;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserRole;
 import com.sofit.common.entity.user.enums.UserStatus;
 import com.sofit.common.repository.user.UserRepository;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,53 +34,88 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LoginAttemptService loginAttemptService;
+    private final SessionAuthenticationStrategy sessionAuthenticationStrategy;
+    private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     @Override
-    public AdminLoginResponse login(AdminLoginRequest request, HttpSession session) {
+    public AdminLoginResponse login(AdminLoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        String loginId = request.getLoginId();
+        String ipAddress = getClientIp(httpRequest);
+
+        // 0. 브루트포스 방어: IP 또는 계정 잠금 시 차단
+        if (loginAttemptService.isBlocked(loginId, ipAddress)) {
+            throw new BaseException(AdminAuthErrorCode.ACCOUNT_LOCKED);
+        }
+
         // 1. loginId로 User 조회
-        User user = userRepository.findByLoginId(request.getLoginId())
-                .orElseThrow(() -> new BaseException(AdminAuthErrorCode.LOGIN_FAILED));
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(() -> {
+                    loginAttemptService.loginFailed(loginId, ipAddress);
+                    return new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
+                });
 
         // 2. 비활성 사용자 체크
         if (user.getStatus() == UserStatus.INACTIVE) {
+            loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
         // 3. 일반 사용자(USER) 접근 차단
         if (user.getRole() == UserRole.USER) {
+            loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
         // 4. 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
-        // 5. 세션에 사용자 정보 저장
-        session.setAttribute("userId", user.getUserId());
-        session.setAttribute("role", user.getRole().name());
-        session.setAttribute("loginTime", LocalDateTime.now());
+        // 5. 로그인 성공 → 시도 횟수 초기화
+        loginAttemptService.loginSucceeded(loginId);
 
-        // 6. Spring Security SecurityContext에 Authentication 설정 및 세션에 명시적 저장
+        // 6. SecurityContext 설정 (단일 인증 정보 소스)
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         user.getUserId(),
                         null,
                         List.of(new SimpleGrantedAuthority(user.getRole().name()))
                 );
+
+        // 7. 동시 로그인 제한 — Spring Security SessionAuthenticationStrategy에 위임
+        // 세션 고정 공격 방지 + 세션 등록 + 동시 세션 제한을 일관되게 처리
+        try {
+            sessionAuthenticationStrategy.onAuthentication(authentication, httpRequest, httpResponse);
+        } catch (SessionAuthenticationException e) {
+            throw new BaseException(AdminAuthErrorCode.CONCURRENT_LOGIN);
+        }
+
+        // 8. SecurityContext 저장
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
-        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);
+        securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
 
-        // 7. 응답 반환
+        // 9. 응답 반환
         return AdminAuthConverter.toLoginResponse(user);
     }
 
     @Override
-    public AdminMeResponse findMe(HttpSession session) {
-        // 1. 세션에서 userId 추출
-        Long userId = (Long) session.getAttribute("userId");
+    public AdminMeResponse findMe() {
+        // 1. SecurityContextHolder에서 userId 추출
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getPrincipal() == null) {
+            throw new BaseException(AdminAuthErrorCode.SESSION_EXPIRED);
+        }
+
+        Long userId;
+        try {
+            userId = (Long) authentication.getPrincipal();
+        } catch (ClassCastException e) {
+            throw new BaseException(AdminAuthErrorCode.SESSION_EXPIRED);
+        }
 
         // 2. UserRepository로 사용자 조회
         User user = userRepository.findById(userId)
@@ -88,5 +128,18 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
         // 4. 응답 반환
         return AdminAuthConverter.toMeResponse(user);
+    }
+
+    /**
+     * 클라이언트 IP를 추출한다.
+     * 프록시/로드밸런서 뒤에 있을 경우 X-Forwarded-For 헤더를 우선 사용한다.
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+            // 여러 프록시를 거친 경우 첫 번째가 실제 클라이언트 IP
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

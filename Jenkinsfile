@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    options {
+        disableConcurrentBuilds()
+    }
+
     triggers {
         githubPush()
     }
@@ -18,6 +22,12 @@ pipeline {
             }
         }
 
+        stage('Build') {
+            steps {
+                sh './gradlew :sofit-user:bootJar :sofit-admin:bootJar -x test --rerun-tasks'
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
@@ -28,12 +38,6 @@ pipeline {
                             -Dsonar.java.binaries=sofit-user/build/classes/java/main,sofit-admin/build/classes/java/main,sofit-common/build/classes/java/main
                     """
                 }
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh './gradlew :sofit-user:bootJar :sofit-admin:bootJar -x test --rerun-tasks'
             }
         }
 
