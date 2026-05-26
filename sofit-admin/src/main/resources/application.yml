@@ -20,7 +20,7 @@ spring:
   data:
     redis:
       host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:16379}
+      port: ${REDIS_PORT:6379}
 
   # Spring Session (Redis 사용)
   session:
