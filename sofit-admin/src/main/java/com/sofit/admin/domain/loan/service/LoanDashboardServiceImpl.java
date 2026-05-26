@@ -5,6 +5,7 @@ import com.sofit.admin.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
 import com.sofit.admin.domain.loan.exception.LoanDashboardErrorCode;
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
@@ -89,7 +90,7 @@ public class LoanDashboardServiceImpl implements LoanDashboardService {
     public LoanApplicationDetailResponse findLoanApplicationDetail(Long applicationId) {
         // 1. LoanApplication 조회
         LoanApplication app = loanApplicationRepository.findById(applicationId)
-                .orElseThrow(() -> new BaseException(LoanDashboardErrorCode.LOAN_APPLICATION_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
 
         // 2. BusinessProfile에서 businessName 조회
         String businessName = businessProfileRepository.findByUser_UserId(app.getUser().getUserId())
