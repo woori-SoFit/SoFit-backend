@@ -1,0 +1,28 @@
+package com.sofit.user.domain.report.service;
+
+import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.entity.report.ShapExplanation;
+import com.sofit.common.repository.ShapExplanationRepository;
+import com.sofit.user.domain.report.converter.ReportConverter;
+import com.sofit.user.domain.report.dto.response.GradeResponse;
+import com.sofit.user.domain.report.exception.ReportErrorCode;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class ReportServiceImpl implements ReportService {
+
+    private final ShapExplanationRepository shapExplanationRepository;
+
+    @Override
+    public GradeResponse findGrade(Long userId) {
+        ShapExplanation explanation = shapExplanationRepository
+                .findTopByUser_UserIdOrderByCreatedAtDesc(userId)
+                .orElseThrow(() -> new BaseException(ReportErrorCode.GRADE_NOT_FOUND));
+
+        return ReportConverter.toGradeResponse(explanation);
+    }
+}
