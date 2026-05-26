@@ -1,5 +1,6 @@
 package com.sofit.user.domain.report.enums;
 
+import com.sofit.common.entity.report.enums.SGrade;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -36,12 +37,14 @@ public enum SGradeComment {
     private final String commentDetail;
 
     /**
-     * 등급 문자열(예: "S3")로 해당 enum을 찾는다.
-     * 매칭되지 않으면 null을 반환한다.
+     * SGrade enum으로 해당 코멘트를 찾는다.
      */
-    public static SGradeComment fromGrade(String grade) {
+    public static SGradeComment fromGrade(SGrade grade) {
+        if (grade == null) {
+            return null;
+        }
         try {
-            return SGradeComment.valueOf(grade);
+            return SGradeComment.valueOf(grade.name());
         } catch (IllegalArgumentException e) {
             return null;
         }

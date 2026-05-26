@@ -1,6 +1,7 @@
 package com.sofit.common.entity.report;
 
 import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.report.enums.SGrade;
 import com.sofit.common.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -24,11 +25,13 @@ public class ShapExplanation extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "s_grade", nullable = false)
-    private String sGrade;
+    private SGrade sGrade;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "target_grade")
-    private String targetGrade;
+    private SGrade targetGrade;
 
     @Convert(converter = StringListConverter.class)
     @Column(name = "strength_keywords", columnDefinition = "TEXT")

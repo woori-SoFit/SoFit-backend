@@ -21,7 +21,7 @@ public class ReportConverter {
         return new GradeResponse(
                 entity.getEvaluationId(),
                 entity.getUser().getUserId(),
-                entity.getSGrade(),
+                entity.getSGrade().name(),
                 comment,
                 commentDetail,
                 entity.getCreatedAt()
