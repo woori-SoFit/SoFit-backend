@@ -5,7 +5,6 @@ import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
 import com.sofit.user.domain.user.dto.response.BusinessProfileResponse;
-import jakarta.servlet.http.HttpSession;
 
 /**
  * 대출 신청 단계별 래퍼 서비스.
@@ -17,7 +16,7 @@ public interface LoanStepService {
     ConsentCreateResponse processConsent(Long userId, Long applicationId, ConsentCreateRequest request);
 
     // Step 3: 본인인증 (금융인증서 PIN)
-    FinancialCertVerifyResponse processAuth(Long userId, Long applicationId, FinancialCertVerifyRequest request, HttpSession session);
+    FinancialCertVerifyResponse processAuth(Long userId, Long applicationId, FinancialCertVerifyRequest request);
 
     // Step 4: 사업자 정보 확인
     BusinessProfileResponse processBizInfo(Long userId, Long applicationId);

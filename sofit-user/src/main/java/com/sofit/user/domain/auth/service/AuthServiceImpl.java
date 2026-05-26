@@ -54,6 +54,7 @@ import java.util.List;
 public class AuthServiceImpl implements AuthService {
 
     private final ExternalMockClient externalMockClient;
+    private final FinancialCertService financialCertService;
     private final UserRepository userRepository;
     private final RegistrationProcessRepository registrationProcessRepository;
     private final BusinessProfileRepository businessProfileRepository;
@@ -136,26 +137,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
-        // 1. External Mock 서버에 PIN 인증 요청 (트랜잭션 밖 — DB 커넥션 미점유)
-        ExternalMockApiResponse<ExternalFinancialCertResponse> mockResponse =
-                externalMockClient.callFinancialCertVerify(request.getPhoneNumber(), request.getPin());
+        // 1. 인증은 FinancialCertService에 위임
+        ExternalFinancialCertResponse certResult = financialCertService.verify(request);
 
-        if (!mockResponse.isSuccess()) {
-            String code = mockResponse.code();
-            if ("AUTH4001".equals(code)) {
-                throw new BaseException(AuthErrorCode.PIN_MISMATCH);
-            }
-            throw new BaseException(AuthErrorCode.CERT_NOT_FOUND);
-        }
-
-        ExternalFinancialCertResponse certResult = mockResponse.result();
-
-        // 2. 금융인증서 상태 VALID 확인
-        if (!"VALID".equals(certResult.status())) {
-            throw new BaseException(AuthErrorCode.CERT_VERIFICATION_FAILED);
-        }
-
-        // 3. 회원가입 플로우인 경우 RegistrationProcess 후처리 (트랜잭션)
+        // 2. 회원가입 플로우인 경우 RegistrationProcess 후처리 (트랜잭션)
         Long processId = (Long) session.getAttribute(REGISTRATIONPROCESSID);
         if (processId != null) {
             processRegistrationStep2(processId);
@@ -165,7 +150,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     /**
-     * 금융인증서 검증 성공 후 RegistrationProcess Step 2 처리.
+     * 금융인증서 검증 성공 후 RegistrationProcess Step 2 처리.processRegistrationStep2
      * 외부 API 호출 이후 DB 작업만 수행하므로 커넥션 점유 시간 최소화.
      * 만료 시에도 EXPIRED 상태가 DB에 반영되도록 만료 저장을 별도 트랜잭션으로 처리.
      */

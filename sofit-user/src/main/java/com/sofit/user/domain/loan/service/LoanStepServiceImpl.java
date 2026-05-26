@@ -5,16 +5,17 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.loan.enums.LastCompletedStep;
 import com.sofit.common.repository.LoanApplicationRepository;
+import com.sofit.user.domain.auth.converter.AuthConverter;
 import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
+import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
 import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
-import com.sofit.user.domain.auth.service.AuthService;
+import com.sofit.user.domain.auth.service.FinancialCertService;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
 import com.sofit.user.domain.terms.service.TermService;
 import com.sofit.user.domain.user.dto.response.BusinessProfileResponse;
 import com.sofit.user.domain.user.service.BusinessService;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,7 +29,7 @@ public class LoanStepServiceImpl implements LoanStepService {
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final TermService termService;
-    private final AuthService authService;
+    private final FinancialCertService financialCertService;
     private final BusinessService businessService;
 
     // Step 2: 대출 약관 동의 
@@ -45,13 +46,13 @@ public class LoanStepServiceImpl implements LoanStepService {
     // Step 3: 본인인증 (금융인증서 PIN) 
     @Override
     public FinancialCertVerifyResponse processAuth(Long userId, Long applicationId,
-                                                    FinancialCertVerifyRequest request, HttpSession session) {
+                                                    FinancialCertVerifyRequest request) {
         LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.CONSENT_DONE);
 
-        FinancialCertVerifyResponse response = authService.verifyFinancialCertificate(request, session);
+        ExternalFinancialCertResponse certResult = financialCertService.verify(request);
 
         application.updateLastCompletedStep(LastCompletedStep.AUTH_DONE);
-        return response;
+        return AuthConverter.toFinancialCertVerifyResponse(certResult);
     }
 
     // Step 4: 사업자 정보 확인 

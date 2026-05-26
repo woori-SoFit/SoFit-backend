@@ -9,7 +9,6 @@ import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
 import com.sofit.user.domain.user.dto.response.BusinessProfileResponse;
 import com.sofit.user.global.util.SecurityUtil;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -37,10 +36,9 @@ public class LoanStepController implements LoanStepControllerDocs {
     @Override
     public ApiResponse<FinancialCertVerifyResponse> processAuth(
             @PathVariable Long applicationId,
-            @Valid @RequestBody FinancialCertVerifyRequest request,
-            HttpSession session) {
+            @Valid @RequestBody FinancialCertVerifyRequest request) {
         Long userId = SecurityUtil.getCurrentUserId();
-        FinancialCertVerifyResponse response = loanStepService.processAuth(userId, applicationId, request, session);
+        FinancialCertVerifyResponse response = loanStepService.processAuth(userId, applicationId, request);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_STEP_AUTH_OK, response);
     }
 

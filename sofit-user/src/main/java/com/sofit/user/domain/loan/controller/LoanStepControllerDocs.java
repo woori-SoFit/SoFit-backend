@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
 
 @Tag(name = "대출 신청 단계", description = "대출 신청 플로우 Step 2~5 래퍼 API")
 public interface LoanStepControllerDocs {
@@ -36,8 +35,7 @@ public interface LoanStepControllerDocs {
     })
     ApiResponse<FinancialCertVerifyResponse> processAuth(
             @Parameter(description = "대출 신청 ID", required = true, example = "1") Long applicationId,
-            FinancialCertVerifyRequest request,
-            HttpSession session);
+            FinancialCertVerifyRequest request);
 
     @Operation(summary = "Step 4: 사업자 정보 확인", description = "사업자 정보를 조회하고 lastCompletedStep을 BIZ_INFO_DONE으로 업데이트합니다.")
     @ApiResponses(value = {
