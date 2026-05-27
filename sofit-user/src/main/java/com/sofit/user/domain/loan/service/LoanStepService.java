@@ -18,4 +18,7 @@ public interface LoanStepService {
 
     // Step 4: 마이데이터 약관 동의
     ConsentCreateResponse processMydata(Long userId, Long applicationId, ConsentCreateRequest request);
+
+    // Step 5: 마이비즈데이터 연동 완료
+    void processMybizData(Long userId, Long applicationId);
 }
