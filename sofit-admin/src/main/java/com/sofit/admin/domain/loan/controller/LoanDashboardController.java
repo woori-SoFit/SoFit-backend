@@ -1,9 +1,11 @@
 package com.sofit.admin.domain.loan.controller;
 
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationDetailResponse;
+import com.sofit.admin.domain.loan.dto.response.LoanApplicationInfoResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
 import com.sofit.admin.domain.loan.exception.LoanDashboardErrorCode;
 import com.sofit.admin.domain.loan.exception.LoanDashboardSuccessCode;
+import com.sofit.admin.domain.loan.service.LoanApplicationInfoService;
 import com.sofit.admin.domain.loan.service.LoanDashboardService;
 import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.common.apiPayload.BaseException;
@@ -34,6 +36,7 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
     );
 
     private final LoanDashboardService loanDashboardService;
+    private final LoanApplicationInfoService loanApplicationInfoService;
 
     @GetMapping
     @Override
@@ -72,5 +75,13 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
             @PathVariable Long applicationId) {
         LoanApplicationDetailResponse response = loanDashboardService.findLoanApplicationDetail(applicationId);
         return ApiResponse.onSuccess(LoanDashboardSuccessCode.LOAN_APPLICATION_DETAIL_OK, response);
+    }
+
+    @GetMapping("/{applicationId}/info")
+    @Override
+    public ApiResponse<LoanApplicationInfoResponse> findLoanApplicationInfo(
+            @PathVariable Long applicationId) {
+        LoanApplicationInfoResponse response = loanApplicationInfoService.findLoanApplicationInfo(applicationId);
+        return ApiResponse.onSuccess(LoanDashboardSuccessCode.LOAN_APPLICATION_INFO_OK, response);
     }
 }

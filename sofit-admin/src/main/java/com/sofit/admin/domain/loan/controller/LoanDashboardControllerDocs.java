@@ -1,6 +1,7 @@
 package com.sofit.admin.domain.loan.controller;
 
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationDetailResponse;
+import com.sofit.admin.domain.loan.dto.response.LoanApplicationInfoResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
 import com.sofit.common.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,6 +38,18 @@ public interface LoanDashboardControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "대출 신청 건을 찾을 수 없음")
     })
     ApiResponse<LoanApplicationDetailResponse> findLoanApplicationDetail(
+            @Parameter(description = "대출 신청 ID", example = "1") Long applicationId
+    );
+
+    @Operation(
+            summary = "대출 신청 상세 조회 (정보 탭)",
+            description = "대출 신청 건의 정보 탭 데이터를 조회합니다. 신청자 정보, 사업자 정보, 대출 신청 정보, 고객 입력 정보, 약관 동의 이력을 포함합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "정보 탭 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "대출 신청 건을 찾을 수 없음")
+    })
+    ApiResponse<LoanApplicationInfoResponse> findLoanApplicationInfo(
             @Parameter(description = "대출 신청 ID", example = "1") Long applicationId
     );
 }
