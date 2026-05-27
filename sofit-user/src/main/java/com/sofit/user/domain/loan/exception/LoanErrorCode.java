@@ -19,6 +19,7 @@ public enum LoanErrorCode implements BaseErrorCode {
     DUPLICATE_APPLICATION(HttpStatus.CONFLICT, "LOAN4091", "이미 해당 상품에 대출 신청이 존재합니다."),
     PRODUCT_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "LOAN4001", "현재 신청할 수 없는 상품입니다."),
     APPLICATION_NOT_DRAFT(HttpStatus.BAD_REQUEST, "LOAN4002", "DRAFT 상태가 아닌 신청은 제출할 수 없습니다."),
+    APPLICATION_NOT_APPROVED(HttpStatus.BAD_REQUEST, "LOAN4005", "승인된 대출 신청만 계좌 인증을 진행할 수 있습니다."),
     STEP_ORDER_VIOLATION(HttpStatus.BAD_REQUEST, "LOAN4003", "이전 단계를 먼저 완료해야 합니다."),
     REQUIRED_CONSENT_MISSING(HttpStatus.BAD_REQUEST, "LOAN4004", "필수 약관에 모두 동의해야 합니다."),
     INVALID_BIZ_NO_FORMAT(HttpStatus.BAD_REQUEST, "LOAN4006", "사업자등록번호는 10자리 숫자여야 합니다."),

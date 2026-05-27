@@ -14,6 +14,7 @@ import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanExecution;
 import com.sofit.common.entity.loan.LoanDecision;
+import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.repository.LoanApplicationRepository;
 import com.sofit.common.repository.LoanDecisionRepository;
 import com.sofit.common.repository.LoanExecutionRepository;
@@ -64,6 +65,14 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
 
     @Override
     public AccountVerificationResponse requestAccountVerification(Long applicationId, AccountVerificationRequest request) {
+        // applicationId 유효성 + APPROVED 상태 검증
+        LoanApplication application = loanApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
+
+        if (application.getStatus() != ApplicationStatus.APPROVED) {
+            throw new BaseException(LoanErrorCode.APPLICATION_NOT_APPROVED);
+        }
+
         String bankCode = WOORI_BANK_CODE;
         String accountNumber = request.getAccountNumber();
 
