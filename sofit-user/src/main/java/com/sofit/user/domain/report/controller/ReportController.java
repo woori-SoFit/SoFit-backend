@@ -3,6 +3,7 @@ package com.sofit.user.domain.report.controller;
 import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.user.domain.report.dto.response.GradeDetailResponse;
 import com.sofit.user.domain.report.dto.response.GradeResponse;
+import com.sofit.user.domain.report.dto.response.MybizStatusResponse;
 import com.sofit.user.domain.report.exception.ReportSuccessCode;
 import com.sofit.user.domain.report.service.ReportService;
 import com.sofit.user.global.util.SecurityUtil;
@@ -30,5 +31,12 @@ public class ReportController implements ReportControllerDocs {
         Long userId = SecurityUtil.getCurrentUserId();
         GradeDetailResponse response = reportService.findGradeDetail(userId);
         return ApiResponse.onSuccess(ReportSuccessCode.GRADE_DETAIL_OK, response);
+    }
+
+    @GetMapping("/mybiz-status")
+    public ApiResponse<MybizStatusResponse> findMybizStatus() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        MybizStatusResponse response = reportService.findMybizStatus(userId);
+        return ApiResponse.onSuccess(ReportSuccessCode.MYBIZ_STATUS_OK, response);
     }
 }
