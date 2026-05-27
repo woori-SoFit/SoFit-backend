@@ -44,6 +44,12 @@ public class RegistrationProcess extends BaseEntity {
     @Column(name = "business_type", length = 50)
     private String businessType;
 
+    @Column(name = "business_category", length = 50)
+    private String businessCategory;
+
+    @Column(name = "business_address", length = 200)
+    private String businessAddress;
+
     // PIN 인증 결과
     @Column(name = "pin_verified", columnDefinition = "TINYINT(1)")
     private Boolean pinVerified;
@@ -58,14 +64,18 @@ public class RegistrationProcess extends BaseEntity {
                                                       String businessName,
                                                       String representativeName,
                                                       String openDate,
-                                                      String businessType) {
+                                                      String businessType,
+                                                      String businessCategory,
+                                                      String businessAddress) {
         RegistrationProcess process = new RegistrationProcess();
         process.businessNumber = businessNumber;
         process.businessName = businessName;
         process.representativeName = representativeName;
         process.openDate = openDate;
         process.businessType = businessType;
-        process.step = RegistrationStep.STEP_1_COMPLETED;
+        process.businessCategory = businessCategory;
+        process.businessAddress = businessAddress;
+        process.step = RegistrationStep.KYC_VERIFIED;
         process.pinVerified = false;
         return process;
     }
@@ -77,31 +87,28 @@ public class RegistrationProcess extends BaseEntity {
                                  String businessName,
                                  String representativeName,
                                  String openDate,
-                                 String businessType) {
+                                 String businessType,
+                                 String businessCategory,
+                                 String businessAddress) {
         this.businessNumber = businessNumber;
         this.businessName = businessName;
         this.representativeName = representativeName;
         this.openDate = openDate;
         this.businessType = businessType;
-        this.step = RegistrationStep.STEP_1_COMPLETED;
+        this.businessCategory = businessCategory;
+        this.businessAddress = businessAddress;
+        this.step = RegistrationStep.KYC_VERIFIED;
         this.pinVerified = false;
         this.pinVerifiedAt = null;
     }
 
     /**
-     * Step 2 완료 처리
+     * Step 2 완료 처리 (PIN 인증 완료)
      */
     public void completeStep2() {
         this.pinVerified = true;
         this.pinVerifiedAt = LocalDateTime.now();
-        this.step = RegistrationStep.STEP_2_COMPLETED;
-    }
-
-    /**
-     * 가입 완료 처리
-     */
-    public void completeRegistration() {
-        this.step = RegistrationStep.COMPLETED;
+        this.step = RegistrationStep.PIN_VERIFIED;
     }
 
     /**

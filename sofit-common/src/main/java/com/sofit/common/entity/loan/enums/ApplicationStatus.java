@@ -5,8 +5,11 @@ public enum ApplicationStatus {
     SUBMITTED,         // 심사 요청 완료
     CB_CHECKING,       // CB 점수 조회 중
     BASIC_REVIEW,      // 기본 심사
-    SCB_CALCULATING,   // SCB 점수 산출 중
-    FINAL_REVIEW,      // 최종 심사
+    S_CALCULATING,     // 성장 S등급 산출 중
+    S_COMPLETED,       // 성장 S등급 산출 완료 
+    SYSTEM_APPROVED,   // 시스템 승인
+    SYSTEM_HOLD,       // 시스템 거절
+    MANAGER_REVIEW,    // 지점장 리뷰를 기다리는 중 
     APPROVED,          // 승인
     REJECTED,          // 거절
     CONTRACTED,        // 약정 체결

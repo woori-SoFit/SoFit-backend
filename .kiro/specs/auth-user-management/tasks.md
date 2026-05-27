@@ -103,7 +103,7 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
 - [x] 4. Phase 2 Checkpoint
   - 컴파일 확인, 로그인 API 동작 확인. 문제 발생 시 사용자에게 질문.
 
-- [-] 5. Phase 3: 회원가입 Step 1 사업자등록번호 인증 수정 [SOFIT-21]
+- [x] 5. Phase 3: 회원가입 Step 1 사업자등록번호 인증 수정 [SOFIT-21]
   - 기존 구현을 회원가입 멀티스텝 플로우에 맞게 수정한다.
   - 커밋: `[SOFIT-21] Feat: 회원가입 Step 1 사업자등록번호 인증 수정`
 
@@ -112,39 +112,39 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
     - 기존 BusinessVerificationResponse.java → VerifyBusinessResponse로 변경 (record: registrationId, businessNumber, representativeName, businessName, businessType, openDate)
     - _Requirements: 2.1, 2.3_
 
-  - [ ] 5.2 AuthService에 verifyBusiness 메서드 수정
+  - [x] 5.2 AuthService에 verifyBusiness 메서드 수정
     - 기존 메서드 시그니처를 `VerifyBusinessResponse verifyBusiness(VerifyBusinessRequest request)`로 변경
     - 중복 가입 체크 로직 추가 (businessNumber로 ACTIVE User 조회 → AUTH4003)
     - ExternalMockClient 호출 후 RegistrationProcess 엔티티 생성 (registration_id UUID 발급, step=STEP_1_COMPLETED)
     - 응답에 registrationId 포함
     - _Requirements: 1.1, 2.1, 2.2, 2.4, 2.5, 2.6_
 
-  - [ ] 5.3 AuthController의 사업자등록번호 인증 엔드포인트 수정
+  - [x] 5.3 AuthController의 사업자등록번호 인증 엔드포인트 수정
     - 기존 엔드포인트를 `POST /api/auth/signup/verify-business`로 변경
     - AuthControllerDocs 인터페이스 업데이트
     - 응답: `ApiResponse.onSuccess(AuthSuccessCode.AUTH2001, response)`
     - _Requirements: 2.1, 2.2_
 
-  - [ ]* 5.4 Step 1 단위 테스트
+  - [x]* 5.4 Step 1 단위 테스트
     - verifyBusiness 성공/실패 시나리오 (중복 가입, KYC 실패, 타임아웃)
     - **Property 4: KYC 인증 성공 시 데이터 영속화**
     - **Property 14: 중복 사업자등록번호 가입 방지**
     - **Validates: Requirements 1.1, 2.2, 2.6**
 
-- [ ] 6. Phase 3 Checkpoint
+- [x] 6. Phase 3 Checkpoint
   - 컴파일 확인, Step 1 API 동작 확인. 문제 발생 시 사용자에게 질문.
 
-- [ ] 7. Phase 4: 회원가입 Step 2 PIN 인증 수정 [SOFIT-22]
+- [x] 7. Phase 4: 회원가입 Step 2 PIN 인증 수정 [SOFIT-22]
   - 기존 PIN 인증 구현을 회원가입 플로우에 맞게 수정한다.
   - 커밋: `[SOFIT-22] Feat: 회원가입 Step 2 PIN 인증 수정`
 
-  - [ ] 7.1 VerifyPinRequest / VerifyPinResponse DTO 생성
+  - [x] 7.1 VerifyPinRequest / VerifyPinResponse DTO 생성
     - VerifyPinRequest.java (class: @NotBlank registrationId, @NotBlank @Pattern pin 6자리, @NotBlank @Pattern phoneNumber 11자리)
     - VerifyPinResponse.java (record: registrationId, verified, verifiedAt)
     - 기존 FinancialCertVerifyRequest.java는 필요 시 수정 또는 대체
     - _Requirements: 3.1, 3.6_
 
-  - [ ] 7.2 AuthService에 verifyPin 메서드 수정
+  - [x] 7.2 AuthService에 verifyPin 메서드 수정
     - `VerifyPinResponse verifyPin(VerifyPinRequest request)` 시그니처로 변경
     - registrationId로 RegistrationProcess 조회
     - 만료 체크 (created_at + 30분 → AUTH4008, step=EXPIRED)
@@ -154,7 +154,7 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
     - 성공 시 RegistrationProcess 갱신 (pinVerified=true, pinVerifiedAt, step=STEP_2_COMPLETED)
     - _Requirements: 1.5, 3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 3.8, 3.9_
 
-  - [ ] 7.3 AuthController의 PIN 인증 엔드포인트 수정
+  - [x] 7.3 AuthController의 PIN 인증 엔드포인트 수정
     - 기존 엔드포인트를 `POST /api/auth/signup/verify-pin`으로 변경
     - AuthControllerDocs 인터페이스 업데이트
     - 응답: `ApiResponse.onSuccess(AuthSuccessCode.AUTH2002, response)`
@@ -167,19 +167,19 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
     - **Property 5: PIN 인증 및 금융인증서 검증**
     - **Validates: Requirements 1.5, 3.1, 3.2, 3.3, 3.5, 3.8, 4.1, 4.9**
 
-- [ ] 8. Phase 4 Checkpoint
+- [x] 8. Phase 4 Checkpoint
   - 컴파일 확인, Step 2 API 동작 확인. 문제 발생 시 사용자에게 질문.
 
-- [ ] 9. Phase 5: 회원가입 Step 3 가입 완료 [SOFIT-23]
+- [x] 9. Phase 5: 회원가입 Step 3 가입 완료 [SOFIT-23]
   - 신규 구현. Step 2 완료 후 고객정보를 입력받아 회원가입을 완료한다.
   - 커밋: `[SOFIT-23] Feat: 회원가입 Step 3 가입 완료 API 구현`
 
-  - [ ] 9.1 SignupCompleteRequest / SignupCompleteResponse DTO 생성
+  - [x] 9.1 SignupCompleteRequest / SignupCompleteResponse DTO 생성
     - SignupCompleteRequest.java (class: @NotBlank registrationId, @NotBlank @Pattern loginId, @NotBlank @Pattern password, @NotBlank name, @NotBlank @Pattern residentNumber 7자리, @NotBlank @Pattern phoneNumber 11자리)
     - SignupCompleteResponse.java (record: userId, loginId, name, role)
     - _Requirements: 4.1, 4.5, 4.6, 4.7, 4.8_
 
-  - [ ] 9.2 AuthService에 completeSignup 메서드 추가 및 구현
+  - [x] 9.2 AuthService에 completeSignup 메서드 추가 및 구현
     - `SignupCompleteResponse completeSignup(SignupCompleteRequest request)` 추가
     - `@Transactional`로 User 생성 + BusinessProfile 생성 + RegistrationProcess 갱신을 하나의 트랜잭션으로 묶어 처리
     - registrationId로 RegistrationProcess 조회 + 만료 체크 + Step 2 완료 확인
@@ -190,7 +190,7 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
     - KYC 데이터를 기반으로 BusinessProfile 생성하여 User에 연결
     - _Requirements: 1.4, 4.1, 4.2, 4.3, 4.4, 4.9, 4.10, 4.11_
 
-  - [ ] 9.3 AuthController에 가입 완료 엔드포인트 추가
+  - [x] 9.3 AuthController에 가입 완료 엔드포인트 추가
     - `POST /api/auth/signup/complete` 엔드포인트 추가
     - AuthControllerDocs 인터페이스 업데이트
     - 응답: `ApiResponse.onSuccess(AuthSuccessCode.AUTH2003, response)`
@@ -201,19 +201,19 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
     - **Property 6: 회원가입 완료 상태 전이**
     - **Validates: Requirements 1.4, 4.2, 4.3, 4.4**
 
-- [ ] 10. Phase 5 Checkpoint
+- [x] 10. Phase 5 Checkpoint
   - 컴파일 확인, Step 3 API 동작 확인, 전체 회원가입 플로우(Step 1→2→3) 연결 확인. 문제 발생 시 사용자에게 질문.
 
-- [ ] 11. Phase 6: 로그아웃 [SOFIT-23]
+- [x] 11. Phase 6: 로그아웃 [SOFIT-26]
   - 세션 삭제를 통한 로그아웃 기능을 구현한다.
-  - 커밋: `[SOFIT-23] Feat: 로그아웃 API 구현`
+  - 커밋: `[SOFIT-26] Feat: 로그아웃 API 구현`
 
-  - [ ] 11.1 AuthService에 logout 메서드 추가 및 구현
-    - `void logout(HttpSession session)` 추가
-    - session.invalidate() 호출하여 세션 삭제
+  - [x] 11.1 AuthService에 logout 메서드 추가 및 구현
+    - `void logout(HttpServletRequest request)` 추가
+    - SecurityContextHolder.clearContext() + session.invalidate() 호출하여 SecurityContext 클리어 및 세션 삭제
     - _Requirements: 7.1, 7.2_
 
-  - [ ] 11.2 AuthController에 로그아웃 엔드포인트 추가
+  - [x] 11.2 AuthController에 로그아웃 엔드포인트 추가
     - `POST /api/auth/logout` 엔드포인트 추가 (인증 필요)
     - AuthControllerDocs 인터페이스 업데이트
     - 응답: `ApiResponse.onSuccess(AuthSuccessCode.AUTH2005, null)`
@@ -224,7 +224,7 @@ SoFit 대출 플랫폼의 인증 및 사용자 관리 기능을 Phase별로 구�
     - **Property 11: 로그아웃 세션 무효화**
     - **Validates: Requirements 7.1, 7.5**
 
-- [ ] 12. Phase 6 Checkpoint
+- [x] 12. Phase 6 Checkpoint
   - 컴파일 확인, 로그아웃 API 동작 확인. 문제 발생 시 사용자에게 질문.
 
 - [ ] 13. Phase 7: 회원탈퇴 [SOFIT-27]

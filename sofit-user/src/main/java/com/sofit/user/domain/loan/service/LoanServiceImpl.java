@@ -33,8 +33,11 @@ public class LoanServiceImpl implements LoanService {
             ApplicationStatus.SUBMITTED,
             ApplicationStatus.CB_CHECKING,
             ApplicationStatus.BASIC_REVIEW,
-            ApplicationStatus.SCB_CALCULATING,
-            ApplicationStatus.FINAL_REVIEW
+            ApplicationStatus.S_CALCULATING,
+            ApplicationStatus.S_COMPLETED,
+            ApplicationStatus.SYSTEM_APPROVED,
+            ApplicationStatus.SYSTEM_HOLD,
+            ApplicationStatus.MANAGER_REVIEW
     );
 
     // 심사 완료 상태 목록

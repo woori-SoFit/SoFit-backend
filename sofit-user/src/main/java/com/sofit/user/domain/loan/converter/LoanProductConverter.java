@@ -1,8 +1,10 @@
 package com.sofit.user.domain.loan.converter;
 
 import com.sofit.common.entity.loan.LoanProduct;
+import com.sofit.common.entity.loan.LoanProductOption;
 import com.sofit.user.domain.loan.dto.response.LoanProductDetailResponse;
 import com.sofit.user.domain.loan.dto.response.LoanProductListResponse;
+import com.sofit.user.domain.loan.dto.response.LoanProductOptionsResponse;
 
 import java.util.List;
 
@@ -36,10 +38,34 @@ public class LoanProductConverter {
                 .maxLimit(product.getMaxLimit())
                 .maxTerm(product.getMaxTerm())
                 .targetDescription(product.getTargetDescription())
+                .filterConditions(LoanProductDetailResponse.FilterConditions.builder()
+                        .annualIncomeLimit(product.getAnnualIncomeLimit())
+                        .creditScoreLimit(product.getCreditScoreLimit())
+                        .incomeTypeCodeLimit(product.getIncomeTypeCodeLimit())
+                        .existingLoanAmtLimit(product.getExistingLoanAmtLimit())
+                        .build())
                 .interestRate(LoanProductDetailResponse.InterestRate.builder()
                         .minRate(product.getMinRate())
                         .maxRate(product.getMaxRate())
                         .build())
+                .build();
+    }
+
+    public static LoanProductOptionsResponse toOptionsResponse(LoanProduct product, List<LoanProductOption> options) {
+        List<LoanProductOptionsResponse.LoanOptionItem> items = options.stream()
+                .map(option -> LoanProductOptionsResponse.LoanOptionItem.builder()
+                        .purpose(option.getPurpose())
+                        .repaymentMethod(option.getRepaymentMethod())
+                        .maxTermMonths(option.getMaxTermMonths())
+                        .build())
+                .toList();
+
+        return LoanProductOptionsResponse.builder()
+                .productId(product.getProductId())
+                .productName(product.getProductName())
+                .minLimit(product.getMinLimit())
+                .maxLimit(product.getMaxLimit())
+                .loanOptions(items)
                 .build();
     }
 }
