@@ -3,7 +3,6 @@ package com.sofit.admin.domain.auth.converter;
 import com.sofit.admin.domain.auth.dto.response.AdminLoginResponse;
 import com.sofit.admin.domain.auth.dto.response.AdminMeResponse;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.util.FormatUtil;
 
 public class AdminAuthConverter {
 
@@ -25,7 +24,7 @@ public class AdminAuthConverter {
         return new AdminMeResponse(
                 user.getName(),
                 user.getLoginId(),
-                FormatUtil.formatPhoneNumber(user.getPhoneNumber()),
+                user.getPhoneNumber(),
                 user.getRole()
         );
     }
