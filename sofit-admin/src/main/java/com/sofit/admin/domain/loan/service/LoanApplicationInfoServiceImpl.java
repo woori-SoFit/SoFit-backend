@@ -44,9 +44,9 @@ public class LoanApplicationInfoServiceImpl implements LoanApplicationInfoServic
         BusinessProfile businessProfile = businessProfileRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
 
-        // 4. ConsentHistory 조회 (consent_id 오름차순)
+        // 4. ConsentHistory 조회 (user_id + application_id 기준, consent_id 오름차순)
         List<ConsentHistory> consentHistories = consentHistoryRepository
-                .findByUser_UserIdOrderByConsentIdAsc(userId);
+                .findByUser_UserIdAndApplication_ApplicationIdOrderByConsentIdAsc(userId, applicationId);
 
         // 5. Converter로 DTO 변환
         return LoanApplicationInfoConverter.toLoanApplicationInfoResponse(

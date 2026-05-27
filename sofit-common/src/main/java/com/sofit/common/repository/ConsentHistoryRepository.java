@@ -20,4 +20,6 @@ public interface ConsentHistoryRepository extends JpaRepository<ConsentHistory, 
                                               @Param("applicationId") Long applicationId);
 
     List<ConsentHistory> findByUser_UserIdOrderByConsentIdAsc(Long userId);
+
+    List<ConsentHistory> findByUser_UserIdAndApplication_ApplicationIdOrderByConsentIdAsc(Long userId, Long applicationId);
 }
