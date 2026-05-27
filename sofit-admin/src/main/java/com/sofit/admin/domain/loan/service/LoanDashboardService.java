@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface LoanDashboardService {
 
-    LoanDashboardResponse findLoanApplications(List<ApplicationStatus> statuses, Long assignedBankerId, Pageable pageable);
+    LoanDashboardResponse findLoanApplications(List<ApplicationStatus> statuses, Boolean myOnly, Long currentUserId, Pageable pageable);
 
     LoanApplicationDetailResponse findLoanApplicationDetail(Long applicationId);
 }
