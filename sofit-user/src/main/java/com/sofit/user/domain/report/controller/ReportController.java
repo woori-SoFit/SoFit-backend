@@ -1,6 +1,7 @@
 package com.sofit.user.domain.report.controller;
 
 import com.sofit.common.apiPayload.ApiResponse;
+import com.sofit.user.domain.report.dto.response.GradeDetailResponse;
 import com.sofit.user.domain.report.dto.response.GradeResponse;
 import com.sofit.user.domain.report.exception.ReportSuccessCode;
 import com.sofit.user.domain.report.service.ReportService;
@@ -22,5 +23,12 @@ public class ReportController implements ReportControllerDocs {
         Long userId = SecurityUtil.getCurrentUserId();
         GradeResponse response = reportService.findGrade(userId);
         return ApiResponse.onSuccess(ReportSuccessCode.GRADE_OK, response);
+    }
+
+    @GetMapping("/detail")
+    public ApiResponse<GradeDetailResponse> findGradeDetail() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        GradeDetailResponse response = reportService.findGradeDetail(userId);
+        return ApiResponse.onSuccess(ReportSuccessCode.GRADE_DETAIL_OK, response);
     }
 }

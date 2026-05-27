@@ -1,6 +1,7 @@
 package com.sofit.user.domain.report.converter;
 
 import com.sofit.common.entity.report.ShapExplanation;
+import com.sofit.user.domain.report.dto.response.GradeDetailResponse;
 import com.sofit.user.domain.report.dto.response.GradeResponse;
 import com.sofit.user.domain.report.enums.SGradeComment;
 
@@ -25,6 +26,18 @@ public class ReportConverter {
                 comment,
                 commentDetail,
                 entity.getCreatedAt()
+        );
+    }
+
+    /**
+     * ShapExplanation 엔티티 → GradeDetailResponse 변환.
+     */
+    public static GradeDetailResponse toGradeDetailResponse(ShapExplanation entity) {
+        return new GradeDetailResponse(
+                entity.getSGrade().name(),
+                entity.getStrengthKeywords(),
+                entity.getImprovementKeywords(),
+                entity.getAdvice()
         );
     }
 }
