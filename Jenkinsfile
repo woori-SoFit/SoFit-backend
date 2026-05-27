@@ -23,8 +23,29 @@ pipeline {
         }
 
         stage('Build') {
-            steps {
-                sh './gradlew :sofit-user:bootJar :sofit-admin:bootJar -x test --rerun-tasks'
+            parallel {
+                stage('sofit-user') {
+                    when {
+                        anyOf {
+                            changeset 'sofit-user/**'
+                            changeset 'sofit-common/**'
+                        }
+                    }
+                    steps {
+                        sh './gradlew :sofit-user:bootJar -x test --rerun-tasks'
+                    }
+                }
+                stage('sofit-admin') {
+                    when {
+                        anyOf {
+                            changeset 'sofit-admin/**'
+                            changeset 'sofit-common/**'
+                        }
+                    }
+                    steps {
+                        sh './gradlew :sofit-admin:bootJar -x test --rerun-tasks'
+                    }
+                }
             }
         }
 
@@ -42,41 +63,84 @@ pipeline {
         }
 
         stage('Docker Build & Push') {
-            steps {
-                sh '''
-                    docker build -t $REGISTRY/sofit-user-back:latest -f sofit-user/Dockerfile .
-                    docker push $REGISTRY/sofit-user-back:latest
-
-                    docker build -t $REGISTRY/sofit-admin-back:latest -f sofit-admin/Dockerfile .
-                    docker push $REGISTRY/sofit-admin-back:latest
-
-                    docker image prune -f
-                '''
+            parallel {
+                stage('sofit-user-back') {
+                    when {
+                        anyOf {
+                            changeset 'sofit-user/**'
+                            changeset 'sofit-common/**'
+                        }
+                    }
+                    steps {
+                        sh '''
+                            docker build -t $REGISTRY/sofit-user-back:latest -f sofit-user/Dockerfile .
+                            docker push $REGISTRY/sofit-user-back:latest
+                        '''
+                    }
+                }
+                stage('sofit-admin-back') {
+                    when {
+                        anyOf {
+                            changeset 'sofit-admin/**'
+                            changeset 'sofit-common/**'
+                        }
+                    }
+                    steps {
+                        sh '''
+                            docker build -t $REGISTRY/sofit-admin-back:latest -f sofit-admin/Dockerfile .
+                            docker push $REGISTRY/sofit-admin-back:latest
+                        '''
+                    }
+                }
             }
         }
 
         stage('Deploy') {
-            steps {
-                sshagent(['sofit-app-ssh']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no ubuntu@$USER_SERVER "
-                            docker pull $REGISTRY/sofit-user-back:latest &&
-                            docker-compose -f /home/ubuntu/docker-compose.yml down &&
-                            docker-compose -f /home/ubuntu/docker-compose.yml up -d
-                        "
-
-                        ssh -o StrictHostKeyChecking=no ubuntu@$ADMIN_SERVER "
-                            docker pull $REGISTRY/sofit-admin-back:latest &&
-                            docker-compose -f /home/ubuntu/docker-compose.yml down &&
-                            docker-compose -f /home/ubuntu/docker-compose.yml up -d
-                        "
-                    '''
+            parallel {
+                stage('sofit-user-back') {
+                    when {
+                        anyOf {
+                            changeset 'sofit-user/**'
+                            changeset 'sofit-common/**'
+                        }
+                    }
+                    steps {
+                        sshagent(['sofit-app-ssh']) {
+                            sh '''
+                                ssh -o StrictHostKeyChecking=no ubuntu@$USER_SERVER "
+                                    docker pull $REGISTRY/sofit-user-back:latest &&
+                                    docker-compose -f /home/ubuntu/docker-compose.yml up -d --force-recreate sofit-user-back
+                                "
+                            '''
+                        }
+                    }
+                }
+                stage('sofit-admin-back') {
+                    when {
+                        anyOf {
+                            changeset 'sofit-admin/**'
+                            changeset 'sofit-common/**'
+                        }
+                    }
+                    steps {
+                        sshagent(['sofit-app-ssh']) {
+                            sh '''
+                                ssh -o StrictHostKeyChecking=no ubuntu@$ADMIN_SERVER "
+                                    docker pull $REGISTRY/sofit-admin-back:latest &&
+                                    docker-compose -f /home/ubuntu/docker-compose.yml up -d --force-recreate sofit-admin-back
+                                "
+                            '''
+                        }
+                    }
                 }
             }
         }
     }
 
     post {
+        always {
+            sh 'docker image prune -f'
+        }
         success {
             echo '배포 성공'
         }
