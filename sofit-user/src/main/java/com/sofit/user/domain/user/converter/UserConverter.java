@@ -2,8 +2,6 @@ package com.sofit.user.domain.user.converter;
 
 import com.sofit.common.entity.user.User;
 import com.sofit.user.domain.user.dto.response.UserProfileResponse;
-import com.sofit.common.util.FormatUtil;
-import com.sofit.common.util.MaskingUtil;
 
 public class UserConverter {
 
@@ -16,8 +14,8 @@ public class UserConverter {
         return new UserProfileResponse(
                 user.getName(),
                 user.getLoginId(),
-                FormatUtil.formatPhoneNumber(user.getPhoneNumber()),
-                MaskingUtil.maskResidentNumber(user.getResidentNumber())
+                user.getPhoneNumber(),
+                user.getResidentNumber()
         );
     }
 }
