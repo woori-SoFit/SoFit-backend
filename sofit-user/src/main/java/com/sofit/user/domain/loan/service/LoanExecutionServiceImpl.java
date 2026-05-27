@@ -114,8 +114,9 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
         String storedAuthCode = (String) entries.get("authCode");
         String accountNumber = (String) entries.get("accountNumber");
 
-        // 인증코드 비교
-        if (!request.getVerificationCode().equals(storedAuthCode)) {
+        // 인증코드 비교 (코데프 응답: "SOFIT213", 사용자 입력: "213")
+        String userInput = "SOFIT" + request.getVerificationCode();
+        if (!userInput.equals(storedAuthCode)) {
             throw new BaseException(LoanErrorCode.ACCOUNT_VERIFICATION_MISMATCH);
         }
 
