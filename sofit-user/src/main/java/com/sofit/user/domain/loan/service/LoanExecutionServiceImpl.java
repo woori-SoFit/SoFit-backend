@@ -141,6 +141,10 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
         LoanApplication application = loanApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
 
+        if (application.getStatus() != ApplicationStatus.APPROVED) {
+            throw new BaseException(LoanErrorCode.APPLICATION_NOT_APPROVED);
+        }
+
         LoanDecision decision = loanDecisionRepository.findByApplication_ApplicationId(applicationId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
