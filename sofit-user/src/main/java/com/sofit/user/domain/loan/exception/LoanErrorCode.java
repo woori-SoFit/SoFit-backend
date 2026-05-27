@@ -19,7 +19,13 @@ public enum LoanErrorCode implements BaseErrorCode {
     DUPLICATE_APPLICATION(HttpStatus.CONFLICT, "LOAN4091", "이미 해당 상품에 대출 신청이 존재합니다."),
     PRODUCT_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "LOAN4001", "현재 신청할 수 없는 상품입니다."),
     APPLICATION_NOT_DRAFT(HttpStatus.BAD_REQUEST, "LOAN4002", "DRAFT 상태가 아닌 신청은 제출할 수 없습니다."),
-    NO_AVAILABLE_BANKER(HttpStatus.INTERNAL_SERVER_ERROR, "LOAN5001", "배정 가능한 은행원이 없습니다.");
+    STEP_ORDER_VIOLATION(HttpStatus.BAD_REQUEST, "LOAN4003", "이전 단계를 먼저 완료해야 합니다."),
+    REQUIRED_CONSENT_MISSING(HttpStatus.BAD_REQUEST, "LOAN4004", "필수 약관에 모두 동의해야 합니다."),
+    INVALID_BIZ_NO_FORMAT(HttpStatus.BAD_REQUEST, "LOAN4006", "사업자등록번호는 10자리 숫자여야 합니다."),
+    APPLICATION_NOT_OWNED(HttpStatus.FORBIDDEN, "LOAN4032", "본인의 대출 신청만 처리할 수 있습니다."),
+    BIZ_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "LOAN4045", "해당 사업자등록번호로 사업자 정보를 찾을 수 없습니다."),
+    NO_AVAILABLE_BANKER(HttpStatus.INTERNAL_SERVER_ERROR, "LOAN5001", "배정 가능한 은행원이 없습니다."),
+    EXTERNAL_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "LOAN5002", "외부 서비스 호출에 실패했습니다.");
 
     private final HttpStatus httpStatus;
     private final String code;
