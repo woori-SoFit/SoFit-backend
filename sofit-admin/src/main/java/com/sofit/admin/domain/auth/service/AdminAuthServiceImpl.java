@@ -6,6 +6,7 @@ import com.sofit.admin.domain.auth.dto.response.AdminLoginResponse;
 import com.sofit.admin.domain.auth.dto.response.AdminMeResponse;
 import com.sofit.admin.domain.auth.exception.AdminAuthErrorCode;
 import com.sofit.admin.global.config.LoginAttemptService;
+import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserRole;
@@ -104,18 +105,8 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
     @Override
     public AdminMeResponse findMe() {
-        // 1. SecurityContextHolder에서 userId 추출
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal() == null) {
-            throw new BaseException(AdminAuthErrorCode.SESSION_EXPIRED);
-        }
-
-        Long userId;
-        try {
-            userId = (Long) authentication.getPrincipal();
-        } catch (ClassCastException e) {
-            throw new BaseException(AdminAuthErrorCode.SESSION_EXPIRED);
-        }
+        // 1. SecurityUtil에서 userId 추출
+        Long userId = SecurityUtil.getCurrentUserId();
 
         // 2. UserRepository로 사용자 조회
         User user = userRepository.findById(userId)
