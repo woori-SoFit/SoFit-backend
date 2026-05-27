@@ -18,4 +18,6 @@ public interface ConsentHistoryRepository extends JpaRepository<ConsentHistory, 
     List<ConsentHistory> findExistingConsents(@Param("userId") Long userId,
                                               @Param("termIds") List<Long> termIds,
                                               @Param("applicationId") Long applicationId);
+
+    List<ConsentHistory> findByUser_UserIdOrderByConsentIdAsc(Long userId);
 }
