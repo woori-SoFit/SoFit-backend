@@ -1,12 +1,12 @@
 package com.sofit.admin.domain.loan.controller;
 
-import com.sofit.admin.domain.auth.exception.AdminAuthErrorCode;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationInfoResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
 import com.sofit.admin.domain.loan.exception.LoanDashboardSuccessCode;
 import com.sofit.admin.domain.loan.service.LoanApplicationInfoService;
 import com.sofit.admin.domain.loan.service.LoanDashboardService;
+import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
@@ -14,8 +14,6 @@ import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -81,8 +79,8 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
             }
         }
 
-        // SecurityContext에서 현재 로그인한 은행원 userId 추출
-        Long currentUserId = extractCurrentUserId();
+        // 현재 로그인한 은행원 userId 추출
+        Long currentUserId = SecurityUtil.getCurrentUserId();
 
         Pageable pageable = PageRequest.of(page, size);
         LoanDashboardResponse response = loanDashboardService.findLoanApplications(
@@ -104,17 +102,5 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
             @PathVariable Long applicationId) {
         LoanApplicationInfoResponse response = loanApplicationInfoService.findLoanApplicationInfo(applicationId);
         return ApiResponse.onSuccess(LoanDashboardSuccessCode.LOAN_APPLICATION_INFO_OK, response);
-    }
-
-    private Long extractCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal() == null) {
-            throw new BaseException(AdminAuthErrorCode.SESSION_EXPIRED);
-        }
-        try {
-            return (Long) authentication.getPrincipal();
-        } catch (ClassCastException e) {
-            throw new BaseException(AdminAuthErrorCode.SESSION_EXPIRED);
-        }
     }
 }
