@@ -4,6 +4,7 @@ import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.report.ShapExplanation;
 import com.sofit.common.repository.ShapExplanationRepository;
 import com.sofit.user.domain.report.converter.ReportConverter;
+import com.sofit.user.domain.report.dto.response.GradeDetailResponse;
 import com.sofit.user.domain.report.dto.response.GradeResponse;
 import com.sofit.user.domain.report.exception.ReportErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -24,5 +25,14 @@ public class ReportServiceImpl implements ReportService {
                 .orElseThrow(() -> new BaseException(ReportErrorCode.GRADE_NOT_FOUND));
 
         return ReportConverter.toGradeResponse(explanation);
+    }
+
+    @Override
+    public GradeDetailResponse findGradeDetail(Long userId) {
+        ShapExplanation explanation = shapExplanationRepository
+                .findTopByUser_UserIdOrderByCreatedAtDesc(userId)
+                .orElseThrow(() -> new BaseException(ReportErrorCode.GRADE_NOT_FOUND));
+
+        return ReportConverter.toGradeDetailResponse(explanation);
     }
 }
