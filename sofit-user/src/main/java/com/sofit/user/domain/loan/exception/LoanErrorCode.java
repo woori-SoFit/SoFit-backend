@@ -33,6 +33,7 @@ public enum LoanErrorCode implements BaseErrorCode {
     ACCOUNT_VERIFICATION_MISMATCH(HttpStatus.BAD_REQUEST, "ACCOUNT4003", "인증번호가 일치하지 않습니다."),
     ACCOUNT_VERIFICATION_EXPIRED(HttpStatus.BAD_REQUEST, "ACCOUNT4004", "인증 시간이 만료되었습니다. 다시 요청해주세요."),
     ACCOUNT_INVALID_BANK_CODE(HttpStatus.BAD_REQUEST, "ACCOUNT4005", "유효하지 않은 은행코드입니다."),
+    EXECUTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "ACCOUNT4091", "이미 대출 실행이 완료된 건입니다."),
     ACCOUNT_SERVICE_ERROR(HttpStatus.BAD_GATEWAY, "ACCOUNT5001", "계좌 인증 서비스에 일시적인 오류가 발생했습니다.");
 
     private final HttpStatus httpStatus;

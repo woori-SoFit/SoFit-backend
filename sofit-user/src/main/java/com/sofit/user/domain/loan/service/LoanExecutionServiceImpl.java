@@ -123,6 +123,11 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
         // 인증 성공 → Redis 삭제 (재사용 방지)
         redisTemplate.delete(redisKey);
 
+        // 중복 실행 방지
+        if (loanExecutionRepository.findByApplicationId(applicationId).isPresent()) {
+            throw new BaseException(LoanErrorCode.EXECUTION_ALREADY_EXISTS);
+        }
+
         // LoanDecision 조회 → 승인 금액 기반으로 LoanExecution 생성
         LoanApplication application = loanApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
