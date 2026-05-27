@@ -94,8 +94,8 @@ public class CodefClient {
         Map<String, String> requestBody = Map.of(
                 "organization", organization,
                 "account", account,
-                "inPrintType", "0",
-                "inPrintContent", ""
+                "inPrintType", "2",
+                "inPrintContent", "SOFIT"
         );
 
         try {

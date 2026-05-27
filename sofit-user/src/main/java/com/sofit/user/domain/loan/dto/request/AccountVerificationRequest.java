@@ -8,10 +8,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class AccountVerificationRequest {
-
-    @NotBlank(message = "은행코드는 필수입니다")
-    private String bankCode;
-
     @NotBlank(message = "계좌번호는 필수입니다")
     @Pattern(regexp = "^[0-9]{7,20}$", message = "계좌번호는 숫자 7~20자리여야 합니다")
     private String accountNumber;
