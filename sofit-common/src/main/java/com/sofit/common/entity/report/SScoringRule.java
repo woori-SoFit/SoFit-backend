@@ -1,5 +1,6 @@
 package com.sofit.common.entity.report;
 
+import com.sofit.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "s_scoring_rule")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class SScoringRule {
+public class SScoringRule extends BaseEntity {
 
     @Id
     @Column(name = "grade")
