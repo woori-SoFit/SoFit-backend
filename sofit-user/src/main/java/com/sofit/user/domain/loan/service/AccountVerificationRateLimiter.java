@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 계좌 인증 일일 요청 횟수 제한 (계좌번호당 5회/일)
- * Redis INCR + TTL(자정까지 남은 초) 패턴 사용
+ * Redis INCR 원자적 연산으로 허용/거부를 한 번에 판정
  */
 @Slf4j
 @Component
@@ -33,36 +33,14 @@ public class AccountVerificationRateLimiter {
     private final StringRedisTemplate redisTemplate;
 
     /**
-     * 해당 계좌번호의 당일 요청이 허용되는지 확인
+     * 요청 횟수를 원자적으로 증가시키고 허용 여부를 판정한다.
+     * INCR은 원자적 연산이므로 race condition이 발생하지 않는다.
      *
      * @param accountNumber 계좌번호
-     * @return true면 허용, false면 한도 초과
+     * @throws BaseException ACCOUNT4002 - 한도 초과 시
      * @throws BaseException ACCOUNT5001 - Redis 연결 실패 시
      */
-    public boolean isAllowed(String accountNumber) {
-        try {
-            String key = buildKey(accountNumber);
-            String value = redisTemplate.opsForValue().get(key);
-
-            if (value == null) {
-                return true;
-            }
-
-            return Integer.parseInt(value) < MAX_REQUESTS_PER_DAY;
-        } catch (Exception e) {
-            log.error("Rate Limiter Redis 조회 실패: {}", e.getMessage());
-            throw new BaseException(LoanErrorCode.ACCOUNT_SERVICE_ERROR);
-        }
-    }
-
-    /**
-     * 해당 계좌번호의 당일 요청 횟수를 1 증가
-     * 키가 처음 생성되면 자정까지 남은 초를 TTL로 설정
-     *
-     * @param accountNumber 계좌번호
-     * @throws BaseException ACCOUNT5001 - Redis 연결 실패 시
-     */
-    public void increment(String accountNumber) {
+    public void checkAndIncrement(String accountNumber) {
         try {
             String key = buildKey(accountNumber);
             Long count = redisTemplate.opsForValue().increment(key);
@@ -72,8 +50,15 @@ public class AccountVerificationRateLimiter {
                 long secondsUntilMidnight = getSecondsUntilMidnight();
                 redisTemplate.expire(key, secondsUntilMidnight, TimeUnit.SECONDS);
             }
+
+            // 한도 초과 시 예외
+            if (count != null && count > MAX_REQUESTS_PER_DAY) {
+                throw new BaseException(LoanErrorCode.ACCOUNT_RATE_LIMIT_EXCEEDED);
+            }
+        } catch (BaseException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("Rate Limiter Redis 증가 실패: {}", e.getMessage());
+            log.error("Rate Limiter Redis 연산 실패: {}", e.getMessage());
             throw new BaseException(LoanErrorCode.ACCOUNT_SERVICE_ERROR);
         }
     }

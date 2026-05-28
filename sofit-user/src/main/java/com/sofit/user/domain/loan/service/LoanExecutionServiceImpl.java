@@ -81,10 +81,8 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
             throw new BaseException(LoanErrorCode.ACCOUNT_INVALID);
         }
 
-        // Rate Limit 확인
-        if (!rateLimiter.isAllowed(accountNumber)) {
-            throw new BaseException(LoanErrorCode.ACCOUNT_RATE_LIMIT_EXCEEDED);
-        }
+        // Rate Limit 확인 + 카운터 증가 (원자적)
+        rateLimiter.checkAndIncrement(accountNumber);
 
         // 코데프 API 호출
         String authCode = codefClient.requestOneWonTransfer(bankCode, accountNumber);
@@ -98,9 +96,6 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
         );
         redisTemplate.opsForHash().putAll(redisKey, verificationData);
         redisTemplate.expire(redisKey, VERIFICATION_TTL_SECONDS, TimeUnit.SECONDS);
-
-        // Rate Limiter 카운터 증가 (코데프 API 성공 후에만)
-        rateLimiter.increment(accountNumber);
 
         // 응답 생성
         String maskedAccount = AccountMaskingUtil.mask(accountNumber);
