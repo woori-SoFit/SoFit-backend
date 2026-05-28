@@ -64,10 +64,14 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
     }
 
     @Override
-    public AccountVerificationResponse requestAccountVerification(Long applicationId, AccountVerificationRequest request) {
-        // applicationId 유효성 + APPROVED 상태 검증
+    public AccountVerificationResponse requestAccountVerification(Long userId, Long applicationId, AccountVerificationRequest request) {
+        // applicationId 유효성 + APPROVED 상태 + 본인 소유 검증
         LoanApplication application = loanApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
+
+        if (!application.getUser().getUserId().equals(userId)) {
+            throw new BaseException(LoanErrorCode.APPLICATION_NOT_OWNED);
+        }
 
         if (application.getStatus() != ApplicationStatus.APPROVED) {
             throw new BaseException(LoanErrorCode.APPLICATION_NOT_APPROVED);
@@ -106,7 +110,7 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
 
     @Override
     @Transactional
-    public AccountVerificationConfirmResponse confirmAccountVerification(Long applicationId, AccountVerificationConfirmRequest request) {
+    public AccountVerificationConfirmResponse confirmAccountVerification(Long userId, Long applicationId, AccountVerificationConfirmRequest request) {
         String redisKey = VERIFICATION_KEY_PREFIX + applicationId;
 
         // Redis에서 인증 정보 조회
@@ -132,6 +136,10 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
         // LoanDecision 조회 → 승인 금액 기반으로 LoanExecution 생성
         LoanApplication application = loanApplicationRepository.findById(applicationId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
+
+        if (!application.getUser().getUserId().equals(userId)) {
+            throw new BaseException(LoanErrorCode.APPLICATION_NOT_OWNED);
+        }
 
         if (application.getStatus() != ApplicationStatus.APPROVED) {
             throw new BaseException(LoanErrorCode.APPLICATION_NOT_APPROVED);

@@ -10,7 +10,7 @@ public interface LoanExecutionService {
 
     LoanExecutionResultResponse findExecutionResult(Long userId, Long applicationId);
 
-    AccountVerificationResponse requestAccountVerification(Long applicationId, AccountVerificationRequest request);
+    AccountVerificationResponse requestAccountVerification(Long userId, Long applicationId, AccountVerificationRequest request);
 
-    AccountVerificationConfirmResponse confirmAccountVerification(Long applicationId, AccountVerificationConfirmRequest request);
+    AccountVerificationConfirmResponse confirmAccountVerification(Long userId, Long applicationId, AccountVerificationConfirmRequest request);
 }
