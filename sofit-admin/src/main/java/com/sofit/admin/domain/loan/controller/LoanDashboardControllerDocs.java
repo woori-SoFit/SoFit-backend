@@ -17,7 +17,7 @@ public interface LoanDashboardControllerDocs {
 
     @Operation(
             summary = "대출 신청 목록 조회",
-            description = "심사 단계에 진입한 대출 신청 건을 페이징 조회합니다. 상태 필터(다중 선택 가능)와 담당 은행원 ID 필터를 지원합니다."
+            description = "심사 단계에 진입한 대출 신청 건을 페이징 조회합니다. 상태 필터와 본인 담당 건 필터(myOnly)를 지원합니다."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "대출 신청 목록 조회 성공"),
@@ -25,9 +25,9 @@ public interface LoanDashboardControllerDocs {
     })
     ApiResponse<LoanDashboardResponse> findLoanApplications(
             @Parameter(description = "페이지 번호 (0부터 시작)", example = "0") Integer page,
-            @Parameter(description = "페이지 크기", example = "10") Integer size,
-            @Parameter(description = "심사 상태 필터 (SYSTEM_APPROVED, SYSTEM_HOLD, MANAGER_REVIEW, APPROVED, REJECTED). 다중 선택 가능") List<String> status,
-            @Parameter(description = "담당 은행원 ID 필터") Long assignedBankerId
+            @Parameter(description = "페이지 크기 (1~100)", example = "10") Integer size,
+            @Parameter(description = "심사 상태 필터 (다중 선택 가능)") List<String> status,
+            @Parameter(description = "본인 담당 건만 조회 (기본값: false)") Boolean myOnly
     );
 
     @Operation(

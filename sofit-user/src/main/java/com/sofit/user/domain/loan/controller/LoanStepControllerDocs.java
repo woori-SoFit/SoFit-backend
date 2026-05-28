@@ -43,4 +43,14 @@ public interface LoanStepControllerDocs {
     ApiResponse<ConsentCreateResponse> processMydata(
             @Parameter(description = "대출 신청 ID", required = true, example = "1") Long applicationId,
             ConsentCreateRequest request);
+
+    @Operation(summary = "Step 5: 마이비즈데이터 연동 완료", description = "마이비즈데이터 연동 완료를 기록하고 lastCompletedStep을 MYBIZ_CONNECTED로 업데이트합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "마이비즈데이터 연동 완료"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "DRAFT 상태가 아니거나 단계 순서 위반"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 소유가 아닌 신청"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "신청 건을 찾을 수 없음")
+    })
+    ApiResponse<Void> processMybizData(
+            @Parameter(description = "대출 신청 ID", required = true, example = "1") Long applicationId);
 }

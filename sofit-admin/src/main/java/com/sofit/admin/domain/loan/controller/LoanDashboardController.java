@@ -9,8 +9,13 @@ import com.sofit.admin.domain.loan.exception.LoanDashboardSuccessCode;
 import com.sofit.admin.domain.loan.service.LoanApplicationInfoService;
 import com.sofit.admin.domain.loan.service.LoanDashboardService;
 import com.sofit.admin.domain.loan.service.MyBizDataDetailService;
+import com.sofit.admin.domain.loan.exception.LoanDashboardSuccessCode;
+import com.sofit.admin.domain.loan.service.LoanApplicationInfoService;
+import com.sofit.admin.domain.loan.service.LoanDashboardService;
+import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -47,28 +53,45 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) List<String> status,
-            @RequestParam(required = false) Long assignedBankerId) {
+            @RequestParam(defaultValue = "false") Boolean myOnly) {
 
-        List<ApplicationStatus> applicationStatuses = null;
-
-        if (status != null && !status.isEmpty()) {
-            applicationStatuses = status.stream()
-                    .map(s -> {
-                        try {
-                            ApplicationStatus parsed = ApplicationStatus.valueOf(s);
-                            if (!ALLOWED_STATUSES.contains(parsed)) {
-                                throw new BaseException(LoanDashboardErrorCode.INVALID_STATUS_FILTER);
-                            }
-                            return parsed;
-                        } catch (IllegalArgumentException e) {
-                            throw new BaseException(LoanDashboardErrorCode.INVALID_STATUS_FILTER);
-                        }
-                    })
-                    .toList();
+        // page/size 유효성 검증
+        if (page < 0) {
+            throw new BaseException(GeneralErrorCode.BAD_REQUEST);
+        }
+        if (size < 1 || size > 100) {
+            throw new BaseException(GeneralErrorCode.BAD_REQUEST);
         }
 
+        // status 파라미터 검증 및 변환 (다중 상태 지원)
+        List<ApplicationStatus> statuses = null;
+        if (status != null && !status.isEmpty()) {
+            statuses = new ArrayList<>();
+            for (String s : status) {
+                if (s == null || s.isBlank()) {
+                    continue;
+                }
+                try {
+                    ApplicationStatus parsed = ApplicationStatus.valueOf(s);
+                    if (!ALLOWED_STATUSES.contains(parsed)) {
+                        throw new BaseException(GeneralErrorCode.BAD_REQUEST);
+                    }
+                    statuses.add(parsed);
+                } catch (IllegalArgumentException e) {
+                    throw new BaseException(GeneralErrorCode.BAD_REQUEST);
+                }
+            }
+            if (statuses.isEmpty()) {
+                statuses = null;
+            }
+        }
+
+        // 현재 로그인한 은행원 userId 추출
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+
         Pageable pageable = PageRequest.of(page, size);
-        LoanDashboardResponse response = loanDashboardService.findLoanApplications(applicationStatuses, assignedBankerId, pageable);
+        LoanDashboardResponse response = loanDashboardService.findLoanApplications(
+                statuses, myOnly, currentUserId, pageable);
         return ApiResponse.onSuccess(LoanDashboardSuccessCode.LOAN_DASHBOARD_OK, response);
     }
 
