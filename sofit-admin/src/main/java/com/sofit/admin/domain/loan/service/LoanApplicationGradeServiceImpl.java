@@ -4,7 +4,6 @@ import com.sofit.admin.domain.loan.converter.LoanApplicationGradeConverter;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationGradeResponse;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
-import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.report.Scb;
 import com.sofit.common.entity.report.ShapExplanation;
 import com.sofit.common.entity.report.enums.SGrade;
@@ -26,22 +25,18 @@ public class LoanApplicationGradeServiceImpl implements LoanApplicationGradeServ
 
     @Override
     public LoanApplicationGradeResponse findLoanApplicationGrade(Long applicationId) {
-        // 1. LoanApplication 조회
-        LoanApplication app = loanApplicationRepository.findById(applicationId)
-                .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
-
-        // 2. Scb 조회 (application_id로)
+        // 1. Scb 조회 (application_id로)
         Scb scb = scbRepository.findByApplicationId(applicationId)
                 .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
 
-        // 3. s_grade → SGrade 변환
+        // 2. s_grade → SGrade 변환
         SGrade sGrade = convertToSGrade(scb.getSGrade());
 
-        // 4. ShapExplanation 조회 (s_evaluation_id로)
-        Long sEvaluationId = app.getSEvaluationId();
-        if (sEvaluationId == null) {
-            throw new BaseException(GeneralErrorCode.NOT_FOUND);
-        }
+        // 3. s_evaluation_id 조회 (LoanApplication 전체 로딩 없이 필요한 필드만)
+        Long sEvaluationId = loanApplicationRepository.findSEvaluationIdByApplicationId(applicationId)
+                .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
+
+        // 4. ShapExplanation 조회
         ShapExplanation shapExplanation = shapExplanationRepository.findById(sEvaluationId)
                 .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
 
