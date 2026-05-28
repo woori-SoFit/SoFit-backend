@@ -1,6 +1,8 @@
 package com.sofit.common.entity.report;
 
 import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.converter.StringDoubleMapConverter;
+import com.sofit.common.entity.converter.StringListConverter;
 import com.sofit.common.entity.report.enums.SGrade;
 import com.sofit.common.entity.user.User;
 import jakarta.persistence.*;
