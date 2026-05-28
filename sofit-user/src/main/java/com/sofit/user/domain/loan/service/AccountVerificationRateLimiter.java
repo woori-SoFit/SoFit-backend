@@ -45,8 +45,9 @@ public class AccountVerificationRateLimiter {
             String key = buildKey(accountNumber);
             Long count = redisTemplate.opsForValue().increment(key);
 
-            // 첫 번째 요청이면 TTL 설정 (자정까지 남은 초)
-            if (count != null && count == 1L) {
+            // 매 요청마다 TTL 설정 (INCR 후 TTL이 없는 경우 방지)
+            Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+            if (ttl == null || ttl < 0) {
                 long secondsUntilMidnight = getSecondsUntilMidnight();
                 redisTemplate.expire(key, secondsUntilMidnight, TimeUnit.SECONDS);
             }
