@@ -1,6 +1,7 @@
 package com.sofit.common.entity.loan;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import com.sofit.common.entity.loan.enums.Decision;
 
@@ -13,7 +14,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -30,8 +31,8 @@ public class LoanDecision {
     @Column(name = "decision_id")
     private Long decisionId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false)
     private LoanApplication application;
 
     @Enumerated(EnumType.STRING)
@@ -49,4 +50,10 @@ public class LoanDecision {
 
     @Column(name = "rejection_reason", columnDefinition = "TEXT")
     private String rejectionReason;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "created_by", updatable = false)
+    private Long createdBy;
 }
