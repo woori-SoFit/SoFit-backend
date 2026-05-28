@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "shap_explanation")
@@ -41,13 +42,13 @@ public class ShapExplanation extends BaseEntity {
     @Column(name = "improvement_keywords", columnDefinition = "TEXT")
     private List<String> improvementKeywords;
 
-    @Convert(converter = StringListConverter.class)
+    @Convert(converter = StringDoubleMapConverter.class)
     @Column(name = "strength_details", columnDefinition = "TEXT")
-    private List<String> strengthDetails;
+    private Map<String, Double> strengthDetails;
 
-    @Convert(converter = StringListConverter.class)
+    @Convert(converter = StringDoubleMapConverter.class)
     @Column(name = "improvement_details", columnDefinition = "TEXT")
-    private List<String> improvementDetails;
+    private Map<String, Double> improvementDetails;
 
     @Column(name = "advice", columnDefinition = "TEXT")
     private String advice;
