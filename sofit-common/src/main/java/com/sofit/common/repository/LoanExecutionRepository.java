@@ -19,4 +19,8 @@ public interface LoanExecutionRepository extends JpaRepository<LoanExecution, Lo
             @Param("applicationId") Long applicationId,
             @Param("userId") Long userId
     );
+
+    @Query("SELECT e FROM LoanExecution e " +
+           "WHERE e.application.applicationId = :applicationId")
+    Optional<LoanExecution> findByApplicationId(@Param("applicationId") Long applicationId);
 }

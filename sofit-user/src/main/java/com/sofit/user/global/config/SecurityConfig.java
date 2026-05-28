@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/terms/**").permitAll()
                         // 약관 PDF 정적 리소스 비로그인 접근 허용
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/terms/**").permitAll()
+                        .requestMatchers("/api/auth/signup/**", "/api/auth/login").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
