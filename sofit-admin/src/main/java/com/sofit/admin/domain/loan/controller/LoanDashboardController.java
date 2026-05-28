@@ -3,10 +3,12 @@ package com.sofit.admin.domain.loan.controller;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationInfoResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
+import com.sofit.admin.domain.loan.dto.response.MyBizDataDetailResponse;
 import com.sofit.admin.domain.loan.exception.LoanDashboardErrorCode;
 import com.sofit.admin.domain.loan.exception.LoanDashboardSuccessCode;
 import com.sofit.admin.domain.loan.service.LoanApplicationInfoService;
 import com.sofit.admin.domain.loan.service.LoanDashboardService;
+import com.sofit.admin.domain.loan.service.MyBizDataDetailService;
 import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
@@ -37,6 +39,7 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
 
     private final LoanDashboardService loanDashboardService;
     private final LoanApplicationInfoService loanApplicationInfoService;
+    private final MyBizDataDetailService myBizDataDetailService;
 
     @GetMapping
     @Override
@@ -83,5 +86,13 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
             @PathVariable Long applicationId) {
         LoanApplicationInfoResponse response = loanApplicationInfoService.findLoanApplicationInfo(applicationId);
         return ApiResponse.onSuccess(LoanDashboardSuccessCode.LOAN_APPLICATION_INFO_OK, response);
+    }
+
+    @GetMapping("/{applicationId}/mybizdata")
+    @Override
+    public ApiResponse<MyBizDataDetailResponse> findMyBizDataDetail(
+            @PathVariable Long applicationId) {
+        MyBizDataDetailResponse response = myBizDataDetailService.findMyBizDataDetail(applicationId);
+        return ApiResponse.onSuccess(LoanDashboardSuccessCode.MY_BIZ_DATA_DETAIL_OK, response);
     }
 }
