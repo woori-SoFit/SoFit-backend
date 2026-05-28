@@ -34,6 +34,6 @@ public class LoanExecution {
     @Column(name = "account_number", nullable = false, length = 30)
     private String accountNumber;
 
-    @Column(name = "bank_code", nullable = false, length = 10)
-    private String bankCode;
+    // @Column(name = "bank_code", nullable = false, length = 10)
+    // private String bankCode;
 }
