@@ -57,4 +57,8 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
 
     // 특정 사용자의 EXECUTED 상태 대출 건수 카운트
     int countByUser_UserIdAndStatus(Long userId, ApplicationStatus status);
+
+    // 대출 신청 건의 s_evaluation_id만 조회
+    @Query("SELECT la.sEvaluationId FROM LoanApplication la WHERE la.applicationId = :applicationId")
+    Optional<Long> findSEvaluationIdByApplicationId(@Param("applicationId") Long applicationId);
 }

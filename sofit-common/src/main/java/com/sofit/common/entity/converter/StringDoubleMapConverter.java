@@ -1,4 +1,4 @@
-package com.sofit.common.entity.report;
+package com.sofit.common.entity.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -7,37 +7,39 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * DB의 JSON 문자열(["a","b"])을 List<String>으로 변환하는 JPA Converter.
+ * DB의 JSON 객체 문자열({"키": 값})을 LinkedHashMap<String, Double>로 변환하는 JPA Converter.
+ * 원본 순서를 유지한다.
  */
 @Converter
-public class StringListConverter implements AttributeConverter<List<String>, String> {
+public class StringDoubleMapConverter implements AttributeConverter<Map<String, Double>, String> {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public String convertToDatabaseColumn(List<String> attribute) {
+    public String convertToDatabaseColumn(Map<String, Double> attribute) {
         if (attribute == null || attribute.isEmpty()) {
-            return "[]";
+            return "{}";
         }
         try {
             return objectMapper.writeValueAsString(attribute);
         } catch (JsonProcessingException e) {
-            return "[]";
+            return "{}";
         }
     }
 
     @Override
-    public List<String> convertToEntityAttribute(String dbData) {
+    public Map<String, Double> convertToEntityAttribute(String dbData) {
         if (dbData == null || dbData.isBlank()) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
         try {
-            return objectMapper.readValue(dbData, new TypeReference<List<String>>() {});
+            return objectMapper.readValue(dbData, new TypeReference<LinkedHashMap<String, Double>>() {});
         } catch (JsonProcessingException e) {
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
     }
 }

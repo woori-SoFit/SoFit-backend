@@ -1,6 +1,7 @@
 package com.sofit.admin.domain.loan.controller;
 
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationDetailResponse;
+import com.sofit.admin.domain.loan.dto.response.LoanApplicationGradeResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationInfoResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
 import com.sofit.admin.domain.loan.dto.response.MyBizDataDetailResponse;
@@ -63,6 +64,20 @@ public interface LoanDashboardControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "대출 신청 건 또는 My Biz Data를 찾을 수 없음")
     })
     ApiResponse<MyBizDataDetailResponse> findMyBizDataDetail(
+            @Parameter(description = "대출 신청 ID", example = "1") Long applicationId
+    );
+
+    @Operation(
+            summary = "대출 신청 상세 조회 (성장 S등급 탭)",
+            description = "대출 신청 건의 성장 S등급 탭 데이터를 조회합니다. CB 신용점수, SCB 점수, 성장 S등급, SHAP 기반 분석 결과(강점/개선점 키워드, 피처별 SHAP 점수, AI 개선 조언)를 포함합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성장 S등급 탭 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증이 필요합니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "대출 신청 건, SCB 정보 또는 SHAP 분석 결과를 찾을 수 없음")
+    })
+    ApiResponse<LoanApplicationGradeResponse> findLoanApplicationGrade(
             @Parameter(description = "대출 신청 ID", example = "1") Long applicationId
     );
 }
