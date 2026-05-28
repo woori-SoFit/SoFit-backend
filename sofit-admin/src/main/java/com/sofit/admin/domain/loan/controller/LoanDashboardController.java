@@ -3,11 +3,13 @@ package com.sofit.admin.domain.loan.controller;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationGradeResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationInfoResponse;
+import com.sofit.admin.domain.loan.dto.response.LoanApplicationReviewResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
 import com.sofit.admin.domain.loan.dto.response.MyBizDataDetailResponse;
 import com.sofit.admin.domain.loan.exception.LoanDashboardSuccessCode;
 import com.sofit.admin.domain.loan.service.LoanApplicationGradeService;
 import com.sofit.admin.domain.loan.service.LoanApplicationInfoService;
+import com.sofit.admin.domain.loan.service.LoanApplicationReviewService;
 import com.sofit.admin.domain.loan.service.LoanDashboardService;
 import com.sofit.admin.domain.loan.service.MyBizDataDetailService;
 import com.sofit.admin.global.util.SecurityUtil;
@@ -45,6 +47,7 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
     private final LoanApplicationInfoService loanApplicationInfoService;
     private final MyBizDataDetailService myBizDataDetailService;
     private final LoanApplicationGradeService loanApplicationGradeService;
+    private final LoanApplicationReviewService loanApplicationReviewService;
 
     @GetMapping
     @Override
@@ -124,5 +127,13 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
             @PathVariable Long applicationId) {
         LoanApplicationGradeResponse response = loanApplicationGradeService.findLoanApplicationGrade(applicationId);
         return ApiResponse.onSuccess(LoanDashboardSuccessCode.LOAN_APPLICATION_GRADE_OK, response);
+    }
+
+    @GetMapping("/{applicationId}/review")
+    @Override
+    public ApiResponse<LoanApplicationReviewResponse> findLoanApplicationReview(
+            @PathVariable Long applicationId) {
+        LoanApplicationReviewResponse response = loanApplicationReviewService.findLoanApplicationReview(applicationId);
+        return ApiResponse.onSuccess(LoanDashboardSuccessCode.LOAN_APPLICATION_REVIEW_OK, response);
     }
 }
