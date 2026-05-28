@@ -70,16 +70,6 @@ public class LoanStepServiceImpl implements LoanStepService {
         LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.DATA_COLLECTED);
 
         businessService.connectMybiz(userId);
-
-        // 디버깅: connectMybiz 호출 후 실제 DB 상태 확인
-        BusinessProfile profile = businessProfileRepository.findByUser_UserId(userId).orElse(null);
-        if (profile != null) {
-            log.info("===== [DEBUG] connectMybiz 호출 후 =====");
-            log.info("===== [DEBUG] isMybizConnected: {} =====", profile.isMybizConnected());
-            log.info("===== [DEBUG] mybizConnectedAt: {} =====", profile.getMybizConnectedAt());
-        } else {
-            log.info("===== [DEBUG] BusinessProfile NOT FOUND for userId: {} =====", userId);
-        }
         
         application.updateLastCompletedStep(LastCompletedStep.MYBIZ_CONNECTED);
     }
