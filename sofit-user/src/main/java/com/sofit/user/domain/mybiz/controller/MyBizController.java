@@ -14,7 +14,7 @@ import com.sofit.user.global.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/my-biz")
+@RequestMapping("/api/mybiz")
 @RequiredArgsConstructor
 public class MyBizController implements MyBizControllerDocs {
 

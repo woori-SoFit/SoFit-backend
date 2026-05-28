@@ -7,6 +7,6 @@ public record LoanDashboardResponse(
         int totalPages,
         int currentPage,
         int size,
-        List<LoanApplicationItemResponse> applications
+        List<LoanApplicationItemResponse> contents
 ) {
 }

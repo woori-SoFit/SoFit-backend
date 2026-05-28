@@ -3,7 +3,6 @@ package com.sofit.admin.domain.loan.service;
 import com.sofit.admin.domain.loan.converter.LoanDashboardConverter;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
-import com.sofit.admin.domain.loan.exception.LoanDashboardErrorCode;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.common.entity.auth.BusinessProfile;
@@ -19,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,34 +42,39 @@ public class LoanDashboardServiceImpl implements LoanDashboardService {
     private final UserRepository userRepository;
 
     @Override
-    public LoanDashboardResponse findLoanApplications(List<ApplicationStatus> statuses, Long assignedBankerId, Pageable pageable) {
-        // 상태 필터: null 또는 빈 리스트이면 전체 대시보드 상태 조회, 아니면 전달된 상태 목록으로 조회
-        if (statuses == null || statuses.isEmpty()) {
-            statuses = DASHBOARD_STATUSES;
-        }
+    public LoanDashboardResponse findLoanApplications(
+            List<ApplicationStatus> statuses, Boolean myOnly, Long currentUserId, Pageable pageable) {
 
-        // 담당 은행원 ID 필터에 따라 적절한 Repository 메서드 호출
+        // 상태 필터: statuses가 null이면 전체 대시보드 상태 조회
+        List<ApplicationStatus> filterStatuses = (statuses != null && !statuses.isEmpty())
+                ? statuses
+                : DASHBOARD_STATUSES;
+
+        // myOnly 필터에 따라 Repository 메서드 분기
         Page<LoanApplication> page;
-        if (assignedBankerId == null) {
-            page = loanApplicationRepository.findDashboardApplications(statuses, pageable);
+        if (Boolean.TRUE.equals(myOnly)) {
+            page = loanApplicationRepository.findDashboardApplicationsByBankerId(
+                    filterStatuses, currentUserId, pageable);
         } else {
-            page = loanApplicationRepository.findDashboardApplicationsByBankerId(statuses, assignedBankerId, pageable);
+            page = loanApplicationRepository.findDashboardApplications(filterStatuses, pageable);
         }
 
-        // 조회된 Page에서 userIds 추출 → BusinessProfile 일괄 조회 → Map<userId, businessName> 변환
+        // BusinessProfile 일괄 조회 → userId별 최신 createdAt 선택
         List<Long> userIds = page.getContent().stream()
                 .map(app -> app.getUser().getUserId())
                 .distinct()
                 .toList();
 
         Map<Long, String> businessNameMap = businessProfileRepository.findByUser_UserIdIn(userIds).stream()
-                .collect(Collectors.toMap(
+                .collect(Collectors.groupingBy(
                         bp -> bp.getUser().getUserId(),
-                        BusinessProfile::getBusinessName,
-                        (existing, replacement) -> existing
+                        Collectors.collectingAndThen(
+                                Collectors.maxBy(Comparator.comparing(BusinessProfile::getCreatedAt)),
+                                opt -> opt.map(BusinessProfile::getBusinessName).orElse(null)
+                        )
                 ));
 
-        // bankerNameMap: assignedBankerId → banker name 조회
+        // bankerNameMap: assignedBankerId → banker name 일괄 조회
         List<Long> bankerIds = page.getContent().stream()
                 .map(LoanApplication::getAssignedBankerId)
                 .filter(Objects::nonNull)
