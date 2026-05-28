@@ -9,14 +9,18 @@ import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
 import com.sofit.user.domain.terms.service.TermService;
+import com.sofit.common.entity.auth.BusinessProfile;
+import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.user.domain.user.dto.response.BusinessProfileResponse;
 import com.sofit.user.domain.user.service.BusinessService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -25,6 +29,7 @@ public class LoanStepServiceImpl implements LoanStepService {
     private final LoanApplicationRepository loanApplicationRepository;
     private final TermService termService;
     private final BusinessService businessService;
+    private final BusinessProfileRepository businessProfileRepository;
 
     // Step 2: 대출 약관 동의
     @Override
@@ -65,6 +70,16 @@ public class LoanStepServiceImpl implements LoanStepService {
         LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.DATA_COLLECTED);
 
         businessService.connectMybiz(userId);
+
+        // 디버깅: connectMybiz 호출 후 실제 DB 상태 확인
+        BusinessProfile profile = businessProfileRepository.findByUser_UserId(userId).orElse(null);
+        if (profile != null) {
+            log.info("===== [DEBUG] connectMybiz 호출 후 =====");
+            log.info("===== [DEBUG] isMybizConnected: {} =====", profile.isMybizConnected());
+            log.info("===== [DEBUG] mybizConnectedAt: {} =====", profile.getMybizConnectedAt());
+        } else {
+            log.info("===== [DEBUG] BusinessProfile NOT FOUND for userId: {} =====", userId);
+        }
         
         application.updateLastCompletedStep(LastCompletedStep.MYBIZ_CONNECTED);
     }
