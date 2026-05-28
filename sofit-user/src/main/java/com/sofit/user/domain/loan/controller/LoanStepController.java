@@ -49,4 +49,14 @@ public class LoanStepController implements LoanStepControllerDocs {
         ConsentCreateResponse response = loanStepService.processMydata(userId, applicationId, request);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_STEP_MYDATA_OK, response);
     }
+
+    // Step 5: 마이비즈데이터 연동 완료
+    @PostMapping("/mybiz-data")
+    @Override
+    public ApiResponse<Void> processMybizData(
+            @PathVariable Long applicationId) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        loanStepService.processMybizData(userId, applicationId);
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_STEP_MYBIZ_OK, null);
+    }
 }
