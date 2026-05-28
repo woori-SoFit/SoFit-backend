@@ -56,6 +56,9 @@ public class MyBizData {
     @Column(name = "business_age_months")
     private Integer businessAgeMonths;
 
+    @Column(name = "annual_income")
+    private Long annualIncome;
+
     // --- 매출 ---
 
     @Column(name = "monthly_revenue")
