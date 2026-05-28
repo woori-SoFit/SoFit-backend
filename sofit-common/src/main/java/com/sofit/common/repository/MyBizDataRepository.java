@@ -25,7 +25,4 @@ public interface MyBizDataRepository extends JpaRepository<MyBizData, Long> {
     // 사용자의 모든 reference_month만 내림차순 조회 (availableMonths 드롭다운용)
     @Query("SELECT m.referenceMonth FROM MyBizData m WHERE m.user.userId = :userId ORDER BY m.referenceMonth DESC")
     List<LocalDate> findReferenceMonthsByUserId(@Param("userId") Long userId);
-
-    // 사용자의 최신 MyBizData 조회 (reference_month DESC, biz_data_id DESC)
-    Optional<MyBizData> findFirstByUser_UserIdOrderByReferenceMonthDescBizDataIdDesc(Long userId);
 }
