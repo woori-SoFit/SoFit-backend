@@ -88,7 +88,7 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
         return ApiResponse.onSuccess(LoanDashboardSuccessCode.LOAN_APPLICATION_INFO_OK, response);
     }
 
-    @GetMapping("/{applicationId}/mybizdata")
+    @GetMapping("/{applicationId}/mybiz-data")
     @Override
     public ApiResponse<MyBizDataDetailResponse> findMyBizDataDetail(
             @PathVariable Long applicationId) {
