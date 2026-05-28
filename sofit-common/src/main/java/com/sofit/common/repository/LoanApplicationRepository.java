@@ -54,4 +54,7 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
     // 특정 상품에 대한 DRAFT 상태 신청 조회
     Optional<LoanApplication> findByUser_UserIdAndProduct_ProductIdAndStatus(
             Long userId, Long productId, ApplicationStatus status);
+
+    // 특정 사용자의 EXECUTED 상태 대출 건수 카운트
+    int countByUser_UserIdAndStatus(Long userId, ApplicationStatus status);
 }
