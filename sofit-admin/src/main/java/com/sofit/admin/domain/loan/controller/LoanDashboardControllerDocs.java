@@ -73,6 +73,8 @@ public interface LoanDashboardControllerDocs {
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성장 S등급 탭 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증이 필요합니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "대출 신청 건, SCB 정보 또는 SHAP 분석 결과를 찾을 수 없음")
     })
     ApiResponse<LoanApplicationGradeResponse> findLoanApplicationGrade(
