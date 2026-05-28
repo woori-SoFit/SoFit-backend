@@ -59,11 +59,13 @@ public class LoanStepServiceImpl implements LoanStepService {
         return response;
     }
 
-    // ==================== Step 5: 마이비즈데이터 연동 완료 ====================
+    // Step 5: 마이비즈데이터 연동 완료 
     @Override
     public void processMybizData(Long userId, Long applicationId) {
         LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.DATA_COLLECTED);
 
+        businessService.connectMybiz(userId);
+        
         application.updateLastCompletedStep(LastCompletedStep.MYBIZ_CONNECTED);
     }
 
