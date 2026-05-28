@@ -129,9 +129,6 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
             throw new BaseException(LoanErrorCode.ACCOUNT_VERIFICATION_MISMATCH);
         }
 
-        // 인증 성공 → Redis 삭제 (재사용 방지)
-        redisTemplate.delete(redisKey);
-
         // 중복 실행 방지
         if (loanExecutionRepository.findByApplicationId(applicationId).isPresent()) {
             throw new BaseException(LoanErrorCode.EXECUTION_ALREADY_EXISTS);
@@ -154,6 +151,9 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
                 accountNumber
         );
         loanExecutionRepository.save(execution);
+
+        // DB 저장 성공 후 Redis 삭제 (재사용 방지)
+        redisTemplate.delete(redisKey);
 
         return LoanExecutionConverter.toVerificationConfirmResponse(true);
     }
