@@ -76,7 +76,7 @@ public class LoanApplicationReviewConverter {
                 decision.getApprovedAmount(),
                 decision.getApprovedRate(),
                 decision.getApprovedTerm(),
-                null
+                decision.getRepaymentMethod() != null ? decision.getRepaymentMethod().name() : null
         );
     }
 
