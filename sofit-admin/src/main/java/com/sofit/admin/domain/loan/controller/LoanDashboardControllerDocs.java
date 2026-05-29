@@ -4,6 +4,7 @@ import com.sofit.admin.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationGradeResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationInfoResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
+import com.sofit.admin.domain.loan.dto.response.LoanStatisticsResponse;
 import com.sofit.admin.domain.loan.dto.response.MyBizDataDetailResponse;
 import com.sofit.common.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -80,4 +81,15 @@ public interface LoanDashboardControllerDocs {
     ApiResponse<LoanApplicationGradeResponse> findLoanApplicationGrade(
             @Parameter(description = "대출 신청 ID", example = "1") Long applicationId
     );
+
+    @Operation(
+            summary = "대출 현황 통계 조회",
+            description = "상태별 대출 신청 건수 통계를 조회합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "대출 현황 통계 조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증이 필요합니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다")
+    })
+    ApiResponse<LoanStatisticsResponse> getStatistics();
 }
