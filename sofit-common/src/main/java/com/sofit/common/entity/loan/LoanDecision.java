@@ -15,7 +15,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -32,8 +32,8 @@ public class LoanDecision extends BaseEntity {
     @Column(name = "decision_id")
     private Long decisionId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false)
     private LoanApplication application;
 
     @Enumerated(EnumType.STRING)
