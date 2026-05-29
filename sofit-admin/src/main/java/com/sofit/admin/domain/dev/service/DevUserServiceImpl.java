@@ -2,8 +2,11 @@ package com.sofit.admin.domain.dev.service;
 
 import com.sofit.admin.domain.dev.converter.DevUserConverter;
 import com.sofit.admin.domain.dev.dto.response.UserListResponse;
+import com.sofit.admin.domain.dev.dto.response.UserStatisticsResponse;
 import com.sofit.admin.domain.dev.repository.UserSpecification;
 import com.sofit.common.entity.user.User;
+import com.sofit.common.entity.user.enums.UserRole;
+import com.sofit.common.entity.user.enums.UserStatus;
 import com.sofit.common.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +16,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -51,5 +56,22 @@ public class DevUserServiceImpl implements DevUserService {
         Page<User> userPage = userRepository.findAll(spec, pageable);
 
         return DevUserConverter.toUserListResponse(userPage, actualPage, actualSize);
+    }
+
+    @Override
+    public UserStatisticsResponse findUserStatistics() {
+        long activeCount = userRepository.countByStatus(UserStatus.ACTIVE);
+        long inactiveCount = userRepository.countByStatus(UserStatus.INACTIVE);
+        long totalCount = activeCount + inactiveCount;
+
+        List<UserRole> adminRoles = List.of(
+                UserRole.ADMIN_DEV,
+                UserRole.ADMIN_BANK_TELLER,
+                UserRole.ADMIN_BANK_MANAGER
+        );
+        long bankerCount = userRepository.countByStatusAndRoleIn(UserStatus.ACTIVE, adminRoles);
+        long userCount = userRepository.countByStatusAndRole(UserStatus.ACTIVE, UserRole.USER);
+
+        return new UserStatisticsResponse(totalCount, activeCount, bankerCount, userCount, inactiveCount);
     }
 }
