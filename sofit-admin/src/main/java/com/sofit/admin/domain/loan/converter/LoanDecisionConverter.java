@@ -12,7 +12,7 @@ public class LoanDecisionConverter {
         return new LoanDecisionResponse(
                 loanDecision.getDecisionId(),
                 loanDecision.getApplication().getApplicationId(),
-                loanDecision.getDecision().name()
+                loanDecision.getDecision()
         );
     }
 }
