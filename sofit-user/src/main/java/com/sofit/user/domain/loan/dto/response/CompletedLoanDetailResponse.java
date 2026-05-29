@@ -20,7 +20,7 @@ public record CompletedLoanDetailResponse(
             Long approvedAmount,
             BigDecimal approvedRate,
             Integer approvedTerm,
-            String rejectionReason
+            String comment
     ) {
     }
 }

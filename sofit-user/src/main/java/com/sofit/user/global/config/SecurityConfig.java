@@ -87,7 +87,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:13000",
                 "http://localhost:5173",
-                "http://172.21.33.214:3000"
+                "http://172.21.33.214:3000",
+                "https://www.sofit.cloud"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
