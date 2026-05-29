@@ -61,4 +61,12 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
     // 대출 신청 건의 s_evaluation_id만 조회
     @Query("SELECT la.sEvaluationId FROM LoanApplication la WHERE la.applicationId = :applicationId")
     Optional<Long> findSEvaluationIdByApplicationId(@Param("applicationId") Long applicationId);
+
+    // 지점장 결재 대기 목록 조회: 특정 status, appliedAt 오름차순, User/Product JOIN FETCH
+    @Query("SELECT la FROM LoanApplication la " +
+           "JOIN FETCH la.user u " +
+           "JOIN FETCH la.product p " +
+           "WHERE la.status = :status " +
+           "ORDER BY la.appliedAt ASC")
+    List<LoanApplication> findByStatusWithUserAndProduct(@Param("status") ApplicationStatus status);
 }
