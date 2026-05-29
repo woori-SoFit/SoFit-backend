@@ -1,6 +1,7 @@
 package com.sofit.admin.domain.dev.controller;
 
 import com.sofit.admin.domain.dev.dto.response.UserListResponse;
+import com.sofit.admin.domain.dev.dto.response.UserStatisticsResponse;
 import com.sofit.common.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,4 +25,12 @@ public interface DevUserControllerDocs {
             @Parameter(description = "역할 필터 (ADMIN_DEV, ADMIN_BANK_MANAGER, ADMIN_BANK_TELLER, USER)") String role,
             @Parameter(description = "상태 필터 (ACTIVE, INACTIVE)") String status
     );
+
+    @Operation(summary = "고객 정보 통계 조회", description = "전체/활성/은행원/고객/비활성 사용자 수를 조회합니다. 권한: ADMIN_DEV, ADMIN_BANK_TELLER, ADMIN_BANK_MANAGER")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증이 필요합니다"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한 없음")
+    })
+    ApiResponse<UserStatisticsResponse> findUserStatistics();
 }
