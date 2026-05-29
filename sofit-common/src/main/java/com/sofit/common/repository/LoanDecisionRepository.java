@@ -11,5 +11,5 @@ public interface LoanDecisionRepository extends JpaRepository<LoanDecision, Long
 
     Optional<LoanDecision> findByApplication_ApplicationId(Long applicationId);
 
-    List<LoanDecision> findAllByApplication_ApplicationIdOrderByCreatedAtAsc(Long applicationId);
+    List<LoanDecision> findAllByApplication_ApplicationIdOrderByCreatedAtDesc(Long applicationId);
 }

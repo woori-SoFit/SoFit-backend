@@ -1,8 +1,8 @@
 package com.sofit.common.entity.loan;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
+import com.sofit.common.entity.BaseEntity;
 import com.sofit.common.entity.loan.enums.Decision;
 
 import jakarta.persistence.Column;
@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "loan_decision")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class LoanDecision {
+public class LoanDecision extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,12 +48,6 @@ public class LoanDecision {
     @Column(name = "approved_term")
     private Integer approvedTerm;
 
-    @Column(name = "rejection_reason", columnDefinition = "TEXT")
-    private String rejectionReason;
-
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "created_by", updatable = false)
-    private Long createdBy;
+    @Column(name = "comment", columnDefinition = "TEXT")
+    private String comment;
 }
