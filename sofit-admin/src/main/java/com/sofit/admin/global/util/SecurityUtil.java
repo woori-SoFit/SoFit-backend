@@ -3,6 +3,7 @@ package com.sofit.admin.global.util;
 import com.sofit.admin.domain.auth.exception.AdminAuthErrorCode;
 import com.sofit.common.apiPayload.BaseException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
@@ -45,5 +46,18 @@ public class SecurityUtil {
         return authentication != null
                 && authentication.isAuthenticated()
                 && !"anonymousUser".equals(authentication.getPrincipal());
+    }
+
+    /**
+     * 현재 인증된 사용자가 특정 권한을 보유하고 있는지 확인한다.
+     */
+    public static boolean hasAuthority(String authority) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(a -> a.equals(authority));
     }
 }

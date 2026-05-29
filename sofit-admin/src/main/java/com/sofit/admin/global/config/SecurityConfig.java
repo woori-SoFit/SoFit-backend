@@ -14,7 +14,6 @@ import org.springframework.security.web.authentication.session.ConcurrentSession
 import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionFixationProtectionStrategy;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisIndexedHttpSession;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
@@ -41,17 +40,15 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .ignoringRequestMatchers("/api/admin/auth/login")
-                )
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // Swagger UI 허용
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 로그인 엔드포인트 허용
                         .requestMatchers("/api/admin/auth/login").permitAll()
                         // 세분화된 역할 규칙 (구체적 경로 우선)
-                        .requestMatchers("/api/admin/manager/loan-applications/*/approve").hasAuthority("ADMIN_BANK_MANAGER")
+                        .requestMatchers("/api/admin/loan-applications/*/approve", "/api/admin/loan-applications/*/reject")
+                            .hasAnyAuthority("ADMIN_BANK_TELLER", "ADMIN_BANK_MANAGER")
                         .requestMatchers("/api/admin/dev/**").hasAuthority("ADMIN_DEV")
                         // 나머지 admin 경로: 모든 관리자 역할 허용
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ADMIN_BANK_TELLER", "ADMIN_BANK_MANAGER", "ADMIN_DEV")
