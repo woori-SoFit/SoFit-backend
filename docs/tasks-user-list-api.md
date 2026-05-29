@@ -6,58 +6,42 @@
 
 ---
 
-## Phase 1: DTO 및 SuccessCode 정의
+## API 정보
 
-### 작업 내용
-1. `DevSuccessCode.java` - dev 도메인 SuccessCode enum 생성
-2. `UserListResponse.java` - 목록 응답 DTO (record)
-3. `UserItemResponse.java` - 개별 사용자 응답 DTO (record)
+- HTTP 메서드: GET
+- Path: `/api/admin/users`
+- Query Parameters: `page`, `size`, `keyword`, `role`, `status` (모두 optional)
 
-### 파일 목록
-- `sofit-admin/src/main/java/com/sofit/admin/domain/dev/exception/DevSuccessCode.java`
-- `sofit-admin/src/main/java/com/sofit/admin/domain/dev/dto/response/UserListResponse.java`
-- `sofit-admin/src/main/java/com/sofit/admin/domain/dev/dto/response/UserItemResponse.java`
+## 파라미터 설명
 
----
-
-## Phase 2: Repository 확장 (Specification 기반 동적 쿼리)
-
-### 작업 내용
-1. `UserRepository`에 `JpaSpecificationExecutor` 추가
-2. `UserSpecification.java` - 검색 조건 동적 쿼리 Specification 생성
-
-### 파일 목록
-- `sofit-common/src/main/java/com/sofit/common/repository/user/UserRepository.java` (수정)
-- `sofit-admin/src/main/java/com/sofit/admin/domain/dev/repository/UserSpecification.java`
-
----
-
-## Phase 3: Converter, Service, Controller 구현
-
-### 작업 내용
-1. `DevUserConverter.java` - Entity → DTO 변환
-2. `DevUserService.java` - 인터페이스
-3. `DevUserServiceImpl.java` - 구현체 (페이징 + 필터 조회)
-4. `DevUserControllerDocs.java` - Swagger 문서 인터페이스
-5. `DevUserController.java` - 컨트롤러
-
-### 파일 목록
-- `sofit-admin/src/main/java/com/sofit/admin/domain/dev/converter/DevUserConverter.java`
-- `sofit-admin/src/main/java/com/sofit/admin/domain/dev/service/DevUserService.java`
-- `sofit-admin/src/main/java/com/sofit/admin/domain/dev/service/DevUserServiceImpl.java`
-- `sofit-admin/src/main/java/com/sofit/admin/domain/dev/controller/DevUserControllerDocs.java`
-- `sofit-admin/src/main/java/com/sofit/admin/domain/dev/controller/DevUserController.java`
-
----
+| 파라미터 | 타입 | 필수 | 설명 |
+| --- | --- | --- | --- |
+| page | number |  | 페이지 번호 (0부터 시작, 기본값 0) |
+| size | number |  | 페이지당 건수 (기본값 8) |
+| keyword | string |  | 검색어 (이름, 아이디 부분 매칭) |
+| role | string |  | 역할 필터 (ADMIN_DEV, ADMIN_BANK_MANAGER, ADMIN_BANK_TELLER, USER) |
+| status | string |  | 상태 필터 (ACTIVE, INACTIVE) |
 
 ## 권한 체크
-- `AdminRoleService.getCurrentUserRole()` 사용
-- ADMIN_DEV, ADMIN_BANK_TELLER, ADMIN_BANK_MANAGER만 접근 가능
-- 그 외 → `GeneralErrorCode.FORBIDDEN` 예외
+- Spring Security URL 기반 접근 제어 (`SecurityConfig`)
+- `/api/admin/users/**` → ADMIN_DEV, ADMIN_BANK_TELLER, ADMIN_BANK_MANAGER 허용
+- 컨트롤러에서 별도 권한 체크 없음
 
-## 조회 조건
-- keyword: 이름(name) 또는 아이디(loginId) 부분 매칭 (LIKE)
-- role: UserRole enum 필터
-- status: UserStatus enum 필터
-- page: 1부터 시작 (JPA는 0-based이므로 page-1 처리)
-- size: null이면 기본값 8
+## 유효성 검증
+- role, status에 유효하지 않은 값 전달 시 → `GeneralErrorCode.BAD_REQUEST` (400)
+
+## 구현 파일 목록
+
+### 생성
+- `sofit-admin/.../dev/dto/response/UserListResponse.java`
+- `sofit-admin/.../dev/dto/response/UserItemResponse.java`
+- `sofit-admin/.../dev/repository/UserSpecification.java`
+- `sofit-admin/.../dev/converter/DevUserConverter.java`
+- `sofit-admin/.../dev/service/DevUserService.java`
+- `sofit-admin/.../dev/service/DevUserServiceImpl.java`
+- `sofit-admin/.../dev/controller/DevUserControllerDocs.java`
+- `sofit-admin/.../dev/controller/DevUserController.java`
+
+### 수정
+- `sofit-common/.../repository/user/UserRepository.java` (JpaSpecificationExecutor 추가)
+- `sofit-admin/.../global/config/SecurityConfig.java` (/api/admin/users/** 접근 제어 추가)
