@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Getter
 @NoArgsConstructor
 public class LoanApproveRequest {
@@ -17,7 +19,7 @@ public class LoanApproveRequest {
 
     @NotNull(message = "확정 금리는 필수입니다.")
     @Positive(message = "확정 금리는 0보다 커야 합니다.")
-    private Double approvedRate;
+    private BigDecimal approvedRate;
 
     @NotNull(message = "확정 기간은 필수입니다.")
     @Positive(message = "확정 기간은 0보다 커야 합니다.")

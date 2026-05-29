@@ -10,14 +10,11 @@ import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.entity.loan.enums.RepaymentMethod;
 import com.sofit.common.repository.LoanApplicationRepository;
 import com.sofit.common.repository.LoanDecisionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +39,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         LoanDecision loanDecision = LoanDecision.createApproval(
                 application,
                 request.getApprovedAmount(),
-                BigDecimal.valueOf(request.getApprovedRate()),
+                request.getApprovedRate(),
                 request.getApprovedTerm(),
                 request.getRepaymentMethod(),
                 request.getComment()
