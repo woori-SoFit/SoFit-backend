@@ -1,5 +1,7 @@
 package com.sofit.admin.domain.dev.repository;
 
+import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserRole;
 import com.sofit.common.entity.user.enums.UserStatus;
@@ -28,22 +30,32 @@ public class UserSpecification {
     }
 
     /**
-     * 역할 필터
+     * 역할 필터 (유효하지 않은 값이면 BAD_REQUEST 예외)
      */
     public static Specification<User> roleEquals(String role) {
         if (role == null || role.isBlank()) {
             return null;
         }
-        return (root, query, cb) -> cb.equal(root.get("role"), UserRole.valueOf(role));
+        try {
+            UserRole userRole = UserRole.valueOf(role);
+            return (root, query, cb) -> cb.equal(root.get("role"), userRole);
+        } catch (IllegalArgumentException e) {
+            throw new BaseException(GeneralErrorCode.BAD_REQUEST);
+        }
     }
 
     /**
-     * 상태 필터
+     * 상태 필터 (유효하지 않은 값이면 BAD_REQUEST 예외)
      */
     public static Specification<User> statusEquals(String status) {
         if (status == null || status.isBlank()) {
             return null;
         }
-        return (root, query, cb) -> cb.equal(root.get("status"), UserStatus.valueOf(status));
+        try {
+            UserStatus userStatus = UserStatus.valueOf(status);
+            return (root, query, cb) -> cb.equal(root.get("status"), userStatus);
+        } catch (IllegalArgumentException e) {
+            throw new BaseException(GeneralErrorCode.BAD_REQUEST);
+        }
     }
 }
