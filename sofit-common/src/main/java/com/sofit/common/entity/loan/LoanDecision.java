@@ -2,7 +2,9 @@ package com.sofit.common.entity.loan;
 
 import java.math.BigDecimal;
 
+import com.sofit.common.entity.BaseEntity;
 import com.sofit.common.entity.loan.enums.Decision;
+import com.sofit.common.entity.loan.enums.RepaymentMethod;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "loan_decision")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class LoanDecision {
+public class LoanDecision extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,6 +49,38 @@ public class LoanDecision {
     @Column(name = "approved_term")
     private Integer approvedTerm;
 
-    @Column(name = "rejection_reason", columnDefinition = "TEXT")
-    private String rejectionReason;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "repayment_method")
+    private RepaymentMethod repaymentMethod;
+
+    @Column(name = "comment", columnDefinition = "TEXT")
+    private String comment;
+
+    // === 정적 팩토리 메서드 ===
+
+    public static LoanDecision createApproval(LoanApplication application,
+                                              Long approvedAmount,
+                                              BigDecimal approvedRate,
+                                              Integer approvedTerm,
+                                              RepaymentMethod repaymentMethod,
+                                              String comment) {
+        LoanDecision decision = new LoanDecision();
+        decision.application = application;
+        decision.decision = Decision.APPROVED;
+        decision.approvedAmount = approvedAmount;
+        decision.approvedRate = approvedRate;
+        decision.approvedTerm = approvedTerm;
+        decision.repaymentMethod = repaymentMethod;
+        decision.comment = comment;
+        return decision;
+    }
+
+    public static LoanDecision createRejection(LoanApplication application,
+                                               String comment) {
+        LoanDecision decision = new LoanDecision();
+        decision.application = application;
+        decision.decision = Decision.REJECTED;
+        decision.comment = comment;
+        return decision;
+    }
 }
