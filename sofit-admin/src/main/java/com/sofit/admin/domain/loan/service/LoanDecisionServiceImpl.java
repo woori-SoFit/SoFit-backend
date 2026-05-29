@@ -32,7 +32,11 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         // 2. 이미 결정된 건인지 검증
         validateNotAlreadyDecided(application);
 
-        // 3. 상태 + 권한 조합 검증
+        // 3. 본인에게 배정된 건인지 검증
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        validateAssignment(application, currentUserId);
+
+        // 4. 상태 + 권한 조합 검증
         validateDecisionAuthority(application);
 
         // 4. LoanDecision 생성 및 저장 (created_by는 BaseEntity의 @CreatedBy로 자동 설정)
@@ -60,7 +64,11 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         // 2. 이미 결정된 건인지 검증
         validateNotAlreadyDecided(application);
 
-        // 3. 상태 + 권한 조합 검증
+        // 3. 본인에게 배정된 건인지 검증
+        Long currentUserId = SecurityUtil.getCurrentUserId();
+        validateAssignment(application, currentUserId);
+
+        // 4. 상태 + 권한 조합 검증
         validateDecisionAuthority(application);
 
         // 4. LoanDecision 생성 및 저장 (created_by는 BaseEntity의 @CreatedBy로 자동 설정)
@@ -106,6 +114,16 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
             }
         } else {
             throw new BaseException(LoanDecisionErrorCode.NOT_DECIDABLE_STATUS);
+        }
+    }
+
+    /**
+     * 본인에게 배정된 신청 건인지 검증
+     */
+    private void validateAssignment(LoanApplication application, Long currentUserId) {
+        if (application.getAssignedBankerId() == null ||
+                !application.getAssignedBankerId().equals(currentUserId)) {
+            throw new BaseException(LoanDecisionErrorCode.NOT_ASSIGNED_TO_ME);
         }
     }
 }
