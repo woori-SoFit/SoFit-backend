@@ -18,7 +18,9 @@ import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
+import com.sofit.user.domain.notification.event.LoanSubmittedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +33,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
     private final LoanProductRepository loanProductRepository;
     private final UserRepository userRepository;
     private final BankerAssignmentService bankerAssignmentService;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 대출 신청 생성 (DRAFT 상태)
@@ -137,6 +140,9 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 request.getRepaymentMethod(),
                 request.getPurpose()
         );
+
+        // 5. 대출 신청 완료 알림 이벤트 발행 (트랜잭션 커밋 후 처리)
+        eventPublisher.publishEvent(new LoanSubmittedEvent(application.getUser(), application));
 
         return LoanApplicationConverter.toSubmitResponse(application);
     }
