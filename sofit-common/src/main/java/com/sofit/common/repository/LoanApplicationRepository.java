@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
+import com.sofit.common.repository.projection.StatusCountProjection;
 
 public interface LoanApplicationRepository extends JpaRepository<LoanApplication, Long> {
 
@@ -61,4 +62,11 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
     // 대출 신청 건의 s_evaluation_id만 조회
     @Query("SELECT la.sEvaluationId FROM LoanApplication la WHERE la.applicationId = :applicationId")
     Optional<Long> findSEvaluationIdByApplicationId(@Param("applicationId") Long applicationId);
+
+    // 상태별 대출 신청 건수 집계 (통계 API용)
+    @Query("SELECT la.status AS status, COUNT(la) AS count " +
+           "FROM LoanApplication la " +
+           "WHERE la.status IN :statuses " +
+           "GROUP BY la.status")
+    List<StatusCountProjection> countByStatuses(@Param("statuses") List<ApplicationStatus> statuses);
 }

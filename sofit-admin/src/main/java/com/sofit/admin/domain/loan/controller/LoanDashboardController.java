@@ -5,17 +5,20 @@ import com.sofit.admin.domain.loan.dto.response.LoanApplicationGradeResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationInfoResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationReviewResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
+import com.sofit.admin.domain.loan.dto.response.LoanStatisticsResponse;
 import com.sofit.admin.domain.loan.dto.response.MyBizDataDetailResponse;
 import com.sofit.admin.domain.loan.exception.LoanDashboardSuccessCode;
 import com.sofit.admin.domain.loan.service.LoanApplicationGradeService;
 import com.sofit.admin.domain.loan.service.LoanApplicationInfoService;
 import com.sofit.admin.domain.loan.service.LoanApplicationReviewService;
 import com.sofit.admin.domain.loan.service.LoanDashboardService;
+import com.sofit.admin.domain.loan.service.LoanStatisticsService;
 import com.sofit.admin.domain.loan.service.MyBizDataDetailService;
 import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.common.apiPayload.ApiResponse;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
+import com.sofit.common.apiPayload.code.GeneralSuccessCode;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -37,7 +40,7 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
 
     private static final Set<ApplicationStatus> ALLOWED_STATUSES = Set.of(
             ApplicationStatus.SYSTEM_APPROVED,
-            ApplicationStatus.SYSTEM_HOLD,
+            ApplicationStatus.SYSTEM_REJECTED,
             ApplicationStatus.MANAGER_REVIEW,
             ApplicationStatus.APPROVED,
             ApplicationStatus.REJECTED
@@ -47,6 +50,7 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
     private final LoanApplicationInfoService loanApplicationInfoService;
     private final MyBizDataDetailService myBizDataDetailService;
     private final LoanApplicationGradeService loanApplicationGradeService;
+    private final LoanStatisticsService loanStatisticsService;
     private final LoanApplicationReviewService loanApplicationReviewService;
 
     @GetMapping
@@ -129,6 +133,11 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
         return ApiResponse.onSuccess(LoanDashboardSuccessCode.LOAN_APPLICATION_GRADE_OK, response);
     }
 
+    @GetMapping("/statistics")
+    @Override
+    public ApiResponse<LoanStatisticsResponse> getStatistics() {
+        LoanStatisticsResponse response = loanStatisticsService.getStatistics();
+        return ApiResponse.onSuccess(GeneralSuccessCode.OK, response);
     @GetMapping("/{applicationId}/review")
     @Override
     public ApiResponse<LoanApplicationReviewResponse> findLoanApplicationReview(

@@ -31,7 +31,7 @@ public class LoanDashboardServiceImpl implements LoanDashboardService {
 
     private static final List<ApplicationStatus> DASHBOARD_STATUSES = List.of(
             ApplicationStatus.SYSTEM_APPROVED,
-            ApplicationStatus.SYSTEM_HOLD,
+            ApplicationStatus.SYSTEM_REJECTED,
             ApplicationStatus.MANAGER_REVIEW,
             ApplicationStatus.APPROVED,
             ApplicationStatus.REJECTED
