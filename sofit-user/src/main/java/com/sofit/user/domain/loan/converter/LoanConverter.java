@@ -70,7 +70,7 @@ public class LoanConverter {
                 decision.getApprovedAmount(),
                 decision.getApprovedRate(),
                 decision.getApprovedTerm(),
-                decision.getRejectionReason()
+                decision.getComment()
         );
 
         return new CompletedLoanDetailResponse(

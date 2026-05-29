@@ -110,7 +110,7 @@ public class LoanApplicationReviewConverter {
 
         return new DecisionResponse(
                 status,
-                decision.getRejectionReason(),
+                decision.getComment(),
                 reviewerName,
                 reviewerRole,
                 decision.getCreatedAt()
