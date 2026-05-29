@@ -38,10 +38,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         // 3. 상태 + 권한 조합 검증
         validateDecisionAuthority(application);
 
-        // 4. comment 유효성 검증
-        validateComment(request.getComment());
-
-        // 5. LoanDecision 생성 및 저장 (created_by는 BaseEntity의 @CreatedBy로 자동 설정)
+        // 4. LoanDecision 생성 및 저장 (created_by는 BaseEntity의 @CreatedBy로 자동 설정)
         LoanDecision loanDecision = LoanDecision.createApproval(
                 application,
                 request.getApprovedAmount(),
@@ -52,7 +49,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         );
         loanDecisionRepository.save(loanDecision);
 
-        // 6. 대출 신청 상태 변경
+        // 5. 대출 신청 상태 변경
         application.updateStatus(ApplicationStatus.APPROVED);
 
         return LoanDecisionConverter.toLoanDecisionResponse(loanDecision);
@@ -69,17 +66,14 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         // 3. 상태 + 권한 조합 검증
         validateDecisionAuthority(application);
 
-        // 4. comment 유효성 검증
-        validateComment(request.getComment());
-
-        // 5. LoanDecision 생성 및 저장 (created_by는 BaseEntity의 @CreatedBy로 자동 설정)
+        // 4. LoanDecision 생성 및 저장 (created_by는 BaseEntity의 @CreatedBy로 자동 설정)
         LoanDecision loanDecision = LoanDecision.createRejection(
                 application,
                 request.getComment()
         );
         loanDecisionRepository.save(loanDecision);
 
-        // 6. 대출 신청 상태 변경
+        // 5. 대출 신청 상태 변경
         application.updateStatus(ApplicationStatus.REJECTED);
 
         return LoanDecisionConverter.toLoanDecisionResponse(loanDecision);
@@ -115,12 +109,6 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
             }
         } else {
             throw new BaseException(LoanDecisionErrorCode.NOT_DECIDABLE_STATUS);
-        }
-    }
-
-    private void validateComment(String comment) {
-        if (comment == null || comment.isBlank()) {
-            throw new BaseException(LoanDecisionErrorCode.INVALID_COMMENT);
         }
     }
 }
