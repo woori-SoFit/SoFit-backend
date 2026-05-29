@@ -93,6 +93,8 @@ public interface LoanDashboardControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "권한이 없습니다")
     })
     ApiResponse<LoanStatisticsResponse> getStatistics();
+
+    @Operation(
             summary = "대출 신청 상세 조회 (심사 결과 탭)",
             description = "대출 신청 건의 심사 결과 탭 데이터를 조회합니다. 대출 상품 정보, 신청 정보, 시스템 승인 추천 정보, 심사 이력을 포함합니다."
     )
