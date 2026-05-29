@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,9 +49,9 @@ public class LoanApplicationReviewServiceImpl implements LoanApplicationReviewSe
         // 3. LoanProductOption 목록 조회
         List<LoanProductOption> options = loanProductOptionRepository.findByProduct_ProductId(product.getProductId());
 
-        // 4. LoanDecision 전체 목록 조회 (createdAt 오름차순)
+        // 4. LoanDecision 전체 목록 조회 (createdAt 내림차순)
         List<LoanDecision> decisions = loanDecisionRepository
-                .findAllByApplication_ApplicationIdOrderByCreatedAtAsc(applicationId);
+                .findAllByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId);
 
         // 5. 시스템 심사 추출: created_by == null && decision == APPROVED인 건 → Recommendation
         LoanDecision systemApproved = decisions.stream()
@@ -57,13 +59,24 @@ public class LoanApplicationReviewServiceImpl implements LoanApplicationReviewSe
                 .findFirst()
                 .orElse(null);
 
-        // 6. DecisionResponse 목록 생성 (은행원 심사의 createdBy로 User 조회)
+        // 6. 은행원 심사의 createdBy ID를 수집하여 한 번에 User 조회 (N+1 방지)
+        List<Long> createdByIds = decisions.stream()
+                .map(LoanDecision::getCreatedBy)
+                .filter(id -> id != null)
+                .distinct()
+                .toList();
+
+        Map<Long, User> userMap = createdByIds.isEmpty()
+                ? Map.of()
+                : userRepository.findAllById(createdByIds).stream()
+                        .collect(Collectors.toMap(User::getUserId, user -> user));
+
+        // 7. DecisionResponse 목록 생성
         List<DecisionResponse> decisionResponses = new ArrayList<>();
         for (LoanDecision decision : decisions) {
-            User user = null;
-            if (decision.getCreatedBy() != null) {
-                user = userRepository.findById(decision.getCreatedBy()).orElse(null);
-            }
+            User user = decision.getCreatedBy() != null
+                    ? userMap.get(decision.getCreatedBy())
+                    : null;
             decisionResponses.add(LoanApplicationReviewConverter.toDecisionResponse(decision, user));
         }
 
