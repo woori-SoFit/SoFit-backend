@@ -13,6 +13,7 @@ import com.sofit.user.domain.notification.dto.response.NotificationResponse;
 import com.sofit.user.domain.notification.exception.NotificationErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -26,7 +27,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final SseEmitterManager sseEmitterManager;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void send(User user, NotificationType type, LoanApplication application) {
         // 알림 엔티티 생성 및 DB 저장
         Notification notification = Notification.builder()
