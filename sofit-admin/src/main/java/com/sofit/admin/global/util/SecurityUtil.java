@@ -73,5 +73,15 @@ public class SecurityUtil {
         } catch (IllegalArgumentException e) {
             throw new BaseException(AdminAuthErrorCode.SESSION_EXPIRED);
         }
+     * 현재 인증된 사용자가 특정 권한을 보유하고 있는지 확인한다.
+     */
+    public static boolean hasAuthority(String authority) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(a -> a.equals(authority));
     }
 }

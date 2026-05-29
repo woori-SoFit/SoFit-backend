@@ -32,7 +32,11 @@ public class GlobalExceptionHandler {
         log.warn("[ValidationException] {}", message);
         return ResponseEntity
                 .status(GeneralErrorCode.BAD_REQUEST.getHttpStatus())
-                .body(ApiResponse.onFailure(GeneralErrorCode.BAD_REQUEST));
+                .body(ApiResponse.<Void>builder()
+                        .isSuccess(false)
+                        .code(GeneralErrorCode.BAD_REQUEST.getCode())
+                        .message(message)
+                        .build());
     }
 
     // 쿼리 파라미터 타입 변환 실패 (ex. enum 미존재 값)
