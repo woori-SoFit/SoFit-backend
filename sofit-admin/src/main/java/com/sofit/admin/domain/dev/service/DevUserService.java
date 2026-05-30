@@ -7,7 +7,7 @@ public interface DevUserService {
     /**
      * 고객 정보 목록 조회 (페이징 + 필터)
      *
-     * @param page    페이지 번호 (1부터 시작)
+     * @param page    페이지 번호 (0부터 시작, null이면 기본값 0)
      * @param size    페이지당 건수 (null이면 기본값 8)
      * @param keyword 검색어 (이름, 아이디 부분 매칭)
      * @param role    역할 필터
