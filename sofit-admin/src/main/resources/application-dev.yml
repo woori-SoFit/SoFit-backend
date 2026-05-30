@@ -10,3 +10,8 @@ spring:
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3001}
+
+# sofit-user 서버 내부 URL (알림 푸시용, Docker 네트워크 내부 통신)
+sofit:
+  user:
+    internal-url: ${SOFIT_USER_INTERNAL_URL:http://sofit-user:8080}
