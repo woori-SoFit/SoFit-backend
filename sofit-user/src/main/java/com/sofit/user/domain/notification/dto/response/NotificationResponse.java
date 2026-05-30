@@ -10,5 +10,6 @@ public record NotificationResponse(
     String title,
     String message,
     Long applicationId,
+    Boolean isRead,
     LocalDateTime createdAt
 ) {}

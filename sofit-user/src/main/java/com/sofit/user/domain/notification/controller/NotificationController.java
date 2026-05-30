@@ -43,6 +43,14 @@ public class NotificationController implements NotificationControllerDocs {
     }
 
     @Override
+    @GetMapping
+    public ApiResponse<NotificationListResponse> getAll() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        NotificationListResponse response = notificationService.getAll(userId);
+        return ApiResponse.onSuccess(NotificationSuccessCode.NOTIFICATION_LIST_OK, response);
+    }
+
+    @Override
     @PatchMapping("/{notificationId}/read")
     public ApiResponse<Void> markAsRead(@PathVariable Long notificationId) {
         Long userId = SecurityUtil.getCurrentUserId();

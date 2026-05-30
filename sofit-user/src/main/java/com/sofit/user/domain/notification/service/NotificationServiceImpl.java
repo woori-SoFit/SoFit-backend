@@ -59,6 +59,17 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public NotificationListResponse getAll(Long userId) {
+        List<Notification> notifications = notificationRepository
+                .findByUser_UserIdOrderByCreatedAtDesc(userId);
+        List<NotificationResponse> items = notifications.stream()
+                .map(NotificationConverter::toResponse)
+                .toList();
+        return new NotificationListResponse(items);
+    }
+
+    @Override
     @Transactional
     public void markAsRead(Long userId, Long notificationId) {
         // 알림 존재 여부 확인

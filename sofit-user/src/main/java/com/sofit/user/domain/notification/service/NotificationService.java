@@ -8,15 +8,18 @@ import com.sofit.user.domain.notification.dto.response.NotificationListResponse;
 
 public interface NotificationService {
 
-    /** 알림 생성 + DB 저장 + SSE 전송 (sofit-user 내부 발송용) */
+    // 알림 생성 + DB 저장 + SSE 전송 (sofit-user 내부 발송용) 
     void send(User user, NotificationType type, LoanApplication application);
 
-    /** sofit-admin으로부터 SSE 푸시 수신 (DB 저장 없이 전송만) */
+    // sofit-admin으로부터 SSE 푸시 수신 (DB 저장 없이 전송만) 
     void push(NotificationPushRequest request);
 
-    /** 미읽음 알림 조회 (최대 100건, 생성일시 내림차순) */
+    // 미읽음 알림 조회 
     NotificationListResponse getUnread(Long userId);
 
-    /** 알림 읽음 처리 (소유권 검증 포함) */
+    // 전체 알림 목록 조회 (읽음/미읽음 모두 포함, 최신순)
+    NotificationListResponse getAll(Long userId);
+
+    // 알림 읽음 처리
     void markAsRead(Long userId, Long notificationId);
 }

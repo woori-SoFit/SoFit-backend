@@ -26,6 +26,13 @@ public interface NotificationControllerDocs {
     })
     ApiResponse<NotificationListResponse> getUnread();
 
+    @Operation(summary = "전체 알림 목록 조회", description = "읽음/미읽음 모두 포함한 전체 알림 목록을 조회합니다. (최신순)")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공 (NOTI2003)"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증이 필요합니다 (COMMON4001)")
+    })
+    ApiResponse<NotificationListResponse> getAll();
+
     @Operation(summary = "알림 읽음 처리", description = "특정 알림을 읽음 상태로 변경합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "읽음 처리 성공 (NOTI2001)"),
