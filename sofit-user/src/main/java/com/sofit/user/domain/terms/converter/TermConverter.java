@@ -18,14 +18,14 @@ public class TermConverter {
     private TermConverter() {
     }
 
-    public static TermListResponse toListResponse(List<Term> terms, String baseUrl) {
+    public static TermListResponse toListResponse(List<Term> terms) {
         List<TermListResponse.TermItem> items = terms.stream()
                 .map(term -> new TermListResponse.TermItem(
                         term.getTermId(),
                         term.getTermType().name(),
                         term.getVersion(),
                         term.getTitle(),
-                        baseUrl + term.getFileUrl(),
+                        term.getFileUrl(),
                         term.getIsRequired(),
                         term.getEffectiveAt()
                 ))
