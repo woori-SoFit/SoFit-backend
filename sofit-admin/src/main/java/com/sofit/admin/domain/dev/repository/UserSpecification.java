@@ -15,17 +15,24 @@ public class UserSpecification {
     private UserSpecification() {
     }
 
+    private static final char ESCAPE_CHAR = '\\';
+
     /**
      * 이름 또는 로그인 아이디 부분 매칭 (LIKE)
+     * 입력값의 %, _ 를 이스케이프 처리하여 SQL 와일드카드가 아닌 일반 문자로 검색
      */
     public static Specification<User> keywordContains(String keyword) {
         if (keyword == null || keyword.isBlank()) {
             return null;
         }
-        String pattern = "%" + keyword + "%";
+        String escaped = keyword
+                .replace("\\", "\\\\") // \ 먼저 처리
+                .replace("%", "\\%") // % → \%  (와일드카드 아님)
+                .replace("_", "\\_"); // _ → \_  (와일드카드 아님)
+        String pattern = "%" + escaped + "%";
         return (root, query, cb) -> cb.or(
-                cb.like(root.get("name"), pattern),
-                cb.like(root.get("loginId"), pattern)
+                cb.like(root.get("name"), pattern, ESCAPE_CHAR),
+                cb.like(root.get("loginId"), pattern, ESCAPE_CHAR)
         );
     }
 
