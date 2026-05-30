@@ -8,7 +8,7 @@ public enum ApplicationStatus {
     S_CALCULATING,     // 성장 S등급 산출 중
     S_COMPLETED,       // 성장 S등급 산출 완료 
     SYSTEM_APPROVED,   // 시스템 승인
-    SYSTEM_HOLD,       // 시스템 거절
+    SYSTEM_REJECTED,       // 시스템 거절
     MANAGER_REVIEW,    // 지점장 리뷰를 기다리는 중 
     APPROVED,          // 승인
     REJECTED,          // 거절

@@ -2,6 +2,7 @@ package com.sofit.admin.global.util;
 
 import com.sofit.admin.domain.auth.exception.AdminAuthErrorCode;
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.entity.user.enums.UserRole;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -9,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * SecurityContext에서 인증 정보를 추출하는 유틸리티 클래스.
  * - 로그인 시 Authentication.principal에 userId(Long)를 저장하는 구조 전제
+ * - Authentication.authorities에 role(UserRole.name())을 저장하는 구조 전제
  */
 public class SecurityUtil {
 
@@ -49,6 +51,28 @@ public class SecurityUtil {
     }
 
     /**
+     * SecurityContext의 authorities에서 현재 사용자의 역할(UserRole)을 반환한다.
+     * DB 조회 없이 SecurityContext만으로 role을 확인할 때 사용한다.
+     *
+     * @return 현재 사용자의 UserRole
+     * @throws BaseException SESSION_EXPIRED - 인증 정보 없음 또는 authority 없음
+     */
+    public static UserRole getCurrentUserRole() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null || authentication.getAuthorities().isEmpty()) {
+            throw new BaseException(AdminAuthErrorCode.SESSION_EXPIRED);
+        }
+
+        String authority = authentication.getAuthorities().stream()
+                .findFirst()
+                .map(GrantedAuthority::getAuthority)
+                .orElseThrow(() -> new BaseException(AdminAuthErrorCode.SESSION_EXPIRED));
+
+        try {
+            return UserRole.valueOf(authority);
+        } catch (IllegalArgumentException e) {
+            throw new BaseException(AdminAuthErrorCode.SESSION_EXPIRED);
+        }
      * 현재 인증된 사용자가 특정 권한을 보유하고 있는지 확인한다.
      */
     public static boolean hasAuthority(String authority) {

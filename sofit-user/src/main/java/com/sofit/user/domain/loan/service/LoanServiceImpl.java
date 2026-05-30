@@ -36,14 +36,15 @@ public class LoanServiceImpl implements LoanService {
             ApplicationStatus.S_CALCULATING,
             ApplicationStatus.S_COMPLETED,
             ApplicationStatus.SYSTEM_APPROVED,
-            ApplicationStatus.SYSTEM_HOLD,
+            ApplicationStatus.SYSTEM_REJECTED,
             ApplicationStatus.MANAGER_REVIEW
     );
 
     // 심사 완료 상태 목록
     private static final List<ApplicationStatus> COMPLETED_STATUSES = List.of(
             ApplicationStatus.APPROVED,
-            ApplicationStatus.REJECTED
+            ApplicationStatus.REJECTED,
+            ApplicationStatus.EXECUTED
     );
 
     @Override
