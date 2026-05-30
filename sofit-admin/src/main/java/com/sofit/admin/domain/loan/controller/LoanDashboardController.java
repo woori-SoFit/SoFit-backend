@@ -138,6 +138,8 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
     public ApiResponse<LoanStatisticsResponse> getStatistics() {
         LoanStatisticsResponse response = loanStatisticsService.getStatistics();
         return ApiResponse.onSuccess(GeneralSuccessCode.OK, response);
+    }
+
     @GetMapping("/{applicationId}/review")
     @Override
     public ApiResponse<LoanApplicationReviewResponse> findLoanApplicationReview(

@@ -50,6 +50,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/loan-applications/*/approve", "/api/admin/loan-applications/*/reject")
                             .hasAnyAuthority("ADMIN_BANK_TELLER", "ADMIN_BANK_MANAGER")
                         .requestMatchers("/api/admin/dev/**").hasAuthority("ADMIN_DEV")
+                        // 고객 정보 목록 조회: 모든 관리자 역할 허용
+                        .requestMatchers("/api/admin/users/**").hasAnyAuthority("ADMIN_DEV", "ADMIN_BANK_TELLER", "ADMIN_BANK_MANAGER")
                         // 나머지 admin 경로: 모든 관리자 역할 허용
                         .requestMatchers("/api/admin/**").hasAnyAuthority("ADMIN_BANK_TELLER", "ADMIN_BANK_MANAGER", "ADMIN_DEV")
                         // 정의되지 않은 경로는 전면 차단
