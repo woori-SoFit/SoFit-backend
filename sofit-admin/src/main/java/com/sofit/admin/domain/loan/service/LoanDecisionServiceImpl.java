@@ -1,5 +1,6 @@
 package com.sofit.admin.domain.loan.service;
 
+import com.sofit.admin.domain.loan.client.NotificationPushClient;
 import com.sofit.admin.domain.loan.converter.LoanDecisionConverter;
 import com.sofit.admin.domain.loan.dto.request.LoanApproveRequest;
 import com.sofit.admin.domain.loan.dto.request.LoanRejectRequest;
@@ -7,11 +8,15 @@ import com.sofit.admin.domain.loan.dto.response.LoanDecisionResponse;
 import com.sofit.admin.domain.loan.exception.LoanDecisionErrorCode;
 import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.dto.notification.NotificationPushRequest;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
+import com.sofit.common.entity.notification.Notification;
+import com.sofit.common.entity.notification.enums.NotificationType;
 import com.sofit.common.repository.LoanApplicationRepository;
 import com.sofit.common.repository.LoanDecisionRepository;
+import com.sofit.common.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +28,8 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final LoanDecisionRepository loanDecisionRepository;
+    private final NotificationRepository notificationRepository;
+    private final NotificationPushClient notificationPushClient;
 
     @Override
     public LoanDecisionResponse approveLoanApplication(Long applicationId, LoanApproveRequest request) {
@@ -53,6 +60,9 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         // 5. 대출 신청 상태 변경
         application.updateStatus(ApplicationStatus.APPROVED);
 
+        // 6. 심사 완료 알림 생성 + SSE 푸시
+        sendDecisionNotification(application);
+
         return LoanDecisionConverter.toLoanDecisionResponse(loanDecision);
     }
 
@@ -81,7 +91,27 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         // 5. 대출 신청 상태 변경
         application.updateStatus(ApplicationStatus.REJECTED);
 
+        // 6. 심사 완료 알림 생성 + SSE 푸시
+        sendDecisionNotification(application);
+
         return LoanDecisionConverter.toLoanDecisionResponse(loanDecision);
+    }
+
+    /**
+     * 심사 완료 알림을 DB에 저장하고 sofit-user에 SSE 푸시를 요청한다.
+     * 푸시 실패 시에도 심사 처리는 롤백되지 않는다 (NotificationPushClient 내부에서 예외 흡수).
+     */
+    private void sendDecisionNotification(LoanApplication application) {
+        Notification notification = Notification.builder()
+                .user(application.getUser())
+                .type(NotificationType.LOAN_DECIDED)
+                .application(application)
+                .build();
+        notificationRepository.save(notification);
+
+        notificationPushClient.pushNotification(
+                NotificationPushRequest.from(notification)
+        );
     }
 
     private LoanApplication findApplicationOrThrow(Long applicationId) {
