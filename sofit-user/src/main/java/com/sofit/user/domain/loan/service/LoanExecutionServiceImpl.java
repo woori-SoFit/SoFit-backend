@@ -27,9 +27,12 @@ import com.sofit.user.domain.loan.dto.response.AccountVerificationResponse;
 import com.sofit.user.domain.loan.dto.response.LoanExecutionResultResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.loan.util.AccountMaskingUtil;
+import com.sofit.user.domain.notification.event.LoanExecutedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.ApplicationEventPublisher;
 
 @Slf4j
 @Service
@@ -49,6 +52,7 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
     private final CodefClient codefClient;
     private final AccountVerificationRateLimiter rateLimiter;
     private final StringRedisTemplate redisTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public LoanExecutionResultResponse findExecutionResult(Long userId, Long applicationId) {
@@ -157,6 +161,9 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
 
         // DB 저장 성공 후 Redis 삭제 (재사용 방지)
         redisTemplate.delete(redisKey);
+
+        // 대출 실행 완료 알림 이벤트 발행 (트랜잭션 커밋 후 처리)
+        eventPublisher.publishEvent(new LoanExecutedEvent(application.getUser(), application));
 
         return LoanExecutionConverter.toVerificationConfirmResponse(true);
     }

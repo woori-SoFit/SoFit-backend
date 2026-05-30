@@ -1,6 +1,7 @@
 package com.sofit.user.domain.notification.service;
 
 import com.sofit.common.entity.notification.enums.NotificationType;
+import com.sofit.user.domain.notification.event.LoanExecutedEvent;
 import com.sofit.user.domain.notification.event.LoanSubmittedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -13,12 +14,22 @@ public class NotificationEventListener {
 
     private final NotificationService notificationService;
 
-    // LoanSubmittedEvent가 발행되면 트랜잭션 커밋 후 이 메서드가 실행
+    // 대출 신청 완료 알림
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleLoanSubmitted(LoanSubmittedEvent event) {
         notificationService.send(
                 event.getUser(),
                 NotificationType.LOAN_SUBMITTED,
+                event.getApplication()
+        );
+    }
+
+    // 대출 실행 완료 알림
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleLoanExecuted(LoanExecutedEvent event) {
+        notificationService.send(
+                event.getUser(),
+                NotificationType.LOAN_EXECUTED,
                 event.getApplication()
         );
     }
