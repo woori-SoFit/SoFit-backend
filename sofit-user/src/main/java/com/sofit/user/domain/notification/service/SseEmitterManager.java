@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+
 
 @Slf4j
 @Component
@@ -23,6 +23,8 @@ public class SseEmitterManager {
      * 동일 userId로 재구독 시 기존 emitter를 complete 처리한 뒤 새 emitter로 교체한다.
      */
     public SseEmitter subscribe(Long userId) {
+        log.info("SSE 구독 요청: userId={}, 현재 emitterMap 크기={}", userId, emitters.size());
+
         // 1. 기존 emitter가 있으면 complete 처리 (정리)
         SseEmitter oldEmitter = emitters.get(userId);
         if (oldEmitter != null) {
@@ -43,7 +45,7 @@ public class SseEmitterManager {
         // 5. 연결 직후 더미 이벤트 전송 (503 방지)
         try {
             emitter.send(SseEmitter.event().name("connect").data("connected"));
-        } catch (IOException | AsyncRequestNotUsableException e) {
+        } catch (IOException e) {
             emitters.remove(userId, emitter);
             log.warn("SSE 더미 이벤트 전송 실패: userId={}", userId);
         }
@@ -56,11 +58,14 @@ public class SseEmitterManager {
      * 전송 실패 시 해당 emitter를 제거하고 예외를 전파하지 않는다.
      */
     public void send(Long userId, NotificationPushRequest payload) {
+        log.info("SSE 푸시 시도: userId={}, emitterMap 크기={}", userId, emitters.size());
+
         // 1. Map에서 해당 userId의 emitter 조회
         SseEmitter emitter = emitters.get(userId);
 
         // 2. null이면 오프라인 상태
         if (emitter == null) {
+            log.warn("SSE emitter 없음 (오프라인): userId={}", userId);
             return;
         }
 
@@ -69,8 +74,9 @@ public class SseEmitterManager {
             emitter.send(SseEmitter.event()
                 .name("notification")
                 .data(payload));
-        } catch (IOException | AsyncRequestNotUsableException e) {
-            // 4. 전송 실패 시 해당 emitter만 제거 (값 비교) — 클라이언트 연결 끊김 포함
+            log.info("SSE 푸시 성공: userId={}", userId);
+        } catch (IOException e) {
+            // 4. 전송 실패 시 해당 emitter만 제거 (값 비교) — 클라이언트 연결 끊김(AsyncRequestNotUsableException) 포함
             emitters.remove(userId, emitter);
             log.warn("SSE 이벤트 전송 실패 (클라이언트 연결 끊김): userId={}", userId);
         }
