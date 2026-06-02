@@ -1,0 +1,52 @@
+#!/bin/bash
+set -e
+
+REGION=ap-northeast-2
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+ECR_URL="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
+IMAGE="${ECR_URL}/sofit-user-api:latest"
+
+echo ">>> ECR 로그인..."
+aws ecr get-login-password --region ${REGION} | docker login --username AWS --password-stdin ${ECR_URL}
+
+echo ">>> Secrets Manager에서 환경변수 로드..."
+SECRET=$(aws secretsmanager get-secret-value \
+  --secret-id sofit/user-api/prod \
+  --region ${REGION} \
+  --query SecretString \
+  --output text)
+
+DB_HOST=$(echo $SECRET | jq -r '.DB_HOST')
+DB_USERNAME=$(echo $SECRET | jq -r '.DB_USERNAME')
+DB_PASSWORD=$(echo $SECRET | jq -r '.DB_PASSWORD')
+REDIS_HOST=$(echo $SECRET | jq -r '.REDIS_HOST')
+REDIS_PORT=$(echo $SECRET | jq -r '.REDIS_PORT')
+EXTERNAL_MOCK_URL=$(echo $SECRET | jq -r '.EXTERNAL_MOCK_URL')
+STORAGE_BASE_URL=$(echo $SECRET | jq -r '.STORAGE_BASE_URL')
+CODEF_CLIENT_ID=$(echo $SECRET | jq -r '.CODEF_CLIENT_ID')
+CODEF_CLIENT_SECRET=$(echo $SECRET | jq -r '.CODEF_CLIENT_SECRET')
+CODEF_BASE_URL=$(echo $SECRET | jq -r '.CODEF_BASE_URL')
+CODEF_OAUTH_URL=$(echo $SECRET | jq -r '.CODEF_OAUTH_URL')
+
+echo ">>> 이미지 pull: ${IMAGE}"
+docker pull ${IMAGE}
+
+echo ">>> 컨테이너 실행..."
+docker run -d \
+  --name sofit-user-api \
+  --restart unless-stopped \
+  -p 8080:8080 \
+  -e DB_HOST="${DB_HOST}" \
+  -e DB_USERNAME="${DB_USERNAME}" \
+  -e DB_PASSWORD="${DB_PASSWORD}" \
+  -e REDIS_HOST="${REDIS_HOST}" \
+  -e REDIS_PORT="${REDIS_PORT}" \
+  -e EXTERNAL_MOCK_URL="${EXTERNAL_MOCK_URL}" \
+  -e STORAGE_BASE_URL="${STORAGE_BASE_URL}" \
+  -e CODEF_CLIENT_ID="${CODEF_CLIENT_ID}" \
+  -e CODEF_CLIENT_SECRET="${CODEF_CLIENT_SECRET}" \
+  -e CODEF_BASE_URL="${CODEF_BASE_URL}" \
+  -e CODEF_OAUTH_URL="${CODEF_OAUTH_URL}" \
+  ${IMAGE}
+
+echo ">>> 배포 완료."
