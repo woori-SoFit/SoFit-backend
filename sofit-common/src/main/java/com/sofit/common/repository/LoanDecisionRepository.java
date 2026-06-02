@@ -9,7 +9,7 @@ import com.sofit.common.entity.loan.LoanDecision;
 
 public interface LoanDecisionRepository extends JpaRepository<LoanDecision, Long> {
 
-    Optional<LoanDecision> findByApplication_ApplicationId(Long applicationId);
+    Optional<LoanDecision> findTopByApplication_ApplicationIdOrderByCreatedAtDesc(Long applicationId);
 
     List<LoanDecision> findAllByApplication_ApplicationIdOrderByCreatedAtDesc(Long applicationId);
 }
