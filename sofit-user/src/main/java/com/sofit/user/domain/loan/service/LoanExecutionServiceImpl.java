@@ -159,6 +159,9 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
         );
         loanExecutionRepository.save(execution);
 
+        // 대출 신청 상태를 EXECUTED로 변경
+        application.updateStatus(ApplicationStatus.EXECUTED);
+
         // DB 저장 성공 후 Redis 삭제 (재사용 방지)
         redisTemplate.delete(redisKey);
 
