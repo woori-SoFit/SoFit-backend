@@ -95,4 +95,7 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
            "WHERE la.status IN :statuses " +
            "GROUP BY la.status")
     List<StatusCountProjection> countByStatuses(@Param("statuses") List<ApplicationStatus> statuses);
+
+    // 특정 상태의 대출 신청 목록 조회 (배치용)
+    List<LoanApplication> findByStatus(ApplicationStatus status);
 }
