@@ -7,6 +7,7 @@ import com.sofit.admin.domain.auth.dto.response.AdminMeResponse;
 import com.sofit.admin.domain.auth.exception.AdminAuthErrorCode;
 import com.sofit.admin.global.config.LoginAttemptService;
 import com.sofit.admin.global.util.SecurityUtil;
+import com.sofit.admin.global.util.SessionUtil;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserRole;
@@ -123,7 +124,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
     @Override
     public void logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-        com.sofit.admin.global.util.SessionUtil.invalidateSession(httpRequest, httpResponse);
+        SessionUtil.invalidateSession(httpRequest, httpResponse);
     }
 
     /**
