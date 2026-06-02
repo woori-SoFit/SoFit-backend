@@ -23,7 +23,7 @@ public class SseEmitterManager {
      * 동일 userId로 재구독 시 기존 emitter를 complete 처리한 뒤 새 emitter로 교체한다.
      */
     public SseEmitter subscribe(Long userId) {
-        log.info("SSE 구독 요청: userId={}, 현재 emitterMap 크기={}", userId, emitters.size());
+        log.debug("SSE 구독 요청: userId={}, 현재 emitterMap 크기={}", userId, emitters.size());
 
         // 1. 기존 emitter가 있으면 complete 처리 (정리)
         SseEmitter oldEmitter = emitters.get(userId);
@@ -58,7 +58,7 @@ public class SseEmitterManager {
      * 전송 실패 시 해당 emitter를 제거하고 예외를 전파하지 않는다.
      */
     public void send(Long userId, NotificationPushRequest payload) {
-        log.info("SSE 푸시 시도: userId={}, emitterMap 크기={}", userId, emitters.size());
+        log.debug("SSE 푸시 시도: userId={}, emitterMap 크기={}", userId, emitters.size());
 
         // 1. Map에서 해당 userId의 emitter 조회
         SseEmitter emitter = emitters.get(userId);
@@ -74,7 +74,7 @@ public class SseEmitterManager {
             emitter.send(SseEmitter.event()
                 .name("notification")
                 .data(payload));
-            log.info("SSE 푸시 성공: userId={}", userId);
+            log.debug("SSE 푸시 성공: userId={}", userId);
         } catch (IOException e) {
             // 4. 전송 실패 시 해당 emitter만 제거 (값 비교) — 클라이언트 연결 끊김(AsyncRequestNotUsableException) 포함
             emitters.remove(userId, emitter);
