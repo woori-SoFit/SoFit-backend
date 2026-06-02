@@ -143,7 +143,11 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         );
 
         // 5. 대출 신청 완료 알림 이벤트 발행 (트랜잭션 커밋 후 처리)
-        eventPublisher.publishEvent(new LoanSubmittedEvent(application.getUser(), application));
+        // AFTER_COMMIT 이후 영속 컨텍스트가 닫히므로 엔티티 대신 ID만 전달
+        eventPublisher.publishEvent(new LoanSubmittedEvent(
+                application.getUser().getUserId(),
+                application.getApplicationId()
+        ));
 
         return LoanApplicationConverter.toSubmitResponse(application);
     }

@@ -163,7 +163,11 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
         redisTemplate.delete(redisKey);
 
         // 대출 실행 완료 알림 이벤트 발행 (트랜잭션 커밋 후 처리)
-        eventPublisher.publishEvent(new LoanExecutedEvent(application.getUser(), application));
+        // AFTER_COMMIT 이후 영속 컨텍스트가 닫히므로 엔티티 대신 ID만 전달
+        eventPublisher.publishEvent(new LoanExecutedEvent(
+                application.getUser().getUserId(),
+                application.getApplicationId()
+        ));
 
         return LoanExecutionConverter.toVerificationConfirmResponse(true);
     }

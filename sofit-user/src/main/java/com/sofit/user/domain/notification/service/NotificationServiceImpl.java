@@ -6,12 +6,15 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.notification.Notification;
 import com.sofit.common.entity.notification.enums.NotificationType;
 import com.sofit.common.entity.user.User;
+import com.sofit.common.repository.LoanApplicationRepository;
 import com.sofit.common.repository.NotificationRepository;
+import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.notification.converter.NotificationConverter;
 import com.sofit.user.domain.notification.dto.response.NotificationListResponse;
 import com.sofit.user.domain.notification.dto.response.NotificationResponse;
 import com.sofit.user.domain.notification.exception.NotificationErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,16 +22,32 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final UserRepository userRepository;
+    private final LoanApplicationRepository loanApplicationRepository;
     private final SseEmitterManager sseEmitterManager;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void send(User user, NotificationType type, LoanApplication application) {
+    public void send(Long userId, NotificationType type, Long applicationId) {
+        // AFTER_COMMIT 이후 새 트랜잭션에서 엔티티를 다시 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.error("알림 발송 실패 - 사용자를 찾을 수 없습니다. userId={}", userId);
+                    return new BaseException(NotificationErrorCode.NOTIFICATION_NOT_FOUND);
+                });
+
+        LoanApplication application = loanApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> {
+                    log.error("알림 발송 실패 - 대출 신청을 찾을 수 없습니다. applicationId={}", applicationId);
+                    return new BaseException(NotificationErrorCode.NOTIFICATION_NOT_FOUND);
+                });
+
         // 알림 엔티티 생성 및 DB 저장
         Notification notification = Notification.builder()
                 .user(user)
@@ -38,7 +57,7 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.save(notification);
 
         // SSE 푸시
-        sseEmitterManager.send(user.getUserId(), NotificationPushRequest.from(notification));
+        sseEmitterManager.send(userId, NotificationPushRequest.from(notification));
     }
 
     @Override

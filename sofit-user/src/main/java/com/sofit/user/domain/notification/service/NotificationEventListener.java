@@ -18,9 +18,9 @@ public class NotificationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleLoanSubmitted(LoanSubmittedEvent event) {
         notificationService.send(
-                event.getUser(),
+                event.getUserId(),
                 NotificationType.LOAN_SUBMITTED,
-                event.getApplication()
+                event.getApplicationId()
         );
     }
 
@@ -28,9 +28,9 @@ public class NotificationEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleLoanExecuted(LoanExecutedEvent event) {
         notificationService.send(
-                event.getUser(),
+                event.getUserId(),
                 NotificationType.LOAN_EXECUTED,
-                event.getApplication()
+                event.getApplicationId()
         );
     }
 }
