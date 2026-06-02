@@ -11,8 +11,6 @@ import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
 import com.sofit.user.domain.terms.service.TermService;
-import com.sofit.common.entity.auth.BusinessProfile;
-import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.user.domain.user.dto.response.BusinessProfileResponse;
 import com.sofit.user.domain.user.service.BusinessService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +30,6 @@ public class LoanStepServiceImpl implements LoanStepService {
     private final MyBizDataRepository myBizDataRepository;
     private final TermService termService;
     private final BusinessService businessService;
-    private final BusinessProfileRepository businessProfileRepository;
 
     // Step 2: 대출 약관 동의
     @Override
