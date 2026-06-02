@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
+
 @Slf4j
 @Component
 public class SseEmitterManager {
@@ -41,9 +43,9 @@ public class SseEmitterManager {
         // 5. 연결 직후 더미 이벤트 전송 (503 방지)
         try {
             emitter.send(SseEmitter.event().name("connect").data("connected"));
-        } catch (IOException e) {
+        } catch (IOException | AsyncRequestNotUsableException e) {
             emitters.remove(userId, emitter);
-            log.warn("SSE 더미 이벤트 전송 실패: userId={}", userId, e);
+            log.warn("SSE 더미 이벤트 전송 실패: userId={}", userId);
         }
 
         return emitter;
@@ -67,10 +69,10 @@ public class SseEmitterManager {
             emitter.send(SseEmitter.event()
                 .name("notification")
                 .data(payload));
-        } catch (IOException e) {
-            // 4. 전송 실패 시 해당 emitter만 제거 (값 비교)
+        } catch (IOException | AsyncRequestNotUsableException e) {
+            // 4. 전송 실패 시 해당 emitter만 제거 (값 비교) — 클라이언트 연결 끊김 포함
             emitters.remove(userId, emitter);
-            log.warn("SSE 이벤트 전송 실패: userId={}", userId, e);
+            log.warn("SSE 이벤트 전송 실패 (클라이언트 연결 끊김): userId={}", userId);
         }
     }
 }
