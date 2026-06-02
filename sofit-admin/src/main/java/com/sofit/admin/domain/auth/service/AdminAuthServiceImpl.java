@@ -121,6 +121,11 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         return AdminAuthConverter.toMeResponse(user);
     }
 
+    @Override
+    public void logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        com.sofit.admin.global.util.SessionUtil.invalidateSession(httpRequest, httpResponse);
+    }
+
     /**
      * 클라이언트 IP를 추출한다.
      * 프록시/로드밸런서 뒤에 있을 경우 X-Forwarded-For 헤더를 우선 사용한다.
