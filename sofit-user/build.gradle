@@ -30,6 +30,14 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 
+	// Property-Based Testing
+	testImplementation 'net.jqwik:jqwik:1.9.2'
+
+	// Embedded Redis (통합 테스트)
+	testImplementation 'com.github.codemonstur:embedded-redis:1.4.3'
+
+	// WireMock (외부 API Mock)
+	testImplementation 'org.wiremock:wiremock-standalone:3.10.0'
 	// jqwik (Property-Based Testing)
 	testImplementation 'net.jqwik:jqwik:1.9.2'
 	testImplementation 'net.jqwik:jqwik:1.9.2'

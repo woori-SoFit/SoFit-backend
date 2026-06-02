@@ -15,3 +15,8 @@ spring:
 app:
   cors:
     allowed-origins: http://localhost:3001
+
+# sofit-user 서버 내부 URL (알림 푸시용)
+sofit:
+  user:
+    internal-url: http://localhost:8080

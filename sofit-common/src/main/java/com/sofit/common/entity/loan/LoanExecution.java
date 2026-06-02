@@ -33,4 +33,10 @@ public class LoanExecution {
 
     @Column(name = "account_number", nullable = false, length = 30)
     private String accountNumber;
+
+    public LoanExecution(LoanApplication application, Long executionAmount, String accountNumber) {
+        this.application = application;
+        this.executionAmount = executionAmount;
+        this.accountNumber = accountNumber;
+    }
 }

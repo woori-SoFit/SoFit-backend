@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,8 +17,8 @@ import com.sofit.common.repository.ConsentHistoryRepository;
 import com.sofit.common.repository.LoanApplicationRepository;
 import com.sofit.common.repository.TermRepository;
 import com.sofit.common.repository.user.UserRepository;
-import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
+import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.terms.converter.TermConverter;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest.ConsentItem;
@@ -39,13 +38,10 @@ public class TermServiceImpl implements TermService {
     private final LoanApplicationRepository loanApplicationRepository;
     private final UserRepository userRepository;
 
-    @Value("${sofit.storage.base-url}")
-    private String storageBaseUrl;
-
     @Override
     public TermListResponse findTerms(TermType termType) {
         List<Term> terms = termRepository.findByTermTypeAndIsActiveTrue(termType);
-        return TermConverter.toListResponse(terms, storageBaseUrl);
+        return TermConverter.toListResponse(terms);
     }
 
     @Override

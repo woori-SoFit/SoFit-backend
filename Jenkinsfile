@@ -11,6 +11,11 @@ pipeline {
         stage('Checkout') {
             steps { checkout scm }
         }
+        stage('Build Common') {
+            steps {
+                sh './gradlew :sofit-common:jar -x test --rerun-tasks'
+            }
+        }
         stage('Build') {
             parallel {
                 stage('sofit-user') {
@@ -21,7 +26,7 @@ pipeline {
                             triggeredBy 'UserIdCause'
                         }
                     }
-                    steps { sh './gradlew :sofit-user:bootJar -x test --rerun-tasks' }
+                    steps { sh './gradlew :sofit-user:bootJar -x test' }
                 }
                 stage('sofit-admin') {
                     when {
@@ -31,7 +36,7 @@ pipeline {
                             triggeredBy 'UserIdCause'
                         }
                     }
-                    steps { sh './gradlew :sofit-admin:bootJar -x test --rerun-tasks' }
+                    steps { sh './gradlew :sofit-admin:bootJar -x test' }
                 }
             }
         }

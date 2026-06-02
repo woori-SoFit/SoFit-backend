@@ -43,12 +43,15 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 인증 불필요 경로
                         .requestMatchers("/api/auth/signup/**", "/api/auth/login", "/api/auth/verify-pin").permitAll()
+                        // 내부 알림 푸시 API (sofit-admin → sofit-user, 세션 인증 불필요)
+                        .requestMatchers("/api/notifications/internal/**").permitAll()
                         // 내 정보 조회는 비로그인 상태에서도 접근 가능 (로그인 여부에 따라 분기)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/me").permitAll()
                         // 약관 목록 조회는 비로그인 상태에서 접근 가능 (회원가입 플로우)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/terms/**").permitAll()
                         // 약관 PDF 정적 리소스 비로그인 접근 허용
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/terms/**").permitAll()
+                        .requestMatchers("/api/auth/signup/**", "/api/auth/login").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
@@ -84,7 +87,8 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:13000",
                 "http://localhost:5173",
-                "http://172.21.33.214:3000"
+                "http://172.21.33.214:3000",
+                "https://www.sofit.cloud"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
