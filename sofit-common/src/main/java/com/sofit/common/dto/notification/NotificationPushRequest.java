@@ -34,6 +34,8 @@ public class NotificationPushRequest {
 
     private LocalDateTime createdAt;
 
+    private Boolean isRead;
+
     public static NotificationPushRequest from(Notification notification) {
         return NotificationPushRequest.builder()
                 .userId(notification.getUser().getUserId())
@@ -43,6 +45,7 @@ public class NotificationPushRequest {
                 .message(notification.getMessage())
                 .applicationId(notification.getApplication().getApplicationId())
                 .createdAt(notification.getCreatedAt())
+                .isRead(notification.getIsRead())
                 .build();
     }
 }
