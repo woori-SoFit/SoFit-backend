@@ -7,7 +7,7 @@ pipeline {
         AWS_ACCOUNT_ID  = '532056685779'
         ECR_URL         = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         ECR_REPO        = 'sofit-user-api'
-        S3_BUCKET       = 'sofit-deploy-artifacts'
+        S3_BUCKET       = 'sofit-deploy-artifacts-532056685779-ap-northeast-2-an'
         APP_NAME        = 'sofit-user-api'
         DEPLOY_GROUP    = 'sofit-dg-user-api'
     }
