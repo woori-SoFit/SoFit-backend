@@ -16,6 +16,7 @@ allprojects {
 subprojects {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'jacoco'
 
     java {
         toolchain {
@@ -27,7 +28,61 @@ subprojects {
         implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
     }
 
+    // JaCoCo 버전 고정
+    jacoco {
+        toolVersion = '0.8.12'
+    }
+
     tasks.named('test') {
         useJUnitPlatform()
+        // 테스트 완료 후 JaCoCo 리포트 자동 생성
+        finalizedBy jacocoTestReport
     }
+
+    // JaCoCo XML 리포트 설정 (SonarQube 연동용)
+    jacocoTestReport {
+        dependsOn test
+        reports {
+            xml.required = false
+            html.required = true  // 로컬 확인용: build/reports/jacoco/test/html/index.html
+            csv.required = false
+        }
+        // 커버리지 측정 제외 대상
+        afterEvaluate {
+            classDirectories.setFrom(files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                    '**/dto/**',
+                    '**/enums/**',
+                    '**/filter/**',
+                    '**/*Application.class',
+                    '**/*Request.class',
+                    '**/*Response.class',
+                    '**/*ErrorCode.class',
+                    '**/*SuccessCode.class',
+                    '**/BaseException.class',
+                    '**/ApiResponse.class',
+                    '**/SecurityConfig.class',
+                    '**/JpaConfig.class',
+                    '**/JacksonConfig.class',
+                    '**/RedisConfig.class',
+                    '**/SwaggerConfig.class',
+                    '**/CorsConfig.class',
+                    '**/*ExceptionHandler.class',
+                    '**/CustomAccessDeniedHandler.class',
+                    '**/CustomAuthenticationEntryPoint.class',
+                ])
+            }))
+        }
+    }
+
+    // 커버리지 최소 기준 (필요 시 활성화)
+    // jacocoTestCoverageVerification {
+    //     violationRules {
+    //         rule {
+    //             limit {
+    //                 minimum = 0.70
+    //             }
+    //         }
+    //     }
+    // }
 }
