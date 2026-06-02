@@ -44,9 +44,28 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
     // 특정 사용자의 대출 신청 단건 조회 (본인 소유 검증 포함)
     Optional<LoanApplication> findByApplicationIdAndUser_UserId(Long applicationId, Long userId);
 
+    // 심사 완료 상세 조회 전용: product fetch join (N+1 방지)
+    @Query("SELECT la FROM LoanApplication la " +
+           "JOIN FETCH la.product " +
+           "WHERE la.applicationId = :applicationId " +
+           "AND la.user.userId = :userId")
+    Optional<LoanApplication> findCompletedDetailByApplicationIdAndUserId(
+            @Param("applicationId") Long applicationId,
+            @Param("userId") Long userId);
+
     // 특정 사용자의 심사 완료 상태 목록 조회 (updatedAt 내림차순)
     List<LoanApplication> findByUser_UserIdAndStatusInOrderByUpdatedAtDesc(
             Long userId, List<ApplicationStatus> statuses);
+
+    // 심사 완료 목록 조회 전용: product fetch join (N+1 방지)
+    @Query("SELECT la FROM LoanApplication la " +
+           "JOIN FETCH la.product " +
+           "WHERE la.user.userId = :userId " +
+           "AND la.status IN :statuses " +
+           "ORDER BY la.updatedAt DESC")
+    List<LoanApplication> findCompletedByUserIdWithProduct(
+            @Param("userId") Long userId,
+            @Param("statuses") List<ApplicationStatus> statuses);
 
     // 동일 상품 중복 신청 체크 (CANCELLED 제외한 모든 상태에 신청이 존재하는지)
     boolean existsByUser_UserIdAndProduct_ProductIdAndStatusNot(

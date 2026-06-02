@@ -57,7 +57,7 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
                 .orElseThrow(() -> new BaseException(LoanErrorCode.EXECUTION_NOT_FOUND));
 
         LoanDecision decision = loanDecisionRepository
-                .findByApplication_ApplicationId(applicationId)
+                .findTopByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         return LoanExecutionConverter.toResponse(execution, decision);
@@ -145,7 +145,7 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
             throw new BaseException(LoanErrorCode.APPLICATION_NOT_APPROVED);
         }
 
-        LoanDecision decision = loanDecisionRepository.findByApplication_ApplicationId(applicationId)
+        LoanDecision decision = loanDecisionRepository.findTopByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         LoanExecution execution = new LoanExecution(

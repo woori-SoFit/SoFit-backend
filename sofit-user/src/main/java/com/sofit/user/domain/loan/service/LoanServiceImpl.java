@@ -70,8 +70,9 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public CompletedLoanListResponse findCompletedLoans(Long userId) {
+        // product fetch join으로 N+1 방지
         List<CompletedLoanListResponse.CompletedLoanItem> items = loanApplicationRepository
-                .findByUser_UserIdAndStatusInOrderByUpdatedAtDesc(userId, COMPLETED_STATUSES)
+                .findCompletedByUserIdWithProduct(userId, COMPLETED_STATUSES)
                 .stream()
                 .map(LoanConverter::toCompletedListItem)
                 .toList();
@@ -81,16 +82,19 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public CompletedLoanDetailResponse findCompletedLoanDetail(Long userId, Long applicationId) {
+        // product fetch join으로 추가 쿼리 방지
         LoanApplication application = loanApplicationRepository
-                .findByApplicationIdAndUser_UserId(applicationId, userId)
+                .findCompletedDetailByApplicationIdAndUserId(applicationId, userId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
 
         if (!COMPLETED_STATUSES.contains(application.getStatus())) {
             throw new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND);
         }
 
+        // loan_decision은 application_id당 여러 건(시스템/행원/지점장 심사) 존재 가능
+        // → 가장 최근 심사 결과 1건 조회
         LoanDecision decision = loanDecisionRepository
-                .findByApplication_ApplicationId(applicationId)
+                .findTopByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         return LoanConverter.toCompletedDetailResponse(application, decision);
