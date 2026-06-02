@@ -38,4 +38,11 @@ public class AdminAuthController implements AdminAuthControllerDocs {
         AdminMeResponse response = adminAuthService.findMe();
         return ApiResponse.onSuccess(AdminAuthSuccessCode.ME_SUCCESS, response);
     }
+
+    @PostMapping("/logout")
+    @Override
+    public ApiResponse<Void> logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        adminAuthService.logout(httpRequest, httpResponse);
+        return ApiResponse.onSuccess(AdminAuthSuccessCode.LOGOUT_SUCCESS, null);
+    }
 }

@@ -33,4 +33,14 @@ public interface AdminAuthControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사용자 미존재")
     })
     ApiResponse<AdminMeResponse> findMe();
+
+    @Operation(
+            summary = "관리자 페이지 로그아웃",
+            description = "현재 로그인된 관리자의 세션을 삭제하고 로그아웃합니다."
+    )
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+    })
+    ApiResponse<Void> logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse);
 }
