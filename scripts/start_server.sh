@@ -2,7 +2,11 @@
 set -e
 
 REGION=ap-northeast-2
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+# IMDSv2 토큰 발급 후 EC2 메타데이터에서 계정 ID 조회 (STS 불필요)
+TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" \
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 60")
+ACCOUNT_ID=$(curl -s -H "X-aws-ec2-metadata-token: ${TOKEN}" \
+  http://169.254.169.254/latest/dynamic/instance-identity/document | jq -r .accountId)
 ECR_URL="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
 IMAGE="${ECR_URL}/sofit-user-api:latest"
 
