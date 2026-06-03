@@ -1,4 +1,4 @@
-package com.sofit.user.domain.loanApplication.controller;
+package com.sofit.user.domain.loan.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -27,7 +27,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.GlobalExceptionHandler;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.user.domain.loan.controller.LoanApplicationController;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationListResponse;

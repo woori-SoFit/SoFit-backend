@@ -1,4 +1,4 @@
-package com.sofit.user.domain.loanStep.service;
+package com.sofit.user.domain.loan.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -28,7 +28,6 @@ import com.sofit.common.entity.loan.enums.ProductStatus;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.repository.LoanApplicationRepository;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
-import com.sofit.user.domain.loan.service.LoanStepServiceImpl;
 import com.sofit.common.entity.term.enums.TermType;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;

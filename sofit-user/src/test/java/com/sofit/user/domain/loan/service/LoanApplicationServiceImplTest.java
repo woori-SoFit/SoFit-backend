@@ -1,4 +1,4 @@
-package com.sofit.user.domain.loanApplication.service;
+package com.sofit.user.domain.loan.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -24,7 +24,6 @@ import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.loan.enums.CreditScoreRange;
 import com.sofit.common.entity.loan.enums.ExistingLoanAmount;
 import com.sofit.common.entity.loan.enums.IncomeType;
-import com.sofit.common.entity.loan.enums.LastCompletedStep;
 import com.sofit.common.entity.loan.enums.LoanPurpose;
 import com.sofit.common.entity.loan.enums.ProductStatus;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
@@ -40,8 +39,6 @@ import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
-import com.sofit.user.domain.loan.service.BankerAssignmentService;
-import com.sofit.user.domain.loan.service.LoanApplicationServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 class LoanApplicationServiceImplTest {

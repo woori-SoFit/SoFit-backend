@@ -1,4 +1,4 @@
-package com.sofit.user.domain.loanApplication.converter;
+package com.sofit.user.domain.loan.converter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,12 +18,10 @@ import com.sofit.common.entity.loan.enums.CreditScoreRange;
 import com.sofit.common.entity.loan.enums.Decision;
 import com.sofit.common.entity.loan.enums.ExistingLoanAmount;
 import com.sofit.common.entity.loan.enums.IncomeType;
-import com.sofit.common.entity.loan.enums.LastCompletedStep;
 import com.sofit.common.entity.loan.enums.LoanPurpose;
 import com.sofit.common.entity.loan.enums.ProductStatus;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
 import com.sofit.common.entity.user.User;
-import com.sofit.user.domain.loan.converter.LoanConverter;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationDetailResponse;

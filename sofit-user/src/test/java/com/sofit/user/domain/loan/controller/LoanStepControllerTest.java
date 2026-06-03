@@ -1,4 +1,4 @@
-package com.sofit.user.domain.loanStep.controller;
+package com.sofit.user.domain.loan.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -29,7 +29,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.GlobalExceptionHandler;
 import com.sofit.common.entity.term.enums.TermType;
-import com.sofit.user.domain.loan.controller.LoanStepController;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.loan.service.LoanStepService;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;

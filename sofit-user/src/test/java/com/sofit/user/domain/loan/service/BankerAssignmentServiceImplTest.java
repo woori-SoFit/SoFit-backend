@@ -1,4 +1,4 @@
-package com.sofit.user.domain.loanApplication.service;
+package com.sofit.user.domain.loan.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -22,7 +22,6 @@ import com.sofit.common.entity.user.enums.UserRole;
 import com.sofit.common.entity.user.enums.UserStatus;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
-import com.sofit.user.domain.loan.service.BankerAssignmentServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 class BankerAssignmentServiceImplTest {

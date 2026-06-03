@@ -1,4 +1,4 @@
-package com.sofit.user.domain.loanProduct.service;
+package com.sofit.user.domain.loan.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -28,7 +28,6 @@ import com.sofit.user.domain.loan.dto.response.LoanProductDetailResponse;
 import com.sofit.user.domain.loan.dto.response.LoanProductListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanProductOptionsResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
-import com.sofit.user.domain.loan.service.LoanProductServiceImpl;
 
 @ExtendWith(MockitoExtension.class)
 class LoanProductServiceImplTest {
