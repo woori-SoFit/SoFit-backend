@@ -63,7 +63,8 @@ public class LoanDecision extends BaseEntity {
                                               BigDecimal approvedRate,
                                               Integer approvedTerm,
                                               RepaymentMethod repaymentMethod,
-                                              String comment) {
+                                              String comment,
+                                              Long createdByUserId) {
         LoanDecision decision = new LoanDecision();
         decision.application = application;
         decision.decision = Decision.APPROVED;
@@ -72,15 +73,18 @@ public class LoanDecision extends BaseEntity {
         decision.approvedTerm = approvedTerm;
         decision.repaymentMethod = repaymentMethod;
         decision.comment = comment;
+        decision.setCreatedBy(createdByUserId);
         return decision;
     }
 
     public static LoanDecision createRejection(LoanApplication application,
-                                               String comment) {
+                                               String comment,
+                                               Long createdByUserId) {
         LoanDecision decision = new LoanDecision();
         decision.application = application;
         decision.decision = Decision.REJECTED;
         decision.comment = comment;
+        decision.setCreatedBy(createdByUserId);
         return decision;
     }
 }

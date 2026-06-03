@@ -20,6 +20,14 @@ public abstract class BaseEntity {
     @Column(name = "created_by", updatable = false)
     private Long createdBy;
 
+    /**
+     * createdBy를 명시적으로 설정한다.
+     * AuditorAware 미등록 환경에서 SecurityUtil로 가져온 userId를 직접 주입할 때 사용.
+     */
+    public void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
+    }
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
