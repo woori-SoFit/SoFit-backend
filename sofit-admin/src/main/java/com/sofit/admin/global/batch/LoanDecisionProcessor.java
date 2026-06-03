@@ -82,8 +82,7 @@ public class LoanDecisionProcessor {
                 applicationId, policy.getInterestRate(), approvedAmount);
     }
 
-    @Transactional
-    public void rejectApplication(LoanApplication application, String rejectionReason) {
+    private void rejectApplication(LoanApplication application, String rejectionReason) {
         application.updateStatus(ApplicationStatus.SYSTEM_REJECTED);
         loanApplicationRepository.save(application);
 
