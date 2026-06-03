@@ -27,6 +27,7 @@ public enum LoanSuccessCode implements BaseSuccessCode {
     LOAN_STEP_BIZ_INFO_OK(HttpStatus.OK, "LOAN2014", "사업자 정보 확인이 완료되었습니다."),
     LOAN_STEP_MYDATA_OK(HttpStatus.OK, "LOAN2015", "마이데이터 약관 동의가 완료되었습니다."),
     LOAN_STEP_MYBIZ_OK(HttpStatus.OK, "LOAN2016", "마이비즈데이터 연동이 완료되었습니다."),
+    LOAN_DRAFT_CANCELLED(HttpStatus.OK, "LOAN2017", "대출 신청서가 삭제되었습니다."),
 
     // 계좌 인증 성공 코드
     ACCOUNT_VERIFICATION_OK(HttpStatus.OK, "ACCOUNT2011", "1원 송금 요청에 성공했습니다."),
