@@ -1,5 +1,10 @@
 plugins {
 	id 'org.springframework.boot'
+	id 'jacoco'
+}
+
+jacoco {
+	toolVersion = '0.8.12'
 }
 
 dependencies {
@@ -38,7 +43,29 @@ dependencies {
 
 	// WireMock (외부 API Mock)
 	testImplementation 'org.wiremock:wiremock-standalone:3.10.0'
-	// jqwik (Property-Based Testing)
-	testImplementation 'net.jqwik:jqwik:1.9.2'
-	testImplementation 'net.jqwik:jqwik:1.9.2'
+}
+
+test {
+	finalizedBy jacocoTestReport   // 테스트 후 자동으로 리포트 생성
+}
+
+jacocoTestReport {
+	dependsOn test
+	reports {
+		html.required = true
+		xml.required = true
+	}
+	// 커버리지 측정 대상에서 제외 (DTO/설정/Docs 인터페이스/엔트리포인트 등 로직 없는 것)
+	afterEvaluate {
+		classDirectories.setFrom(
+			files(classDirectories.files.collect {
+				fileTree(dir: it, exclude: [
+					'**/dto/**',
+					'**/config/**',
+					'**/*Application.class',
+					'**/*ControllerDocs.class',
+				])
+			})
+		)
+	}
 }
