@@ -56,6 +56,12 @@ public class LoanDecision extends BaseEntity {
     @Column(name = "comment", columnDefinition = "TEXT")
     private String comment;
 
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
+    @Column(name = "decided_by")
+    private Long decidedBy;
+
     // === 정적 팩토리 메서드 ===
 
     public static LoanDecision createApproval(LoanApplication application,
@@ -81,6 +87,40 @@ public class LoanDecision extends BaseEntity {
         decision.application = application;
         decision.decision = Decision.REJECTED;
         decision.comment = comment;
+        return decision;
+    }
+
+    /**
+     * 시스템 자동 승인 (배치)
+     */
+    public static LoanDecision createSystemApproval(LoanApplication application,
+                                                    Long approvedAmount,
+                                                    BigDecimal approvedRate,
+                                                    Integer approvedTerm,
+                                                    RepaymentMethod repaymentMethod) {
+        LoanDecision decision = new LoanDecision();
+        decision.application = application;
+        decision.decision = Decision.APPROVED;
+        decision.approvedAmount = approvedAmount;
+        decision.approvedRate = approvedRate;
+        decision.approvedTerm = approvedTerm;
+        decision.repaymentMethod = repaymentMethod;
+        decision.comment = null;
+        decision.decidedBy = null;
+        return decision;
+    }
+
+    /**
+     * 시스템 자동 거절 (배치)
+     */
+    public static LoanDecision createSystemRejection(LoanApplication application,
+                                                     String rejectionReason) {
+        LoanDecision decision = new LoanDecision();
+        decision.application = application;
+        decision.decision = Decision.REJECTED;
+        decision.rejectionReason = rejectionReason;
+        decision.comment = null;
+        decision.decidedBy = null;
         return decision;
     }
 }

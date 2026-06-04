@@ -27,8 +27,10 @@ spring:
     store-type: redis
     timeout: 1800  # 30분
 
-  # Spring Batch — 배치 메타 테이블 자동 생성 비활성화 (직접 관리)
+  # Spring Batch
   batch:
+    job:
+      enabled: false  # 서버 시작 시 배치 자동 실행 방지 (API 트리거로만 실행)
     jdbc:
       initialize-schema: never
 
