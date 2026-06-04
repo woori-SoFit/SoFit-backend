@@ -58,11 +58,11 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             throw new BaseException(LoanErrorCode.PRODUCT_NOT_ACTIVE);
         }
 
-        // 3. 동일 상품 중복 신청 체크 (EXECUTED, REJECTED, CANCELLED 상태는 재신청 허용)
+        // 3. 동일 상품 중복 신청 체크 (EXECUTED, REJECTED, CANCELLED, EXPIRED 상태는 재신청 허용)
         boolean exists = loanApplicationRepository
                 .existsByUser_UserIdAndProduct_ProductIdAndStatusNotIn(
                         userId, productId,
-                        List.of(ApplicationStatus.EXECUTED, ApplicationStatus.REJECTED, ApplicationStatus.CANCELLED));
+                        List.of(ApplicationStatus.EXECUTED, ApplicationStatus.REJECTED, ApplicationStatus.CANCELLED, ApplicationStatus.EXPIRED));
 
         if (exists) {
             throw new BaseException(LoanErrorCode.DUPLICATE_APPLICATION);
