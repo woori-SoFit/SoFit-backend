@@ -2,9 +2,9 @@ spring:
   application:
     name: sofit-user
 
-  # 활성 프로파일 (local / dev / release)
+  # 활성 프로파일 (local / dev / test)
   profiles:
-    active: dev
+    active: test
 
   # JPA
   jpa:
