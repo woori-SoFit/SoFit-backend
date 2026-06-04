@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -98,4 +99,13 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
 
     // 특정 상태의 대출 신청 목록 조회 (배치용)
     List<LoanApplication> findByStatus(ApplicationStatus status);
+
+    // DRAFT 만료 처리: 7일 경과한 DRAFT 상태를 EXPIRED로 일괄 변경
+    @Modifying
+    @Query("UPDATE LoanApplication la SET la.status = :newStatus " +
+           "WHERE la.status = :currentStatus AND la.createdAt < :expiredBefore")
+    int bulkUpdateStatusByStatusAndCreatedAtBefore(
+            @Param("currentStatus") ApplicationStatus currentStatus,
+            @Param("newStatus") ApplicationStatus newStatus,
+            @Param("expiredBefore") java.time.LocalDateTime expiredBefore);
 }
