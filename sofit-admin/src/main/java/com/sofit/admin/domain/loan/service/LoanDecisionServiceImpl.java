@@ -6,6 +6,7 @@ import com.sofit.admin.domain.loan.dto.request.LoanApproveRequest;
 import com.sofit.admin.domain.loan.dto.request.LoanRejectRequest;
 import com.sofit.admin.domain.loan.dto.response.LoanDecisionResponse;
 import com.sofit.admin.domain.loan.exception.LoanDecisionErrorCode;
+import com.sofit.admin.global.util.AdminRoleService;
 import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.dto.notification.NotificationPushRequest;
@@ -14,6 +15,7 @@ import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.notification.Notification;
 import com.sofit.common.entity.notification.enums.NotificationType;
+import com.sofit.common.entity.user.enums.UserRole;
 import com.sofit.common.repository.LoanApplicationRepository;
 import com.sofit.common.repository.LoanDecisionRepository;
 import com.sofit.common.repository.NotificationRepository;
@@ -30,6 +32,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
     private final LoanDecisionRepository loanDecisionRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationPushClient notificationPushClient;
+    private final AdminRoleService adminRoleService;
 
     @Override
     public LoanDecisionResponse approveLoanApplication(Long applicationId, LoanApproveRequest request) {
@@ -39,29 +42,39 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         // 2. 이미 결정된 건인지 검증
         validateNotAlreadyDecided(application);
 
-        // 3. 본인에게 배정된 건인지 검증
+        // 3. 현재 사용자 정보
         Long currentUserId = SecurityUtil.getCurrentUserId();
-        validateAssignment(application, currentUserId);
+        UserRole currentRole = adminRoleService.getCurrentUserRole();
 
-        // 4. 상태 + 권한 조합 검증
+        // 4. 배정 검증 (지점장은 배정 무관하게 처리 가능)
+        if (currentRole != UserRole.ADMIN_BANK_MANAGER) {
+            validateAssignment(application, currentUserId);
+        }
+
+        // 5. 상태 + 권한 조합 검증
         validateDecisionAuthority(application);
 
-        // 4. LoanDecision 생성 및 저장 (created_by는 BaseEntity의 @CreatedBy로 자동 설정)
+        // 6. LoanDecision 생성 및 저장 (createdBy에 현재 userId 명시적 설정)
         LoanDecision loanDecision = LoanDecision.createApproval(
                 application,
                 request.getApprovedAmount(),
                 request.getApprovedRate(),
                 request.getApprovedTerm(),
                 request.getRepaymentMethod(),
-                request.getComment()
+                request.getComment(),
+                currentUserId
         );
         loanDecisionRepository.save(loanDecision);
 
-        // 5. 대출 신청 상태 변경
-        application.updateStatus(ApplicationStatus.APPROVED);
-
-        // 6. 심사 완료 알림 생성 + SSE 푸시
-        sendDecisionNotification(application);
+        // 7. 역할에 따라 상태 변경 및 알림 분기
+        if (currentRole == UserRole.ADMIN_BANK_TELLER) {
+            // TELLER: 지점장 리뷰 단계로 전환, 알림 없음
+            application.updateStatus(ApplicationStatus.MANAGER_REVIEW);
+        } else if (currentRole == UserRole.ADMIN_BANK_MANAGER) {
+            // MANAGER: 최종 승인, 알림 생성
+            application.updateStatus(ApplicationStatus.APPROVED);
+            sendDecisionNotification(application);
+        }
 
         return LoanDecisionConverter.toLoanDecisionResponse(loanDecision);
     }
@@ -74,25 +87,35 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         // 2. 이미 결정된 건인지 검증
         validateNotAlreadyDecided(application);
 
-        // 3. 본인에게 배정된 건인지 검증
+        // 3. 현재 사용자 정보
         Long currentUserId = SecurityUtil.getCurrentUserId();
-        validateAssignment(application, currentUserId);
+        UserRole currentRole = adminRoleService.getCurrentUserRole();
 
-        // 4. 상태 + 권한 조합 검증
+        // 4. 배정 검증 (지점장은 배정 무관하게 처리 가능)
+        if (currentRole != UserRole.ADMIN_BANK_MANAGER) {
+            validateAssignment(application, currentUserId);
+        }
+
+        // 5. 상태 + 권한 조합 검증
         validateDecisionAuthority(application);
 
-        // 4. LoanDecision 생성 및 저장 (created_by는 BaseEntity의 @CreatedBy로 자동 설정)
+        // 6. LoanDecision 생성 및 저장 (createdBy에 현재 userId 명시적 설정)
         LoanDecision loanDecision = LoanDecision.createRejection(
                 application,
-                request.getComment()
+                request.getComment(),
+                currentUserId
         );
         loanDecisionRepository.save(loanDecision);
 
-        // 5. 대출 신청 상태 변경
-        application.updateStatus(ApplicationStatus.REJECTED);
-
-        // 6. 심사 완료 알림 생성 + SSE 푸시
-        sendDecisionNotification(application);
+        // 7. 역할에 따라 상태 변경 및 알림 분기
+        if (currentRole == UserRole.ADMIN_BANK_TELLER) {
+            // TELLER: 지점장 리뷰 단계로 전환, 알림 없음
+            application.updateStatus(ApplicationStatus.MANAGER_REVIEW);
+        } else if (currentRole == UserRole.ADMIN_BANK_MANAGER) {
+            // MANAGER: 최종 거절, 알림 생성
+            application.updateStatus(ApplicationStatus.REJECTED);
+            sendDecisionNotification(application);
+        }
 
         return LoanDecisionConverter.toLoanDecisionResponse(loanDecision);
     }
