@@ -24,7 +24,7 @@ public class DevBatchConverter {
 
         return new BatchHistoryItemResponse(
                 history.getExecutionId(),
-                history.getStatus().name(),
+                history.getStatus(),
                 history.getSuccessCount(),
                 elapsedSeconds,
                 history.getErrorMessage(),

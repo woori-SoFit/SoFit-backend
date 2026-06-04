@@ -24,10 +24,10 @@ public class DevBatchServiceImpl implements DevBatchService {
 
     @Override
     public BatchHistoryListResponse findBatchHistories(Integer page, Integer size) {
-        int actualPage = (page != null) ? page : DEFAULT_PAGE;
-        int actualSize = (size != null) ? size : DEFAULT_SIZE;
+        int actualPage = (page != null && page >= 0) ? page : DEFAULT_PAGE;
+        int actualSize = (size != null && size >= 1) ? size : DEFAULT_SIZE;
 
-        Pageable pageable = PageRequest.of(actualPage, actualSize, Sort.by(Sort.Direction.DESC, "startedAt"));
+        Pageable pageable = PageRequest.of(actualPage, actualSize, Sort.by(Sort.Direction.DESC, "executionId"));
 
         Page<BatchExecutionHistory> historyPage = batchExecutionHistoryRepository.findAll(pageable);
 

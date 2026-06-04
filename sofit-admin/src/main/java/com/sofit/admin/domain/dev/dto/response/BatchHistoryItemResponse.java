@@ -1,10 +1,12 @@
 package com.sofit.admin.domain.dev.dto.response;
 
+import com.sofit.admin.domain.dev.entity.enums.BatchStatus;
+
 import java.time.LocalDateTime;
 
 public record BatchHistoryItemResponse(
         Long id,
-        String status,
+        BatchStatus status,
         Integer processedCount,
         Long elapsedSeconds,
         String errorMessage,
