@@ -3,7 +3,7 @@ package com.sofit.common.entity.loan;
 import java.math.BigDecimal;
 
 import com.sofit.common.entity.BaseEntity;
-import com.sofit.common.entity.loan.enums.Decision;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
 
 import jakarta.persistence.Column;
@@ -37,8 +37,8 @@ public class LoanDecision extends BaseEntity {
     private LoanApplication application;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "decision", nullable = false)
-    private Decision decision;
+    @Column(name = "status", nullable = false)
+    private DecisionStatus status;
 
     @Column(name = "approved_amount")
     private Long approvedAmount;
@@ -56,11 +56,8 @@ public class LoanDecision extends BaseEntity {
     @Column(name = "comment", columnDefinition = "TEXT")
     private String comment;
 
-    @Column(name = "rejection_reason", columnDefinition = "TEXT")
-    private String rejectionReason;
-
-    @Column(name = "decided_by")
-    private Long decidedBy;
+    @Column(name = "created_by")
+    private Long createdBy;
 
     // === 정적 팩토리 메서드 ===
 
@@ -73,7 +70,7 @@ public class LoanDecision extends BaseEntity {
                                               Long createdByUserId) {
         LoanDecision decision = new LoanDecision();
         decision.application = application;
-        decision.decision = Decision.APPROVED;
+        decision.status = DecisionStatus.APPROVED;
         decision.approvedAmount = approvedAmount;
         decision.approvedRate = approvedRate;
         decision.approvedTerm = approvedTerm;
@@ -88,7 +85,7 @@ public class LoanDecision extends BaseEntity {
                                                Long createdByUserId) {
         LoanDecision decision = new LoanDecision();
         decision.application = application;
-        decision.decision = Decision.REJECTED;
+        decision.status = DecisionStatus.REJECTED;
         decision.comment = comment;
         decision.setCreatedBy(createdByUserId);
         return decision;
@@ -104,13 +101,12 @@ public class LoanDecision extends BaseEntity {
                                                     RepaymentMethod repaymentMethod) {
         LoanDecision decision = new LoanDecision();
         decision.application = application;
-        decision.decision = Decision.APPROVED;
+        decision.status = DecisionStatus.APPROVED;
         decision.approvedAmount = approvedAmount;
         decision.approvedRate = approvedRate;
         decision.approvedTerm = approvedTerm;
         decision.repaymentMethod = repaymentMethod;
         decision.comment = null;
-        decision.decidedBy = null;
         return decision;
     }
 
@@ -118,13 +114,15 @@ public class LoanDecision extends BaseEntity {
      * 시스템 자동 거절 (배치)
      */
     public static LoanDecision createSystemRejection(LoanApplication application,
-                                                     String rejectionReason) {
+                                                     String comment) {
         LoanDecision decision = new LoanDecision();
         decision.application = application;
-        decision.decision = Decision.REJECTED;
-        decision.rejectionReason = rejectionReason;
-        decision.comment = null;
-        decision.decidedBy = null;
+        decision.status = DecisionStatus.REJECTED;
+        decision.comment = comment;
         return decision;
+    }
+
+    private void setCreatedBy(Long createdBy) {
+        this.createdBy = createdBy;
     }
 }

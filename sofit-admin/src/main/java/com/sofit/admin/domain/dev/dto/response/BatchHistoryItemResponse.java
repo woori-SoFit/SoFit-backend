@@ -1,6 +1,6 @@
 package com.sofit.admin.domain.dev.dto.response;
 
-import com.sofit.admin.domain.dev.entity.enums.BatchStatus;
+import com.sofit.common.entity.sGrade.enums.BatchStatus;
 
 import java.time.LocalDateTime;
 

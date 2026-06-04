@@ -5,13 +5,13 @@ import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.LoanRatePolicy;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.entity.loan.enums.Decision;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
-import com.sofit.common.entity.report.Scb;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
-import com.sofit.common.repository.LoanRatePolicyRepository;
-import com.sofit.common.repository.ScbRepository;
+import com.sofit.common.entity.sGrade.Scb;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
+import com.sofit.common.repository.loan.LoanRatePolicyRepository;
+import com.sofit.common.repository.sGrade.ScbRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -87,7 +87,7 @@ class LoanDecisionTaskletTest {
         verify(loanDecisionRepository).save(captor.capture());
 
         LoanDecision savedDecision = captor.getValue();
-        assertThat(savedDecision.getDecision()).isEqualTo(Decision.APPROVED);
+        assertThat(savedDecision.getDecision()).isEqualTo(DecisionStatus.APPROVED);
         assertThat(savedDecision.getApprovedAmount()).isEqualTo(50_000_000L);
         assertThat(savedDecision.getApprovedRate()).isEqualByComparingTo(new BigDecimal("9.00"));
         assertThat(savedDecision.getApprovedTerm()).isEqualTo(12);
@@ -116,7 +116,7 @@ class LoanDecisionTaskletTest {
         verify(loanDecisionRepository).save(captor.capture());
 
         LoanDecision savedDecision = captor.getValue();
-        assertThat(savedDecision.getDecision()).isEqualTo(Decision.APPROVED);
+        assertThat(savedDecision.getDecision()).isEqualTo(DecisionStatus.APPROVED);
         assertThat(savedDecision.getApprovedAmount()).isEqualTo(70_000_000L); // max_limit으로 조정
         assertThat(savedDecision.getApprovedTerm()).isEqualTo(24);
         assertThat(savedDecision.getRepaymentMethod()).isEqualTo(RepaymentMethod.BULLET);
@@ -144,7 +144,7 @@ class LoanDecisionTaskletTest {
         verify(loanDecisionRepository).save(captor.capture());
 
         LoanDecision savedDecision = captor.getValue();
-        assertThat(savedDecision.getDecision()).isEqualTo(Decision.REJECTED);
+        assertThat(savedDecision.getDecision()).isEqualTo(DecisionStatus.REJECTED);
         assertThat(savedDecision.getRejectionReason()).isEqualTo("SCB 최소 등급 미달");
         assertThat(savedDecision.getApprovedAmount()).isNull();
         assertThat(savedDecision.getApprovedRate()).isNull();
@@ -171,7 +171,7 @@ class LoanDecisionTaskletTest {
         verify(loanDecisionRepository).save(captor.capture());
 
         LoanDecision savedDecision = captor.getValue();
-        assertThat(savedDecision.getDecision()).isEqualTo(Decision.REJECTED);
+        assertThat(savedDecision.getDecision()).isEqualTo(DecisionStatus.REJECTED);
         assertThat(savedDecision.getRejectionReason()).isEqualTo("SCB 최소 등급 미달");
     }
 

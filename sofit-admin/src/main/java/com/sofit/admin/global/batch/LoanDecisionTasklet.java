@@ -2,7 +2,7 @@ package com.sofit.admin.global.batch;
 
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.repository.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.scope.context.ChunkContext;

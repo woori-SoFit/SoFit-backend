@@ -16,9 +16,9 @@ import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.notification.Notification;
 import com.sofit.common.entity.notification.enums.NotificationType;
 import com.sofit.common.entity.user.enums.UserRole;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
-import com.sofit.common.repository.NotificationRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
+import com.sofit.common.repository.notification.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -128,7 +128,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         Notification notification = Notification.builder()
                 .user(application.getUser())
                 .type(NotificationType.LOAN_DECIDED)
-                .application(application)
+                .referenceId(application.getApplicationId())
                 .build();
         notificationRepository.save(notification);
 

@@ -9,11 +9,12 @@ import com.sofit.common.entity.term.Term;
 import com.sofit.common.entity.term.enums.TermType;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserStatus;
-import com.sofit.common.repository.ConsentHistoryRepository;
-import com.sofit.common.repository.TermRepository;
+import com.sofit.common.repository.term.ConsentHistoryRepository;
+import com.sofit.common.repository.term.TermRepository;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.auth.RegistrationProcessRepository;
 import com.sofit.common.repository.user.UserRepository;
+import com.sofit.user.domain.auth.client.ExternalMockClient;
 import com.sofit.user.domain.terms.exception.TermErrorCode;
 import com.sofit.user.domain.auth.converter.AuthConverter;
 import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
@@ -21,7 +22,6 @@ import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
 import com.sofit.user.domain.auth.dto.request.LoginRequest;
 import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
 import com.sofit.user.domain.auth.dto.response.ExternalMockApiResponse;
 import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
@@ -85,7 +85,7 @@ public class AuthServiceImpl implements AuthService {
         if (existingProcess != null
                 && existingProcess.getStep() == RegistrationStep.KYC_VERIFIED
                 && existingProcess.getUpdatedAt().plusMinutes(30).isAfter(LocalDateTime.now())) {
-            session.setAttribute(REGISTRATIONPROCESSID, existingProcess.getId());
+            session.setAttribute(REGISTRATIONPROCESSID, existingProcess.getRegistrationProcessId());
             return AuthConverter.toBusinessVerificationResponse(existingProcess);
         }
 
@@ -131,7 +131,7 @@ public class AuthServiceImpl implements AuthService {
             }
         });
 
-        session.setAttribute(REGISTRATIONPROCESSID, process.getId());
+        session.setAttribute(REGISTRATIONPROCESSID, process.getRegistrationProcessId());
         return AuthConverter.toBusinessVerificationResponse(kycResult);
     }
 

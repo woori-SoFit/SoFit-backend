@@ -66,7 +66,7 @@ public class LoanConverter {
     public static CompletedLoanDetailResponse toCompletedDetailResponse(LoanApplication application,
                                                                         LoanDecision decision) {
         CompletedLoanDetailResponse.DecisionInfo decisionInfo = new CompletedLoanDetailResponse.DecisionInfo(
-                decision.getDecision(),
+                decision.getStatus(),
                 decision.getApprovedAmount(),
                 decision.getApprovedRate(),
                 decision.getApprovedTerm(),

@@ -6,7 +6,7 @@ import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.repository.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
