@@ -1,0 +1,29 @@
+spring:
+  # 로컬 개발용 MySQL (loclx 터널로 data 인스턴스 mysql 접근)
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    #url: jdbc:mysql://us.loclx.io:23453/sofit?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://${DB_HOST}:3306/sofit_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: update      # 처음 create, 평소엔 validate로 변경
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+
+  sql:
+    init:
+      mode: never          # ddl-auto: 처음 always, validate로 바꿀 때 never로 같이 변경
+      data-locations:
+        - classpath:sql/data_static.sql
+        - classpath:sql/data_dummy.sql
+      encoding: UTF-8
+
+sofit:
+  user:
+    internal-url: ${SOFIT_USER_INTERNAL_URL:http://localhost:8080}
