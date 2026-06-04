@@ -76,7 +76,4 @@ public class LoanProduct extends BaseEntity {
 
     @Column(name = "existing_loan_amt_limit", precision = 18, scale = 0)
     private BigDecimal existingLoanAmtLimit;
-
-    @Column(name = "scb_limit")
-    private Integer scbLimit;
 }

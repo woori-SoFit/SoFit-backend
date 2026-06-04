@@ -12,11 +12,11 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.LoanProductOption;
-import com.sofit.common.entity.loan.enums.Decision;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
-import com.sofit.common.repository.LoanProductOptionRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
+import com.sofit.common.repository.loan.LoanProductOptionRepository;
 import com.sofit.common.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -55,7 +55,7 @@ public class LoanApplicationReviewServiceImpl implements LoanApplicationReviewSe
 
         // 5. 시스템 심사 추출: created_by == null && decision == APPROVED인 건 → Recommendation
         LoanDecision systemApproved = decisions.stream()
-                .filter(d -> d.getCreatedBy() == null && d.getDecision() == Decision.APPROVED)
+                .filter(d -> d.getCreatedBy() == null && d.getStatus() == DecisionStatus.APPROVED)
                 .findFirst()
                 .orElse(null);
 

@@ -4,11 +4,11 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanRatePolicy;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.entity.report.Scb;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
-import com.sofit.common.repository.LoanRatePolicyRepository;
-import com.sofit.common.repository.ScbRepository;
+import com.sofit.common.entity.sGrade.Scb;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
+import com.sofit.common.repository.loan.LoanRatePolicyRepository;
+import com.sofit.common.repository.sGrade.ScbRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ public class LoanDecisionProcessor {
             return;
         }
 
-        Integer scbGrade = scbOpt.get().getScbGrade();
+        Integer scbGrade = scbOpt.get().getScbScore();
 
         // product_id + scb_grade로 loan_rate_policy 매칭
         Optional<LoanRatePolicy> policyOpt =
@@ -82,11 +82,11 @@ public class LoanDecisionProcessor {
                 applicationId, policy.getInterestRate(), approvedAmount);
     }
 
-    private void rejectApplication(LoanApplication application, String rejectionReason) {
+    private void rejectApplication(LoanApplication application, String comment) {
         application.updateStatus(ApplicationStatus.SYSTEM_REJECTED);
         loanApplicationRepository.save(application);
 
-        LoanDecision decision = LoanDecision.createSystemRejection(application, rejectionReason);
+        LoanDecision decision = LoanDecision.createSystemRejection(application, comment);
         loanDecisionRepository.save(decision);
     }
 }

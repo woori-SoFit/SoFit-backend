@@ -45,13 +45,13 @@ public class LoanApplicationConverter {
 
         LoanApplicationResumeResponse.SavedData savedData = new LoanApplicationResumeResponse.SavedData(
                 application.getUserInputAnnualIncome() != null
-                        ? application.getUserInputAnnualIncome().name() : null,
+                        ? application.getUserInputAnnualIncome() : null,
                 application.getUserInputCreditScore() != null
-                        ? application.getUserInputCreditScore().name() : null,
+                        ? application.getUserInputCreditScore(): null,
                 application.getUserInputIncomeType() != null
                         ? application.getUserInputIncomeType().getCode() : null,
                 application.getUserInputExistingLoanAmt() != null
-                        ? application.getUserInputExistingLoanAmt().name() : null,
+                        ? application.getUserInputExistingLoanAmt(): null,
                 step != null && step.ordinal() >= LastCompletedStep.CONSENT_DONE.ordinal()
         );
 

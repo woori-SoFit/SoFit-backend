@@ -3,14 +3,14 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     #url: jdbc:mysql://us.loclx.io:23453/sofit?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    url: jdbc:mysql://${DB_HOST}:3306/sofit_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    url: jdbc:mysql://${DB_HOST}:3306/sofit_test_v2?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
   jpa:
-    defer-datasource-initialization: true
+#    defer-datasource-initialization: true
     hibernate:
-      ddl-auto: update      # 처음 create, 평소엔 validate로 변경
+      ddl-auto: validate      # 처음 create, 평소엔 validate로 변경
     properties:
       hibernate:
         format_sql: true

@@ -1,7 +1,6 @@
 package com.sofit.common.entity.auth;
 
 import com.sofit.common.entity.BaseEntity;
-import com.sofit.common.entity.auth.enums.BusinessProfileStatus;
 import com.sofit.common.entity.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,7 +18,7 @@ public class BusinessProfile extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "business_profile_id")
-    private Long id;
+    private Long businessProfileId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -46,24 +45,11 @@ public class BusinessProfile extends BaseEntity {
     @Column(name = "open_date")
     private LocalDate openDate;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private BusinessProfileStatus status;
-
-    @Column(name = "verified_at")
-    private LocalDateTime verifiedAt;
-
     @Column(name = "is_mybiz_connected", nullable = false)
     private boolean isMybizConnected = false;
 
     @Column(name = "mybiz_connected_at")
     private LocalDateTime mybizConnectedAt;
-
-    @Column(name = "mydata_all_agreed", nullable = false)
-    private boolean mydataAllAgreed = false;
-
-    @Column(name = "mydata_all_agreed_at")
-    private LocalDateTime mydataAllAgreedAt;
 
     public void connectMybiz() {
         this.isMybizConnected = true;
@@ -84,8 +70,6 @@ public class BusinessProfile extends BaseEntity {
         profile.businessName = businessName;
         profile.businessAddress = businessAddress;
         profile.openDate = openDate;
-        profile.status = BusinessProfileStatus.VERIFIED;
-        profile.verifiedAt = LocalDateTime.now();
         return profile;
     }
 }

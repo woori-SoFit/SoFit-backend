@@ -4,12 +4,12 @@ import com.sofit.admin.domain.loan.converter.LoanApplicationGradeConverter;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationGradeResponse;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
-import com.sofit.common.entity.report.Scb;
-import com.sofit.common.entity.report.ShapExplanation;
-import com.sofit.common.entity.report.enums.SGrade;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.ScbRepository;
-import com.sofit.common.repository.ShapExplanationRepository;
+import com.sofit.common.entity.sGrade.SGradeReport;
+import com.sofit.common.entity.sGrade.Scb;
+import com.sofit.common.entity.sGrade.enums.SGrade;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.sGrade.SGradeReportRepository;
+import com.sofit.common.repository.sGrade.ScbRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +21,7 @@ public class LoanApplicationGradeServiceImpl implements LoanApplicationGradeServ
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final ScbRepository scbRepository;
-    private final ShapExplanationRepository shapExplanationRepository;
+    private final SGradeReportRepository sGradeReportRepository;
 
     @Override
     public LoanApplicationGradeResponse findLoanApplicationGrade(Long applicationId) {
@@ -33,16 +33,16 @@ public class LoanApplicationGradeServiceImpl implements LoanApplicationGradeServ
         SGrade sGrade = convertToSGrade(scb.getSGrade());
 
         // 3. s_evaluation_id 조회 (LoanApplication 전체 로딩 없이 필요한 필드만)
-        Long sEvaluationId = loanApplicationRepository.findSEvaluationIdByApplicationId(applicationId)
+        Long sEvaluationId = loanApplicationRepository.findSGradeIdByApplicationId(applicationId)
                 .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
 
-        // 4. ShapExplanation 조회
-        ShapExplanation shapExplanation = shapExplanationRepository.findById(sEvaluationId)
+        // 4. SGradeReport 조회
+        SGradeReport sGradeReport = sGradeReportRepository.findById(sEvaluationId)
                 .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
 
         // 5. Converter로 DTO 변환
         return LoanApplicationGradeConverter.toLoanApplicationGradeResponse(
-                scb, sGrade, shapExplanation);
+                scb, sGrade, sGradeReport);
     }
 
     private SGrade convertToSGrade(String sGradeValue) {

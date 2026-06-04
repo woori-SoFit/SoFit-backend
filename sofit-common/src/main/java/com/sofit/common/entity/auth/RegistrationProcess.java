@@ -21,7 +21,7 @@ public class RegistrationProcess extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "registration_process_id")
-    private Long id;
+    private Long registrationProcessId;
 
     // 회원가입 단계 상태
     @Enumerated(EnumType.STRING)

@@ -1,6 +1,7 @@
 package com.sofit.user.domain.auth.service;
 
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.user.domain.auth.client.ExternalMockClient;
 import com.sofit.user.domain.auth.converter.AuthConverter;
 import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
 import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;

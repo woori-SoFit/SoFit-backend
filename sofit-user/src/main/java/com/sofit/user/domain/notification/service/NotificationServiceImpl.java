@@ -6,8 +6,8 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.notification.Notification;
 import com.sofit.common.entity.notification.enums.NotificationType;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.NotificationRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.notification.NotificationRepository;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.notification.converter.NotificationConverter;
 import com.sofit.user.domain.notification.dto.response.NotificationListResponse;
@@ -52,7 +52,7 @@ public class NotificationServiceImpl implements NotificationService {
         Notification notification = Notification.builder()
                 .user(user)
                 .type(type)
-                .application(application)
+                .referenceId(application.getApplicationId())
                 .build();
         notificationRepository.save(notification);
 

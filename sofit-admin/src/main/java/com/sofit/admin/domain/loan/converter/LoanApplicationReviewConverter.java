@@ -9,7 +9,7 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.LoanProductOption;
-import com.sofit.common.entity.loan.enums.Decision;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.user.User;
 
 import java.util.List;
@@ -69,7 +69,7 @@ public class LoanApplicationReviewConverter {
         if (decision == null) {
             return null;
         }
-        if (decision.getCreatedBy() != null || decision.getDecision() != Decision.APPROVED) {
+        if (decision.getCreatedBy() != null || decision.getStatus() != DecisionStatus.APPROVED) {
             return null;
         }
         return new RecommendationResponse(
@@ -95,17 +95,17 @@ public class LoanApplicationReviewConverter {
             // 시스템 심사
             reviewerName = "시스템";
             reviewerRole = "SYSTEM";
-            status = decision.getDecision() == Decision.APPROVED ? "SYSTEM_APPROVED" : decision.getDecision().name();
+            status = decision.getStatus() == DecisionStatus.APPROVED ? "SYSTEM_APPROVED" : decision.getStatus().name();
         } else if (user != null) {
             // 은행원 심사 - 사용자 존재
             reviewerName = user.getName();
             reviewerRole = user.getRole().name();
-            status = decision.getDecision().name();
+            status = decision.getStatus().name();
         } else {
             // 은행원 심사 - 사용자 미존재
             reviewerName = "알 수 없음";
             reviewerRole = "SYSTEM";
-            status = decision.getDecision().name();
+            status = decision.getStatus().name();
         }
 
         return new DecisionResponse(
