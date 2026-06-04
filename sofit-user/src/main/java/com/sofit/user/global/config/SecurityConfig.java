@@ -53,7 +53,6 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/terms/**").permitAll()
                         // 대출 상품 목록/상세 조회는 비로그인 접근 허용
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/loan-products", "/api/loan-products/{productId}").permitAll()
-                        .requestMatchers("/api/auth/signup/**", "/api/auth/login").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )
