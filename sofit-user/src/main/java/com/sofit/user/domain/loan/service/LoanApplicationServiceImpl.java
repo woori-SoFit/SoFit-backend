@@ -20,6 +20,7 @@ import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.notification.event.LoanSubmittedEvent;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -57,10 +58,11 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             throw new BaseException(LoanErrorCode.PRODUCT_NOT_ACTIVE);
         }
 
-        // 3. 동일 상품 중복 신청 체크 (CANCELLED 제외)
+        // 3. 동일 상품 중복 신청 체크 (EXECUTED, REJECTED, CANCELLED 상태는 재신청 허용)
         boolean exists = loanApplicationRepository
-                .existsByUser_UserIdAndProduct_ProductIdAndStatusNot(
-                        userId, productId, ApplicationStatus.CANCELLED);
+                .existsByUser_UserIdAndProduct_ProductIdAndStatusNotIn(
+                        userId, productId,
+                        List.of(ApplicationStatus.EXECUTED, ApplicationStatus.REJECTED, ApplicationStatus.CANCELLED));
 
         if (exists) {
             throw new BaseException(LoanErrorCode.DUPLICATE_APPLICATION);

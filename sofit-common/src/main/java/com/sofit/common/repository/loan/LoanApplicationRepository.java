@@ -67,9 +67,9 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
             @Param("userId") Long userId,
             @Param("statuses") List<ApplicationStatus> statuses);
 
-    // 동일 상품 중복 신청 체크 (CANCELLED 제외한 모든 상태에 신청이 존재하는지)
-    boolean existsByUser_UserIdAndProduct_ProductIdAndStatusNot(
-            Long userId, Long productId, ApplicationStatus status);
+    // 동일 상품 중복 신청 체크 (특정 상태 제외한 진행 중 신청이 존재하는지)
+    boolean existsByUser_UserIdAndProduct_ProductIdAndStatusNotIn(
+            Long userId, Long productId, List<ApplicationStatus> statuses);
 
     // 특정 상품에 대한 DRAFT 상태 신청 조회
     Optional<LoanApplication> findByUser_UserIdAndProduct_ProductIdAndStatus(
