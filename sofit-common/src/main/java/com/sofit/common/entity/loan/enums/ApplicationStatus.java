@@ -14,5 +14,5 @@ public enum ApplicationStatus {
     REJECTED,          // 거절
     CONTRACTED,        // 약정 체결
     EXECUTED,          // 대출 실행
-    CANCELLED          // 취소
+    CANCELLED          // 대출 신청 취소
 }
