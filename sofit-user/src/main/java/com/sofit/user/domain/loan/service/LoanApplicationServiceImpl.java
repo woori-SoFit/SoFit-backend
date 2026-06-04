@@ -151,4 +151,30 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
         return LoanApplicationConverter.toSubmitResponse(application);
     }
+
+    /**
+     * DRAFT 신청서 취소 (소프트 삭제)
+     * - 존재 여부 → 본인 소유 → DRAFT 상태 순서로 검증
+     * - 검증 통과 시 status를 CANCELLED로 변경 (실제 row 삭제 없음)
+     */
+    @Override
+    @Transactional
+    public void cancelDraftApplication(Long userId, Long applicationId) {
+        // 1. 존재 여부 검증
+        LoanApplication application = loanApplicationRepository.findById(applicationId)
+                .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
+
+        // 2. 본인 소유 검증
+        if (!application.getUser().getUserId().equals(userId)) {
+            throw new BaseException(LoanErrorCode.APPLICATION_NOT_OWNED);
+        }
+
+        // 3. DRAFT 상태 검증
+        if (application.getStatus() != ApplicationStatus.DRAFT) {
+            throw new BaseException(LoanErrorCode.APPLICATION_NOT_DRAFT);
+        }
+
+        // 4. 소프트 삭제 (status → CANCELLED)
+        application.updateStatus(ApplicationStatus.CANCELLED);
+    }
 }

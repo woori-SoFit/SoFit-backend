@@ -20,4 +20,7 @@ public interface LoanApplicationService {
 
     // 최종 제출 (심사 요청) — DRAFT → SUBMITTED
     LoanApplicationSubmitResponse submitApplication(Long userId, Long applicationId, LoanApplicationSubmitRequest request);
+
+    // DRAFT 신청서 취소 (소프트 삭제)
+    void cancelDraftApplication(Long userId, Long applicationId);
 }

@@ -46,6 +46,16 @@ public interface LoanApplicationControllerDocs {
     ApiResponse<LoanApplicationResumeResponse> getResumeData(
             @Parameter(description = "대출 신청 ID", required = true, example = "1") Long applicationId);
 
+    @Operation(summary = "DRAFT 신청서 취소", description = "DRAFT 상태의 대출 신청서를 취소(소프트 삭제)합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "취소 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "DRAFT 상태가 아닌 신청"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "본인 소유가 아닌 신청"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "존재하지 않는 신청")
+    })
+    ApiResponse<Void> cancelDraftApplication(
+            @Parameter(description = "대출 신청 ID", required = true, example = "1") Long applicationId);    
+   
     @Operation(summary = "최종 제출 (심사 요청)", description = "DRAFT 상태의 대출 신청을 최종 제출하여 심사를 요청합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "심사 요청 성공"),

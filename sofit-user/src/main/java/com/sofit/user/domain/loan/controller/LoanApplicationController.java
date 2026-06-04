@@ -1,5 +1,6 @@
 package com.sofit.user.domain.loan.controller;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,6 +73,17 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
         Long userId = SecurityUtil.getCurrentUserId();
         LoanApplicationResumeResponse response = loanApplicationService.getResumeData(userId, applicationId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_RESUME_OK, response);
+    }
+
+    /**
+     * DRAFT 신청서 취소 (소프트 삭제)
+     * DELETE /api/loan-applications/{applicationId}
+     */
+    @DeleteMapping("/loan-applications/{applicationId}")
+    public ApiResponse<Void> cancelDraftApplication(@PathVariable Long applicationId) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        loanApplicationService.cancelDraftApplication(userId, applicationId);
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_DRAFT_CANCELLED, null);
     }
 
     /**
