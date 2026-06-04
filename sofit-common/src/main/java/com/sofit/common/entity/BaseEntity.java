@@ -23,8 +23,9 @@ public abstract class BaseEntity {
     /**
      * createdBy를 명시적으로 설정한다.
      * AuditorAware 미등록 환경에서 SecurityUtil로 가져온 userId를 직접 주입할 때 사용.
+     * 외부에서 임의로 덮어쓰는 것을 방지하기 위해 protected로 제한한다.
      */
-    public void setCreatedBy(Long createdBy) {
+    protected void setCreatedBy(Long createdBy) {
         this.createdBy = createdBy;
     }
 
