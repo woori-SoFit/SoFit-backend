@@ -5,27 +5,12 @@ spring:
   # 활성 프로파일 (local / dev / test)
   profiles:
     active: test
+    include: common
 
-  # JPA
+  # JPA (모듈별 override)
   jpa:
     hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
-        format_sql: true
-    show-sql: false
-
-  # Redis 세션
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-
-  # Spring Session (Redis 사용)
-  session:
-    store-type: redis
-    timeout: 1800  # 30분
+      ddl-auto: validate
 
 server:
   port: 8080
@@ -43,12 +28,3 @@ codef:
   client-secret: ${CODEF_CLIENT_SECRET:}
   base-url: ${CODEF_BASE_URL:https://development.codef.io}
   oauth-url: ${CODEF_OAUTH_URL:https://oauth.codef.io/oauth/token}
-
-# SpringDoc (Swagger UI)
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
-  api-docs:
-    path: /v3/api-docs
