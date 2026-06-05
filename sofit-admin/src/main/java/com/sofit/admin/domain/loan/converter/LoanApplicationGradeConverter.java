@@ -44,7 +44,7 @@ public class LoanApplicationGradeConverter {
                                 ? sGradeReport.getImprovementKeywords() : Collections.emptyList(),
                         strengthDetails,
                         improvementDetails,
-                        sGradeReport.getUserAdvice());
+                        sGradeReport.getAdminAdvice());
 
         return new LoanApplicationGradeResponse(cbScore, sGrade.getLabel(), scbInfo, shapResult);
     }

@@ -23,7 +23,7 @@ public class Scb extends BaseEntity {
     @Column(name = "cb_score")
     private Integer cbScore;
 
-    @Column(name = "s_grade")
+    @Column(name = "s_grade", nullable = false)
     private String sGrade;
 
     @Column(name = "score_addition")

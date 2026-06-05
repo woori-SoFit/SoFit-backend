@@ -25,8 +25,11 @@ public class SGradeHistory {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "batch_execution_id", nullable = false)
+    @JoinColumn(name = "batch_execution_id")
     private BatchExecutionHistory batchExecutionHistory;
+
+    @Column(name = "feature_id")
+    private Long featureId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
