@@ -27,8 +27,8 @@ public class LoanProduct extends BaseEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "target_description", columnDefinition = "TEXT")
-    private String targetDescription;
+    @Column(name = "target_summary", length = 200)
+    private String targetSummary;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -76,4 +76,28 @@ public class LoanProduct extends BaseEntity {
 
     @Column(name = "existing_loan_amt_limit", precision = 18, scale = 0)
     private BigDecimal existingLoanAmtLimit;
+
+    @Column(name = "target_detail", columnDefinition = "TEXT")
+    private String targetDetail;
+
+    @Column(name = "limit_description", columnDefinition = "TEXT")
+    private String limitDescription;
+
+    @Column(name = "term_description", columnDefinition = "TEXT")
+    private String termDescription;
+
+    @Column(name = "rate_description", columnDefinition = "TEXT")
+    private String rateDescription;
+
+    @Column(name = "preferential_rate_description", columnDefinition = "TEXT")
+    private String preferentialRateDescription;
+
+    @Column(name = "repayment_description", columnDefinition = "TEXT")
+    private String repaymentDescription;
+
+    @Column(name = "collateral_description", columnDefinition = "TEXT")
+    private String collateralDescription;
+
+    @Column(name = "fee_description", columnDefinition = "TEXT")
+    private String feeDescription;
 }
