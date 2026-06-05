@@ -15,6 +15,7 @@ import com.sofit.user.domain.loan.dto.request.LoanApplicationSubmitRequest;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
+import com.sofit.user.domain.loan.dto.response.DraftListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationListResponse;
@@ -61,6 +62,17 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
         Long userId = SecurityUtil.getCurrentUserId();
         DraftCheckResponse response = loanApplicationService.checkDraft(userId, productId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_DRAFT_CHECK_OK, response);
+    }
+
+    /**
+     * 진행 중인 DRAFT 목록 조회
+     * GET /api/loan-applications/drafts
+     */
+    @GetMapping("/loan-applications/drafts")
+    public ApiResponse<DraftListResponse> getDrafts() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        DraftListResponse response = loanApplicationService.findDrafts(userId);
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_DRAFT_LIST_OK, response);
     }
 
     /**
