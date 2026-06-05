@@ -3,9 +3,7 @@ package com.sofit.user.domain.auth.converter;
 import com.sofit.common.entity.auth.RegistrationProcess;
 import com.sofit.common.entity.user.User;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
-import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
+import com.sofit.user.domain.auth.dto.external.ExternalKycResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 
@@ -34,16 +32,6 @@ public class AuthConverter {
                 process.getBusinessType(),
                 process.getOpenDate(),
                 process.getCreatedAt()
-        );
-    }
-
-    public static FinancialCertVerifyResponse toFinancialCertVerifyResponse(ExternalFinancialCertResponse certResult) {
-        return new FinancialCertVerifyResponse(
-                certResult.certNumber(),
-                certResult.holderName(),
-                certResult.phoneNumber(),
-                certResult.status(),
-                LocalDateTime.now()
         );
     }
 

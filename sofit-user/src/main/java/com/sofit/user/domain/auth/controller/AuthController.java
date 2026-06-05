@@ -7,7 +7,6 @@ import com.sofit.user.domain.auth.dto.request.LoginRequest;
 import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
 import com.sofit.user.domain.auth.dto.response.CheckLoginIdResponse;
-import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import com.sofit.user.domain.auth.exception.AuthSuccessCode;
@@ -44,12 +43,12 @@ public class AuthController implements AuthControllerDocs {
     }
 
     @PostMapping("/verify-pin")
-    public ApiResponse<FinancialCertVerifyResponse> verifyFinancialCertificate(
+    public ApiResponse<Void> verifyFinancialCertificate(
             @Valid @RequestBody FinancialCertVerifyRequest request,
             HttpSession session) {
 
-        FinancialCertVerifyResponse response = authService.verifyFinancialCertificate(request, session);
-        return ApiResponse.onSuccess(AuthSuccessCode.PIN_VERIFIED, response);
+        authService.verifyFinancialCertificate(request, session);
+        return ApiResponse.onSuccess(AuthSuccessCode.PIN_VERIFIED, null);
     }
 
     @ResponseStatus(HttpStatus.CREATED)

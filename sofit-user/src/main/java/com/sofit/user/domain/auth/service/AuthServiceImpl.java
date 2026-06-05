@@ -22,9 +22,8 @@ import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
 import com.sofit.user.domain.auth.dto.request.LoginRequest;
 import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalMockApiResponse;
-import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
+import com.sofit.user.domain.auth.dto.external.ExternalKycResponse;
+import com.sofit.user.domain.auth.dto.external.ExternalMockApiResponse;
 import com.sofit.user.domain.auth.dto.response.CheckLoginIdResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
@@ -136,17 +135,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
+    public void verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
         // 1. 인증은 FinancialCertService에 위임
-        FinancialCertVerifyResponse response = financialCertService.verify(request);
+        financialCertService.verify(request);
 
         // 2. 회원가입 플로우인 경우 RegistrationProcess 후처리 (트랜잭션)
         Long processId = (Long) session.getAttribute(REGISTRATIONPROCESSID);
         if (processId != null) {
             processRegistrationStep2(processId);
         }
-
-        return response;
     }
 
     /**

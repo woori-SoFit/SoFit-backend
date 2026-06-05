@@ -1,11 +1,10 @@
 package com.sofit.user.domain.auth.client;
 
 import com.sofit.common.apiPayload.BaseException;
-import com.sofit.user.domain.auth.dto.request.ExternalFinancialCertRequest;
-import com.sofit.user.domain.auth.dto.request.ExternalKycRequest;
-import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalMockApiResponse;
+import com.sofit.user.domain.auth.dto.external.ExternalFinancialCertRequest;
+import com.sofit.user.domain.auth.dto.external.ExternalKycRequest;
+import com.sofit.user.domain.auth.dto.external.ExternalKycResponse;
+import com.sofit.user.domain.auth.dto.external.ExternalMockApiResponse;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,20 +41,20 @@ public class ExternalMockClient {
     }
 
     /**
-     * External Mock 서버에 금융인증서 PIN 인증 요청
+     * External Mock 서버에 금융인증서 본인인증 + PIN 검증 요청
      */
-    public ExternalMockApiResponse<ExternalFinancialCertResponse> callFinancialCertVerify(String phoneNumber, String pin) {
+    public ExternalMockApiResponse<Void> callFinancialCertIdentityVerify(String phoneNumber, String holderName, String residentNumber, String pin) {
         try {
             return externalMockRestClient.post()
-                    .uri("/ext/financial-certs/verify")
-                    .body(new ExternalFinancialCertRequest(phoneNumber, pin))
+                    .uri("/ext/financial-certs/identity-verify")
+                    .body(new ExternalFinancialCertRequest(phoneNumber, holderName, residentNumber, pin))
                     .retrieve()
                     .onStatus(HttpStatusCode::is4xxClientError, (req, res) -> {
                         // 4xx는 Mock 서버가 돌려준 비즈니스 응답 → 그대로 파싱
                     })
                     .body(new ParameterizedTypeReference<>() {});
         } catch (RestClientException e) {
-            log.error("[ExternalMockClient] 금융인증서 호출 실패: {}", e.getMessage(), e);
+            log.error("[ExternalMockClient] 금융인증서 본인인증 호출 실패: {}", e.getMessage(), e);
             throw new BaseException(AuthErrorCode.EXTERNAL_SERVER_ERROR);
         }
     }
