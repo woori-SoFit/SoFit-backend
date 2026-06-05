@@ -76,6 +76,15 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
     Optional<LoanApplication> findByUser_UserIdAndProduct_ProductIdAndStatus(
             Long userId, Long productId, ApplicationStatus status);
 
+    // 사용자의 전체 DRAFT 신청 목록 조회 (product fetch join, N+1 방지)
+    @Query("SELECT la FROM LoanApplication la " +
+           "JOIN FETCH la.product " +
+           "WHERE la.user.userId = :userId AND la.status = :status " +
+           "ORDER BY la.createdAt DESC")
+    List<LoanApplication> findDraftsByUserIdWithProduct(
+            @Param("userId") Long userId,
+            @Param("status") ApplicationStatus status);
+
     // 특정 사용자의 EXECUTED 상태 대출 건수 카운트
     int countByUser_UserIdAndStatus(Long userId, ApplicationStatus status);
 

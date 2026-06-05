@@ -14,6 +14,7 @@ import com.sofit.user.domain.loan.converter.LoanApplicationConverter;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationSubmitRequest;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
+import com.sofit.user.domain.loan.dto.response.DraftListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
@@ -93,6 +94,17 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 .findByUser_UserIdAndProduct_ProductIdAndStatus(userId, productId, ApplicationStatus.DRAFT)
                 .map(LoanApplicationConverter::toDraftCheckResponse)
                 .orElse(new DraftCheckResponse(false, null, null, null));
+    }
+
+    /**
+     * 사용자의 전체 DRAFT 목록 조회
+     * - 로그인 사용자의 모든 DRAFT 상태 신청을 상품명 포함하여 반환
+     */
+    @Override
+    public DraftListResponse findDrafts(Long userId) {
+        java.util.List<LoanApplication> drafts = loanApplicationRepository
+                .findDraftsByUserIdWithProduct(userId, ApplicationStatus.DRAFT);
+        return LoanApplicationConverter.toDraftListResponse(drafts);
     }
 
     /**
