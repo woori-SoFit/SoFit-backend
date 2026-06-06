@@ -5,9 +5,13 @@ import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanRatePolicy;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.sGrade.Scb;
+import com.sofit.common.entity.sGrade.SGradeReport;
+import com.sofit.common.entity.sGrade.SScoringRule;
 import com.sofit.common.repository.loan.LoanApplicationRepository;
 import com.sofit.common.repository.loan.LoanDecisionRepository;
 import com.sofit.common.repository.loan.LoanRatePolicyRepository;
+import com.sofit.common.repository.sGrade.SGradeReportRepository;
+import com.sofit.common.repository.sGrade.SScoringRuleRepository;
 import com.sofit.common.repository.sGrade.ScbRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +22,12 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 /**
- * 대출 심사 배치에서 건별 트랜잭션 분리를 위한 서비스
+ * 대출 심사 배치에서 건별 트랜잭션 분리를 위한 서비스.
+ * 각 대출 신청 건에 대해:
+ * 1) 외부 CB 점수 조회
+ * 2) S등급 + 가산점 조회
+ * 3) SCB = CB + 가산점 계산 → scb 테이블 INSERT
+ * 4) SCB 기반 금리/한도 산정 → 심사 결정
  */
 @Slf4j
 @Service
@@ -29,34 +38,59 @@ public class LoanDecisionProcessor {
     private final ScbRepository scbRepository;
     private final LoanRatePolicyRepository loanRatePolicyRepository;
     private final LoanDecisionRepository loanDecisionRepository;
+    private final SGradeReportRepository sGradeReportRepository;
+    private final SScoringRuleRepository sScoringRuleRepository;
+    private final CbScoreClient cbScoreClient;
 
     @Transactional
     public void processApplication(LoanApplication application) {
         Long applicationId = application.getApplicationId();
+        Long userId = application.getUser().getUserId();
         Long productId = application.getProduct().getProductId();
 
-        // SCB 테이블에서 scb_grade 조회
-        Optional<Scb> scbOpt = scbRepository.findByApplicationId(applicationId);
-        if (scbOpt.isEmpty()) {
-            log.warn("[LoanDecisionBatch] applicationId={} SCB 데이터 없음 → SYSTEM_REJECTED", applicationId);
-            rejectApplication(application, "SCB 최소 등급 미달");
+        // 1. 외부 API에서 CB 점수 조회 (3회 재시도 포함)
+        String name = application.getUser().getName();
+        String residentNumber = application.getUser().getResidentNumber();
+        Integer cbScore = cbScoreClient.getCbScore(name, residentNumber);
+        if (cbScore == null) {
+            log.warn("[LoanDecisionBatch] applicationId={} CB 점수 조회 실패 → 건너뜀 (다음 배치에서 재시도)", applicationId);
             return;
         }
 
-        Integer scbGrade = scbOpt.get().getScbScore();
+        // 2. S등급 조회 (COMPLETED 상태의 최신 s_grade_report)
+        Optional<SGradeReport> reportOpt = sGradeReportRepository.findLatestCompletedByUserId(userId);
+        if (reportOpt.isEmpty()) {
+            log.warn("[LoanDecisionBatch] applicationId={} S등급 미산출 → 건너뜀 (다음 배치에서 재시도)", applicationId);
+            return;
+        }
 
-        // product_id + scb_grade로 loan_rate_policy 매칭
+        SGradeReport sGradeReport = reportOpt.get();
+        String sGradeValue = sGradeReport.getSGrade().name();
+
+        // loan_application에 참조한 s_grade_id 저장
+        application.updateSGradeId(sGradeReport.getSGradeId());
+
+        // 3. S등급 기반 가산점 조회 (s_scoring_rule)
+        Optional<SScoringRule> ruleOpt = sScoringRuleRepository.findByGrade(sGradeValue);
+        Integer scoreAddition = ruleOpt.map(SScoringRule::getScoreAddition).orElse(0);
+
+        // 4. SCB = CB + 가산점 계산 → scb 테이블 INSERT
+        Integer scbScore = cbScore + scoreAddition;
+        Scb scb = Scb.create(applicationId, cbScore, sGradeValue, scoreAddition, scbScore);
+        scbRepository.save(scb);
+
+        // 5. product_id + scb_score로 loan_rate_policy 매칭
         Optional<LoanRatePolicy> policyOpt =
-                loanRatePolicyRepository.findByProductIdAndScbGrade(productId, scbGrade);
+                loanRatePolicyRepository.findByProductIdAndScbGrade(productId, scbScore);
 
         if (policyOpt.isEmpty()) {
-            log.info("[LoanDecisionBatch] applicationId={} 금리 정책 매칭 실패 (scbGrade={}) → SYSTEM_REJECTED",
-                    applicationId, scbGrade);
+            log.info("[LoanDecisionBatch] applicationId={} 금리 정책 매칭 실패 (scbScore={}) → SYSTEM_REJECTED",
+                    applicationId, scbScore);
             rejectApplication(application, "SCB 최소 등급 미달");
             return;
         }
 
-        // 매칭 성공 → SYSTEM_APPROVED
+        // 6. 매칭 성공 → SYSTEM_APPROVED
         LoanRatePolicy policy = policyOpt.get();
         BigDecimal maxLimit = policy.getMaxLimit();
         BigDecimal requestedAmount = BigDecimal.valueOf(application.getRequestedAmount());
