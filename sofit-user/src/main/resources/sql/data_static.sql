@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS s_scoring_rule (
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================
--- DDL: s_input_feature
+-- DDL: s_grade_feature
 -- =====================================================
-CREATE TABLE IF NOT EXISTS s_input_feature (
+CREATE TABLE IF NOT EXISTS s_grade_feature (
     feature_id                          BIGINT       NOT NULL AUTO_INCREMENT,
     biz_data_id                         BIGINT       NOT NULL,
     user_id                             BIGINT       NOT NULL,
@@ -57,8 +57,8 @@ CREATE TABLE IF NOT EXISTS s_input_feature (
     has_sns                             TINYINT(1)   DEFAULT 0,
     created_at                          DATETIME(6)  NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     PRIMARY KEY (feature_id),
-    INDEX idx_s_input_feature_user_created (user_id, created_at),
-    INDEX idx_s_input_feature_biz_data (biz_data_id)
+    INDEX idx_s_grade_feature_user_created (user_id, created_at),
+    INDEX idx_s_grade_feature_biz_data (biz_data_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================
