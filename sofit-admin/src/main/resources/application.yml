@@ -30,6 +30,17 @@ server:
         secure: true
         same-site: strict
 
+# Monitoring — Prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  metrics:
+    tags:
+      application: sofit-admin
+      env: prod
+
 # 앱 설정
 app:
   cors:
