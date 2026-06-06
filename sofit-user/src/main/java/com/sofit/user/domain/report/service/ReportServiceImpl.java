@@ -25,7 +25,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public GradeResponse findGrade(Long userId) {
         SGradeReport sGradeReport = sGradeReportRepository
-                .findTopByUser_UserIdOrderByCreatedAtDesc(userId)
+                .findLatestCompletedByUserId(userId)
                 .orElseThrow(() -> new BaseException(ReportErrorCode.GRADE_NOT_FOUND));
 
         return ReportConverter.toGradeResponse(sGradeReport);
@@ -34,7 +34,7 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public GradeDetailResponse findGradeDetail(Long userId) {
         SGradeReport sGradeReport = sGradeReportRepository
-                .findTopByUser_UserIdOrderByCreatedAtDesc(userId)
+                .findLatestCompletedByUserId(userId)
                 .orElseThrow(() -> new BaseException(ReportErrorCode.GRADE_NOT_FOUND));
 
         return ReportConverter.toGradeDetailResponse(sGradeReport);
