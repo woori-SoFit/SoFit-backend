@@ -53,6 +53,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .user(user)
                 .type(type)
                 .referenceId(application.getApplicationId())
+                .referenceLabel(application.getProduct().getProductName())
                 .build();
         notificationRepository.save(notification);
 
