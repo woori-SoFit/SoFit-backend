@@ -15,6 +15,7 @@ public class NotificationConverter {
                 notification.getTitle(),
                 notification.getMessage(),
                 notification.getReferenceId(),
+                notification.getReferenceLabel(),
                 notification.getIsRead(),
                 notification.getCreatedAt()
         );
