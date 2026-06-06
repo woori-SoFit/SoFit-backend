@@ -50,6 +50,9 @@ public class Notification extends BaseEntity {
     @Column(name = "reference_id")
     private Long referenceId;
 
+    @Column(name = "reference_label", length = 100)
+    private String referenceLabel;
+
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
 
@@ -57,12 +60,13 @@ public class Notification extends BaseEntity {
     private LocalDateTime readAt;
 
     @Builder
-    public Notification(User user, NotificationType type, Long referenceId) {
+    public Notification(User user, NotificationType type, Long referenceId, String referenceLabel) {
         this.user = user;
         this.type = type;
         this.title = type.getTitle();
         this.message = type.getMessage();
         this.referenceId = referenceId;
+        this.referenceLabel = referenceLabel;
         this.isRead = false;
     }
 
