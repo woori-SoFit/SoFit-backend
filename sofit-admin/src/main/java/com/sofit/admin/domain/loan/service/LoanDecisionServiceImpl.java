@@ -129,6 +129,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
                 .user(application.getUser())
                 .type(NotificationType.LOAN_DECIDED)
                 .referenceId(application.getApplicationId())
+                .referenceLabel(application.getProduct().getProductName())
                 .build();
         notificationRepository.save(notification);
 
