@@ -7,7 +7,7 @@ public enum DecisionStatus {
     TELLER_REJECTED,
     MANAGER_APPROVED,
     MANAGER_REJECTED;
-    
+
     /**
      * 시스템 자동 판단 여부
      */

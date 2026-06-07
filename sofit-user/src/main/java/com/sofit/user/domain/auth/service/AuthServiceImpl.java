@@ -272,7 +272,7 @@ public class AuthServiceImpl implements AuthService {
                     process.getBusinessType(),
                     process.getBusinessName(),
                     process.getBusinessAddress(),
-                    process.getOpenDate() != null ? java.time.LocalDate.parse(process.getOpenDate()) : null
+                    process.getOpenDate() != null ? process.getOpenDate() : null
             );
             businessProfileRepository.save(businessProfile);
 
