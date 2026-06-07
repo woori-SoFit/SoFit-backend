@@ -7,14 +7,7 @@ public enum DecisionStatus {
     TELLER_REJECTED,
     MANAGER_APPROVED,
     MANAGER_REJECTED;
-
-    /**
-     * 최종 결정 여부 (고객에게 알림이 가는 단계)
-     */
-    public boolean isFinal() {
-        return this == TELLER_REJECTED || this == MANAGER_APPROVED || this == MANAGER_REJECTED;
-    }
-
+    
     /**
      * 시스템 자동 판단 여부
      */
