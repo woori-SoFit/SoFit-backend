@@ -44,6 +44,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -100,13 +101,16 @@ public class AuthServiceImpl implements AuthService {
 
         // 4. DB 저장 (트랜잭션)
         final RegistrationProcess finalExistingProcess = existingProcess;
+        LocalDate openDate = kycResult.openDate() != null && !kycResult.openDate().isBlank()
+                ? LocalDate.parse(kycResult.openDate())
+                : null;
         RegistrationProcess process = transactionTemplate.execute(status -> {
             if (finalExistingProcess != null && finalExistingProcess.getStep() == RegistrationStep.KYC_VERIFIED) {
                 finalExistingProcess.updateKycResult(
                         kycResult.businessNumber(),
                         kycResult.businessName(),
                         kycResult.representativeName(),
-                        kycResult.openDate(),
+                        openDate,
                         kycResult.businessType(),
                         kycResult.businessCategory(),
                         kycResult.businessAddress()
@@ -121,7 +125,7 @@ public class AuthServiceImpl implements AuthService {
                         kycResult.businessNumber(),
                         kycResult.businessName(),
                         kycResult.representativeName(),
-                        kycResult.openDate(),
+                        openDate,
                         kycResult.businessType(),
                         kycResult.businessCategory(),
                         kycResult.businessAddress()
@@ -269,7 +273,7 @@ public class AuthServiceImpl implements AuthService {
                     process.getBusinessType(),
                     process.getBusinessName(),
                     process.getBusinessAddress(),
-                    process.getOpenDate() != null ? java.time.LocalDate.parse(process.getOpenDate()) : null
+                    process.getOpenDate() != null ? process.getOpenDate() : null
             );
             businessProfileRepository.save(businessProfile);
 

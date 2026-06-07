@@ -9,6 +9,7 @@ import com.sofit.user.domain.auth.dto.response.FinancialCertLookupResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class AuthConverter {
@@ -16,12 +17,15 @@ public class AuthConverter {
     private AuthConverter() {}
 
     public static BusinessVerificationResponse toBusinessVerificationResponse(ExternalKycResponse kycResult) {
+        LocalDate openDate = (kycResult.openDate() != null && !kycResult.openDate().isBlank())
+                ? LocalDate.parse(kycResult.openDate())
+                : null;
         return new BusinessVerificationResponse(
                 kycResult.businessNumber(),
                 kycResult.representativeName(),
                 kycResult.businessName(),
                 kycResult.businessType(),
-                kycResult.openDate(),
+                openDate,
                 LocalDateTime.now()
         );
     }
@@ -60,8 +64,15 @@ public class AuthConverter {
                 certResult.certNumber(),
                 certResult.holderName(),
                 certResult.status(),
-                certResult.issuedAt(),
-                certResult.expiresAt()
+                parseDateTime(certResult.issuedAt()),
+                parseDateTime(certResult.expiresAt())
         );
+    }
+
+    private static LocalDateTime parseDateTime(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.isBlank()) {
+            return null;
+        }
+        return LocalDateTime.parse(dateTimeStr);
     }
 }
