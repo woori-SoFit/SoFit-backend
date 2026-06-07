@@ -10,7 +10,7 @@ import com.sofit.common.entity.loan.enums.DecisionStatus;
 
 public interface LoanDecisionRepository extends JpaRepository<LoanDecision, Long> {
 
-    List<LoanDecision> findAllByApplication_ApplicationIdOrderByCreatedAtDesc(Long applicationId);
+    List<LoanDecision> findAllByApplication_ApplicationIdOrderByCreatedAtAsc(Long applicationId);
 
     /**
      * 특정 상태로 조회 (ex: SYSTEM_APPROVED, MANAGER_APPROVED)

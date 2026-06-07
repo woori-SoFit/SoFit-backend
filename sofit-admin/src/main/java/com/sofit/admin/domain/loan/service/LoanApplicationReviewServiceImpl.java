@@ -49,9 +49,9 @@ public class LoanApplicationReviewServiceImpl implements LoanApplicationReviewSe
         // 3. LoanProductOption 목록 조회
         List<LoanProductOption> options = loanProductOptionRepository.findByProduct_ProductId(product.getProductId());
 
-        // 4. LoanDecision 전체 목록 조회 (createdAt 내림차순)
+        // 4. LoanDecision 전체 목록 조회 (createdAt 오름차순)
         List<LoanDecision> decisions = loanDecisionRepository
-                .findAllByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId);
+                .findAllByApplication_ApplicationIdOrderByCreatedAtAsc(applicationId);
 
         // 5. 시스템 심사 추출: DecisionStatus.SYSTEM_APPROVED인 건 → Recommendation
         LoanDecision systemApproved = decisions.stream()
