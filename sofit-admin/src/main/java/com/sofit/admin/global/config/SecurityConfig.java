@@ -46,6 +46,8 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 로그인 엔드포인트 허용
                         .requestMatchers("/api/admin/auth/login").permitAll()
+                        // Prometheus 모니터링 (monitor 인스턴스만 접근, SG로 제어)
+                        .requestMatchers("/actuator/prometheus", "/actuator/health").permitAll()
                         // 세분화된 역할 규칙 (구체적 경로 우선)
                         .requestMatchers("/api/admin/loan-applications/*/approve", "/api/admin/loan-applications/*/reject")
                             .hasAnyAuthority("ADMIN_BANK_TELLER", "ADMIN_BANK_MANAGER")

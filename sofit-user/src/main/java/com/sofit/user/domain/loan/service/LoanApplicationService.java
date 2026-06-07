@@ -3,6 +3,7 @@ package com.sofit.user.domain.loan.service;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationSubmitRequest;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
+import com.sofit.user.domain.loan.dto.response.DraftListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
@@ -14,6 +15,9 @@ public interface LoanApplicationService {
 
     // DRAFT 존재 여부 확인
     DraftCheckResponse checkDraft(Long userId, Long productId);
+
+    // 사용자의 전체 DRAFT 목록 조회
+    DraftListResponse findDrafts(Long userId);
 
     // 이어가기 데이터 조회
     LoanApplicationResumeResponse getResumeData(Long userId, Long applicationId);
