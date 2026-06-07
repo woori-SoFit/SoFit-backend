@@ -53,9 +53,9 @@ public class LoanApplicationReviewServiceImpl implements LoanApplicationReviewSe
         List<LoanDecision> decisions = loanDecisionRepository
                 .findAllByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId);
 
-        // 5. 시스템 심사 추출: created_by == null && decision == APPROVED인 건 → Recommendation
+        // 5. 시스템 심사 추출: DecisionStatus.SYSTEM_APPROVED인 건 → Recommendation
         LoanDecision systemApproved = decisions.stream()
-                .filter(d -> d.getCreatedBy() == null && d.getStatus() == DecisionStatus.APPROVED)
+                .filter(d -> d.getStatus() == DecisionStatus.SYSTEM_APPROVED)
                 .findFirst()
                 .orElse(null);
 

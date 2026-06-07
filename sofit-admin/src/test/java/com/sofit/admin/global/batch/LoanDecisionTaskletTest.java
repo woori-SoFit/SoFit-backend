@@ -87,12 +87,12 @@ class LoanDecisionTaskletTest {
         verify(loanDecisionRepository).save(captor.capture());
 
         LoanDecision savedDecision = captor.getValue();
-        assertThat(savedDecision.getDecision()).isEqualTo(DecisionStatus.APPROVED);
+        assertThat(savedDecision.getStatus()).isEqualTo(DecisionStatus.SYSTEM_APPROVED);
         assertThat(savedDecision.getApprovedAmount()).isEqualTo(50_000_000L);
         assertThat(savedDecision.getApprovedRate()).isEqualByComparingTo(new BigDecimal("9.00"));
         assertThat(savedDecision.getApprovedTerm()).isEqualTo(12);
         assertThat(savedDecision.getRepaymentMethod()).isEqualTo(RepaymentMethod.EQUAL_PAYMENT);
-        assertThat(savedDecision.getRejectionReason()).isNull();
+        assertThat(savedDecision.getComment()).isNull();
     }
 
     @Test
@@ -116,7 +116,7 @@ class LoanDecisionTaskletTest {
         verify(loanDecisionRepository).save(captor.capture());
 
         LoanDecision savedDecision = captor.getValue();
-        assertThat(savedDecision.getDecision()).isEqualTo(DecisionStatus.APPROVED);
+        assertThat(savedDecision.getStatus()).isEqualTo(DecisionStatus.SYSTEM_APPROVED);
         assertThat(savedDecision.getApprovedAmount()).isEqualTo(70_000_000L); // max_limit으로 조정
         assertThat(savedDecision.getApprovedTerm()).isEqualTo(24);
         assertThat(savedDecision.getRepaymentMethod()).isEqualTo(RepaymentMethod.BULLET);
@@ -144,8 +144,8 @@ class LoanDecisionTaskletTest {
         verify(loanDecisionRepository).save(captor.capture());
 
         LoanDecision savedDecision = captor.getValue();
-        assertThat(savedDecision.getDecision()).isEqualTo(DecisionStatus.REJECTED);
-        assertThat(savedDecision.getRejectionReason()).isEqualTo("SCB 최소 등급 미달");
+        assertThat(savedDecision.getStatus()).isEqualTo(DecisionStatus.SYSTEM_REJECTED);
+        assertThat(savedDecision.getComment()).isEqualTo("SCB 최소 등급 미달");
         assertThat(savedDecision.getApprovedAmount()).isNull();
         assertThat(savedDecision.getApprovedRate()).isNull();
         assertThat(savedDecision.getRepaymentMethod()).isNull();
@@ -171,8 +171,8 @@ class LoanDecisionTaskletTest {
         verify(loanDecisionRepository).save(captor.capture());
 
         LoanDecision savedDecision = captor.getValue();
-        assertThat(savedDecision.getDecision()).isEqualTo(DecisionStatus.REJECTED);
-        assertThat(savedDecision.getRejectionReason()).isEqualTo("SCB 최소 등급 미달");
+        assertThat(savedDecision.getStatus()).isEqualTo(DecisionStatus.SYSTEM_REJECTED);
+        assertThat(savedDecision.getComment()).isEqualTo("SCB 최소 등급 미달");
     }
 
     @Test

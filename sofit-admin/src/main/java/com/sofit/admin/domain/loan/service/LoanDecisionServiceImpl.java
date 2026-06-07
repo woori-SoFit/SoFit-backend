@@ -13,6 +13,7 @@ import com.sofit.common.dto.notification.NotificationPushRequest;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.notification.Notification;
 import com.sofit.common.entity.notification.enums.NotificationType;
 import com.sofit.common.entity.user.enums.UserRole;
@@ -54,9 +55,19 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         // 5. 상태 + 권한 조합 검증
         validateDecisionAuthority(application);
 
+        // 5-1. 시스템 거절 건은 승인 불가
+        if (application.getStatus() == ApplicationStatus.SYSTEM_REJECTED) {
+            throw new BaseException(LoanDecisionErrorCode.NOT_DECIDABLE_STATUS);
+        }
+
         // 6. LoanDecision 생성 및 저장 (createdBy에 현재 userId 명시적 설정)
+        DecisionStatus decisionType = (currentRole == UserRole.ADMIN_BANK_TELLER)
+                ? DecisionStatus.TELLER_APPROVED
+                : DecisionStatus.MANAGER_APPROVED;
+
         LoanDecision loanDecision = LoanDecision.createApproval(
                 application,
+                decisionType,
                 request.getApprovedAmount(),
                 request.getApprovedRate(),
                 request.getApprovedTerm(),
@@ -100,22 +111,21 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
         validateDecisionAuthority(application);
 
         // 6. LoanDecision 생성 및 저장 (createdBy에 현재 userId 명시적 설정)
+        DecisionStatus decisionType = (currentRole == UserRole.ADMIN_BANK_TELLER)
+                ? DecisionStatus.TELLER_REJECTED
+                : DecisionStatus.MANAGER_REJECTED;
+
         LoanDecision loanDecision = LoanDecision.createRejection(
                 application,
+                decisionType,
                 request.getComment(),
                 currentUserId
         );
         loanDecisionRepository.save(loanDecision);
 
-        // 7. 역할에 따라 상태 변경 및 알림 분기
-        if (currentRole == UserRole.ADMIN_BANK_TELLER) {
-            // TELLER: 지점장 리뷰 단계로 전환, 알림 없음
-            application.updateStatus(ApplicationStatus.MANAGER_REVIEW);
-        } else if (currentRole == UserRole.ADMIN_BANK_MANAGER) {
-            // MANAGER: 최종 거절, 알림 생성
-            application.updateStatus(ApplicationStatus.REJECTED);
-            sendDecisionNotification(application);
-        }
+        // 7. 거절은 행원/지점장 무관하게 최종 → REJECTED, 알림 생성
+        application.updateStatus(ApplicationStatus.REJECTED);
+        sendDecisionNotification(application);
 
         return LoanDecisionConverter.toLoanDecisionResponse(loanDecision);
     }
@@ -151,13 +161,13 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
 
     /**
      * 상태 + 권한 조합 검증
-     * - SYSTEM_APPROVED → ADMIN_BANK_TELLER만 처리 가능
+     * - SYSTEM_APPROVED / SYSTEM_REJECTED → ADMIN_BANK_TELLER만 처리 가능
      * - MANAGER_REVIEW → ADMIN_BANK_MANAGER만 처리 가능
      */
     private void validateDecisionAuthority(LoanApplication application) {
         ApplicationStatus status = application.getStatus();
 
-        if (status == ApplicationStatus.SYSTEM_APPROVED) {
+        if (status == ApplicationStatus.SYSTEM_APPROVED || status == ApplicationStatus.SYSTEM_REJECTED) {
             if (!SecurityUtil.hasAuthority("ADMIN_BANK_TELLER")) {
                 throw new BaseException(LoanDecisionErrorCode.NO_DECISION_AUTHORITY);
             }

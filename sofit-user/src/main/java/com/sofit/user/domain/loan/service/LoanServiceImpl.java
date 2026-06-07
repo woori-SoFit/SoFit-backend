@@ -9,6 +9,7 @@ import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.repository.loan.LoanApplicationRepository;
 import com.sofit.common.repository.loan.LoanDecisionRepository;
 import com.sofit.user.domain.loan.converter.LoanConverter;
@@ -91,10 +92,10 @@ public class LoanServiceImpl implements LoanService {
             throw new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND);
         }
 
-        // loan_decision은 application_id당 여러 건(시스템/행원/지점장 심사) 존재 가능
-        // → 가장 최근 심사 결과 1건 조회
+        // loan_decision에서 최종 결정(행원 거절 / 지점장 승인 / 지점장 거절) 조회
         LoanDecision decision = loanDecisionRepository
-                .findTopByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId)
+                .findByApplication_ApplicationIdAndStatusIn(applicationId,
+                        List.of(DecisionStatus.MANAGER_APPROVED, DecisionStatus.MANAGER_REJECTED, DecisionStatus.TELLER_REJECTED))
                 .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         return LoanConverter.toCompletedDetailResponse(application, decision);
