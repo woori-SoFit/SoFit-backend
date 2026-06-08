@@ -32,6 +32,8 @@ public class NotificationPushRequest {
     @NotNull
     private Long referenceId;
 
+    private String referenceLabel;
+
     private LocalDateTime createdAt;
 
     private Boolean isRead;
@@ -44,6 +46,7 @@ public class NotificationPushRequest {
                 .title(notification.getTitle())
                 .message(notification.getMessage())
                 .referenceId(notification.getReferenceId())
+                .referenceLabel(notification.getReferenceLabel())
                 .createdAt(notification.getCreatedAt())
                 .isRead(notification.getIsRead())
                 .build();
