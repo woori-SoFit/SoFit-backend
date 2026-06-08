@@ -15,9 +15,10 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanExecution;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
-import com.sofit.common.repository.LoanExecutionRepository;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
+import com.sofit.common.repository.loan.LoanExecutionRepository;
 import com.sofit.user.domain.loan.client.CodefClient;
 import com.sofit.user.domain.loan.converter.LoanExecutionConverter;
 import com.sofit.user.domain.loan.dto.request.AccountVerificationConfirmRequest;
@@ -61,7 +62,7 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
                 .orElseThrow(() -> new BaseException(LoanErrorCode.EXECUTION_NOT_FOUND));
 
         LoanDecision decision = loanDecisionRepository
-                .findTopByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId)
+                .findByApplication_ApplicationIdAndStatus(applicationId, DecisionStatus.MANAGER_APPROVED)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         return LoanExecutionConverter.toResponse(execution, decision);
@@ -149,7 +150,7 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
             throw new BaseException(LoanErrorCode.APPLICATION_NOT_APPROVED);
         }
 
-        LoanDecision decision = loanDecisionRepository.findTopByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId)
+        LoanDecision decision = loanDecisionRepository.findByApplication_ApplicationIdAndStatus(applicationId, DecisionStatus.MANAGER_APPROVED)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         LoanExecution execution = new LoanExecution(
@@ -158,6 +159,9 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
                 accountNumber
         );
         loanExecutionRepository.save(execution);
+
+        // 대출 신청 상태를 EXECUTED로 변경
+        application.updateStatus(ApplicationStatus.EXECUTED);
 
         // DB 저장 성공 후 Redis 삭제 (재사용 방지)
         redisTemplate.delete(redisKey);

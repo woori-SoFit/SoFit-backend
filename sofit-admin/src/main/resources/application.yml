@@ -4,31 +4,18 @@ spring:
 
   # 활성 프로파일 (local / dev / release)
   profiles:
-    active: dev
+    active: test
+    include: common
 
-  # JPA
+  # JPA (모듈별 override)
   jpa:
     hibernate:
       ddl-auto: validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
-        format_sql: true
-    show-sql: false
 
-  # Redis 세션
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-
-  # Spring Session (Redis 사용)
-  session:
-    store-type: redis
-    timeout: 1800  # 30분
-
-  # Spring Batch — 배치 메타 테이블 자동 생성 비활성화 (직접 관리)
+  # Spring Batch
   batch:
+    job:
+      enabled: false  # 서버 시작 시 배치 자동 실행 방지 (API 트리거로만 실행)
     jdbc:
       initialize-schema: never
 
@@ -43,16 +30,23 @@ server:
         secure: true
         same-site: strict
 
+# Monitoring — Prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  metrics:
+    tags:
+      application: sofit-admin
+      env: prod
+
 # 앱 설정
 app:
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3001}
 
-# SpringDoc (Swagger UI)
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
-  api-docs:
-    path: /v3/api-docs
+# sofit-user 서버 내부 URL (알림 푸시용)
+sofit:
+  user:
+    internal-url: ${SOFIT_USER_INTERNAL_URL:http://localhost:8080}

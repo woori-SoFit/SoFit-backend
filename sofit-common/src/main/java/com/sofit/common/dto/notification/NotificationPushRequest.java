@@ -30,9 +30,13 @@ public class NotificationPushRequest {
     private String message;
 
     @NotNull
-    private Long applicationId;
+    private Long referenceId;
+
+    private String referenceLabel;
 
     private LocalDateTime createdAt;
+
+    private Boolean isRead;
 
     public static NotificationPushRequest from(Notification notification) {
         return NotificationPushRequest.builder()
@@ -41,8 +45,10 @@ public class NotificationPushRequest {
                 .type(notification.getType())
                 .title(notification.getTitle())
                 .message(notification.getMessage())
-                .applicationId(notification.getApplication().getApplicationId())
+                .referenceId(notification.getReferenceId())
+                .referenceLabel(notification.getReferenceLabel())
                 .createdAt(notification.getCreatedAt())
+                .isRead(notification.getIsRead())
                 .build();
     }
 }

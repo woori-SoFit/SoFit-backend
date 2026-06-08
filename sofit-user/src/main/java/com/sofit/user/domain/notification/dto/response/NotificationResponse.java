@@ -9,7 +9,8 @@ public record NotificationResponse(
     NotificationType type,
     String title,
     String message,
-    Long applicationId,
+    Long referenceId,
+    String referenceLabel,
     Boolean isRead,
     LocalDateTime createdAt
 ) {}

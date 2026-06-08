@@ -7,9 +7,12 @@ import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.loan.LoanApplication;
+import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.repository.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,10 +37,12 @@ public class LoanDashboardServiceImpl implements LoanDashboardService {
             ApplicationStatus.SYSTEM_REJECTED,
             ApplicationStatus.MANAGER_REVIEW,
             ApplicationStatus.APPROVED,
-            ApplicationStatus.REJECTED
+            ApplicationStatus.REJECTED,
+            ApplicationStatus.EXECUTED
     );
 
     private final LoanApplicationRepository loanApplicationRepository;
+    private final LoanDecisionRepository loanDecisionRepository;
     private final BusinessProfileRepository businessProfileRepository;
     private final UserRepository userRepository;
 
@@ -88,7 +93,32 @@ public class LoanDashboardServiceImpl implements LoanDashboardService {
                         (existing, replacement) -> existing
                 ));
 
-        return LoanDashboardConverter.toLoanDashboardResponse(page, businessNameMap, bankerNameMap);
+        // approvedAmountMap: applicationId → approvedAmount 일괄 조회
+        List<Long> applicationIds = page.getContent().stream()
+                .map(LoanApplication::getApplicationId)
+                .toList();
+
+        Map<Long, Long> approvedAmountMap;
+        if (applicationIds.isEmpty()) {
+            approvedAmountMap = Map.of();
+        } else {
+            List<DecisionStatus> approvalStatuses = List.of(
+                    DecisionStatus.SYSTEM_APPROVED,
+                    DecisionStatus.TELLER_APPROVED,
+                    DecisionStatus.MANAGER_APPROVED
+            );
+
+            approvedAmountMap = loanDecisionRepository
+                    .findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(applicationIds, approvalStatuses)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            d -> d.getApplication().getApplicationId(),
+                            LoanDecision::getApprovedAmount,
+                            (existing, replacement) -> replacement // createdAt ASC 정렬이므로 뒤에 오는 값이 최신
+                    ));
+        }
+
+        return LoanDashboardConverter.toLoanDashboardResponse(page, businessNameMap, bankerNameMap, approvedAmountMap);
     }
 
     @Override

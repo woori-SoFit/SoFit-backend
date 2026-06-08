@@ -4,7 +4,9 @@ import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.loan.enums.LastCompletedStep;
-import com.sofit.common.repository.LoanApplicationRepository;
+import com.sofit.common.entity.mybiz.MyBizData;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.mybiz.MyBizDataRepository;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
 import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse;
@@ -12,17 +14,20 @@ import com.sofit.user.domain.terms.service.TermService;
 import com.sofit.user.domain.user.dto.response.BusinessProfileResponse;
 import com.sofit.user.domain.user.service.BusinessService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class LoanStepServiceImpl implements LoanStepService {
 
     private final LoanApplicationRepository loanApplicationRepository;
+    private final MyBizDataRepository myBizDataRepository;
     private final TermService termService;
     private final BusinessService businessService;
 
@@ -64,8 +69,17 @@ public class LoanStepServiceImpl implements LoanStepService {
     public void processMybizData(Long userId, Long applicationId) {
         LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.DATA_COLLECTED);
 
+        // 1. my_biz_data에서 해당 userId의 최신 biz_data_id 조회
+        MyBizData latestBizData = myBizDataRepository.findFirstByUser_UserIdOrderByReferenceMonthDesc(userId)
+                .orElseThrow(() -> new BaseException(LoanErrorCode.MYBIZ_DATA_NOT_FOUND));
+
+        // 2. loan_application.biz_data_id 업데이트
+        application.updateBizDataId(latestBizData.getBizDataId());
+
+        // 3. business_profile 연동 여부 업데이트
         businessService.connectMybiz(userId);
-        
+
+        // 4. lastCompletedStep = MYBIZ_CONNECTED
         application.updateLastCompletedStep(LastCompletedStep.MYBIZ_CONNECTED);
     }
 

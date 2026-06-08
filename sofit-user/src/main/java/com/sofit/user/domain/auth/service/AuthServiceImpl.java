@@ -4,16 +4,19 @@ import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.auth.RegistrationProcess;
 import com.sofit.common.entity.auth.enums.RegistrationStep;
+import com.sofit.common.entity.sGrade.SGradeHistory;
 import com.sofit.common.entity.term.ConsentHistory;
 import com.sofit.common.entity.term.Term;
 import com.sofit.common.entity.term.enums.TermType;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserStatus;
-import com.sofit.common.repository.ConsentHistoryRepository;
-import com.sofit.common.repository.TermRepository;
+import com.sofit.common.repository.term.ConsentHistoryRepository;
+import com.sofit.common.repository.term.TermRepository;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.auth.RegistrationProcessRepository;
+import com.sofit.common.repository.sGrade.SGradeHistoryRepository;
 import com.sofit.common.repository.user.UserRepository;
+import com.sofit.user.domain.auth.client.ExternalMockClient;
 import com.sofit.user.domain.terms.exception.TermErrorCode;
 import com.sofit.user.domain.auth.converter.AuthConverter;
 import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
@@ -21,10 +24,8 @@ import com.sofit.user.domain.auth.dto.request.FinancialCertVerifyRequest;
 import com.sofit.user.domain.auth.dto.request.LoginRequest;
 import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalFinancialCertResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalMockApiResponse;
-import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
+import com.sofit.user.domain.auth.dto.external.ExternalKycResponse;
+import com.sofit.user.domain.auth.dto.external.ExternalMockApiResponse;
 import com.sofit.user.domain.auth.dto.response.CheckLoginIdResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
@@ -45,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -60,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
     private final BusinessProfileRepository businessProfileRepository;
     private final TermRepository termRepository;
     private final ConsentHistoryRepository consentHistoryRepository;
+    private final SGradeHistoryRepository sGradeHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final HttpSessionSecurityContextRepository securityContextRepository;
     private final TransactionTemplate transactionTemplate;
@@ -85,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
         if (existingProcess != null
                 && existingProcess.getStep() == RegistrationStep.KYC_VERIFIED
                 && existingProcess.getUpdatedAt().plusMinutes(30).isAfter(LocalDateTime.now())) {
-            session.setAttribute(REGISTRATIONPROCESSID, existingProcess.getId());
+            session.setAttribute(REGISTRATIONPROCESSID, existingProcess.getRegistrationProcessId());
             return AuthConverter.toBusinessVerificationResponse(existingProcess);
         }
 
@@ -101,13 +104,16 @@ public class AuthServiceImpl implements AuthService {
 
         // 4. DB 저장 (트랜잭션)
         final RegistrationProcess finalExistingProcess = existingProcess;
+        LocalDate openDate = kycResult.openDate() != null && !kycResult.openDate().isBlank()
+                ? LocalDate.parse(kycResult.openDate())
+                : null;
         RegistrationProcess process = transactionTemplate.execute(status -> {
             if (finalExistingProcess != null && finalExistingProcess.getStep() == RegistrationStep.KYC_VERIFIED) {
                 finalExistingProcess.updateKycResult(
                         kycResult.businessNumber(),
                         kycResult.businessName(),
                         kycResult.representativeName(),
-                        kycResult.openDate(),
+                        openDate,
                         kycResult.businessType(),
                         kycResult.businessCategory(),
                         kycResult.businessAddress()
@@ -122,7 +128,7 @@ public class AuthServiceImpl implements AuthService {
                         kycResult.businessNumber(),
                         kycResult.businessName(),
                         kycResult.representativeName(),
-                        kycResult.openDate(),
+                        openDate,
                         kycResult.businessType(),
                         kycResult.businessCategory(),
                         kycResult.businessAddress()
@@ -131,22 +137,20 @@ public class AuthServiceImpl implements AuthService {
             }
         });
 
-        session.setAttribute(REGISTRATIONPROCESSID, process.getId());
+        session.setAttribute(REGISTRATIONPROCESSID, process.getRegistrationProcessId());
         return AuthConverter.toBusinessVerificationResponse(kycResult);
     }
 
     @Override
-    public FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
+    public void verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
         // 1. 인증은 FinancialCertService에 위임
-        FinancialCertVerifyResponse response = financialCertService.verify(request);
+        financialCertService.verify(request);
 
         // 2. 회원가입 플로우인 경우 RegistrationProcess 후처리 (트랜잭션)
         Long processId = (Long) session.getAttribute(REGISTRATIONPROCESSID);
         if (processId != null) {
             processRegistrationStep2(processId);
         }
-
-        return response;
     }
 
     /**
@@ -272,7 +276,7 @@ public class AuthServiceImpl implements AuthService {
                     process.getBusinessType(),
                     process.getBusinessName(),
                     process.getBusinessAddress(),
-                    process.getOpenDate() != null ? java.time.LocalDate.parse(process.getOpenDate()) : null
+                    process.getOpenDate() != null ? process.getOpenDate() : null
             );
             businessProfileRepository.save(businessProfile);
 
@@ -286,6 +290,10 @@ public class AuthServiceImpl implements AuthService {
                             .build())
                     .toList();
             consentHistoryRepository.saveAll(consentHistories);
+
+            // S등급 산출 요청 레코드 생성 (Python 배치 대상으로 등록)
+            SGradeHistory sGradeHistory = SGradeHistory.createRequested(newUser);
+            sGradeHistoryRepository.save(sGradeHistory);
 
             // RegistrationProcess 삭제 (가입 완료)
             registrationProcessRepository.delete(process);
