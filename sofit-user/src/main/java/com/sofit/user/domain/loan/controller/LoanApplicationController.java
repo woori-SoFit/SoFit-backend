@@ -1,5 +1,6 @@
 package com.sofit.user.domain.loan.controller;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +15,7 @@ import com.sofit.user.domain.loan.dto.request.LoanApplicationSubmitRequest;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
+import com.sofit.user.domain.loan.dto.response.DraftListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationListResponse;
@@ -63,6 +65,17 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
     }
 
     /**
+     * 진행 중인 DRAFT 목록 조회
+     * GET /api/loan-applications/drafts
+     */
+    @GetMapping("/loan-applications/drafts")
+    public ApiResponse<DraftListResponse> getDrafts() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        DraftListResponse response = loanApplicationService.findDrafts(userId);
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_DRAFT_LIST_OK, response);
+    }
+
+    /**
      * 이어가기 데이터 조회
      * GET /api/loan-applications/{applicationId}/resume
      */
@@ -72,6 +85,17 @@ public class LoanApplicationController implements LoanApplicationControllerDocs 
         Long userId = SecurityUtil.getCurrentUserId();
         LoanApplicationResumeResponse response = loanApplicationService.getResumeData(userId, applicationId);
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_RESUME_OK, response);
+    }
+
+    /**
+     * DRAFT 신청서 취소 (소프트 삭제)
+     * DELETE /api/loan-applications/{applicationId}
+     */
+    @DeleteMapping("/loan-applications/{applicationId}")
+    public ApiResponse<Void> cancelDraftApplication(@PathVariable Long applicationId) {
+        Long userId = SecurityUtil.getCurrentUserId();
+        loanApplicationService.cancelDraftApplication(userId, applicationId);
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_DRAFT_CANCELLED, null);
     }
 
     /**

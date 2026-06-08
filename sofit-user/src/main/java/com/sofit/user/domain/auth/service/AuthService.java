@@ -6,7 +6,6 @@ import com.sofit.user.domain.auth.dto.request.LoginRequest;
 import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
 import com.sofit.user.domain.auth.dto.response.CheckLoginIdResponse;
-import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +16,7 @@ public interface AuthService {
 
     BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session);
 
-    FinancialCertVerifyResponse verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session);
+    void verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session);
 
     SignupCompleteResponse completeSignup(SignupCompleteRequest request, HttpSession session);
 

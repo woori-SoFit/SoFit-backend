@@ -16,4 +16,10 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     boolean existsByLoginId(String loginId);
 
     List<User> findByRoleAndStatus(UserRole role, UserStatus status);
+
+    long countByStatus(UserStatus status);
+
+    long countByStatusAndRole(UserStatus status, UserRole role);
+
+    long countByStatusAndRoleIn(UserStatus status, List<UserRole> roles);
 }

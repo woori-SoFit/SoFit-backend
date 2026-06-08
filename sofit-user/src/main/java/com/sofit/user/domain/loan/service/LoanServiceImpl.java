@@ -9,8 +9,9 @@ import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
 import com.sofit.user.domain.loan.converter.LoanConverter;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
@@ -70,8 +71,9 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public CompletedLoanListResponse findCompletedLoans(Long userId) {
+        // product fetch join으로 N+1 방지
         List<CompletedLoanListResponse.CompletedLoanItem> items = loanApplicationRepository
-                .findByUser_UserIdAndStatusInOrderByUpdatedAtDesc(userId, COMPLETED_STATUSES)
+                .findCompletedByUserIdWithProduct(userId, COMPLETED_STATUSES)
                 .stream()
                 .map(LoanConverter::toCompletedListItem)
                 .toList();
@@ -81,16 +83,19 @@ public class LoanServiceImpl implements LoanService {
 
     @Override
     public CompletedLoanDetailResponse findCompletedLoanDetail(Long userId, Long applicationId) {
+        // product fetch join으로 추가 쿼리 방지
         LoanApplication application = loanApplicationRepository
-                .findByApplicationIdAndUser_UserId(applicationId, userId)
+                .findCompletedDetailByApplicationIdAndUserId(applicationId, userId)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND));
 
         if (!COMPLETED_STATUSES.contains(application.getStatus())) {
             throw new BaseException(LoanErrorCode.APPLICATION_NOT_FOUND);
         }
 
+        // loan_decision에서 최종 결정(행원 거절 / 지점장 승인 / 지점장 거절) 조회
         LoanDecision decision = loanDecisionRepository
-                .findByApplication_ApplicationId(applicationId)
+                .findByApplication_ApplicationIdAndStatusIn(applicationId,
+                        List.of(DecisionStatus.MANAGER_APPROVED, DecisionStatus.MANAGER_REJECTED, DecisionStatus.TELLER_REJECTED))
                 .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         return LoanConverter.toCompletedDetailResponse(application, decision);

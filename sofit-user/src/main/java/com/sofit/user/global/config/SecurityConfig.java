@@ -42,14 +42,19 @@ public class SecurityConfig {
                         // Swagger UI 허용
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 인증 불필요 경로
-                        .requestMatchers("/api/auth/signup/**", "/api/auth/login", "/api/auth/verify-pin").permitAll()
+                        .requestMatchers("/api/auth/signup/**", "/api/auth/login").permitAll()
+                        // 금융인증서 조회 (회원가입 플로우에서도 비인증 상태로 호출)
+                        .requestMatchers("/api/financial-cert/lookup").permitAll()
+                        // 내부 알림 푸시 API (sofit-admin → sofit-user, 세션 인증 불필요)
+                        .requestMatchers("/api/notifications/internal/**").permitAll()
                         // 내 정보 조회는 비로그인 상태에서도 접근 가능 (로그인 여부에 따라 분기)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/me").permitAll()
                         // 약관 목록 조회는 비로그인 상태에서 접근 가능 (회원가입 플로우)
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/terms/**").permitAll()
                         // 약관 PDF 정적 리소스 비로그인 접근 허용
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/terms/**").permitAll()
-                        .requestMatchers("/api/auth/signup/**", "/api/auth/login").permitAll()
+                        // 대출 상품 목록/상세 조회는 비로그인 접근 허용
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/loan-products", "/api/loan-products/{productId}").permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
                 )

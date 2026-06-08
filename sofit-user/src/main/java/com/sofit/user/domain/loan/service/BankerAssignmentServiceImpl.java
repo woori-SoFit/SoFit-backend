@@ -6,6 +6,7 @@ import com.sofit.common.entity.user.enums.UserRole;
 import com.sofit.common.entity.user.enums.UserStatus;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
+import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -25,8 +26,8 @@ public class BankerAssignmentServiceImpl implements BankerAssignmentService {
     @Override
     public Long assignBanker() {
         // 1. 활성 은행원 목록 조회
-        List<User> activeBankers = userRepository
-                .findByRoleAndStatus(UserRole.ADMIN_BANK_TELLER, UserStatus.ACTIVE);
+        List<User> activeBankers = new ArrayList<>(userRepository
+                .findByRoleAndStatus(UserRole.ADMIN_BANK_TELLER, UserStatus.ACTIVE));
 
         if (activeBankers.isEmpty()) {
             throw new BaseException(LoanErrorCode.NO_AVAILABLE_BANKER);

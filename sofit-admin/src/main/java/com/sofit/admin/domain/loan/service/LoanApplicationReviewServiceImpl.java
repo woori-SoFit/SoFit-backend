@@ -12,11 +12,11 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.LoanProductOption;
-import com.sofit.common.entity.loan.enums.Decision;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
-import com.sofit.common.repository.LoanProductOptionRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
+import com.sofit.common.repository.loan.LoanProductOptionRepository;
 import com.sofit.common.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -49,13 +49,13 @@ public class LoanApplicationReviewServiceImpl implements LoanApplicationReviewSe
         // 3. LoanProductOption 목록 조회
         List<LoanProductOption> options = loanProductOptionRepository.findByProduct_ProductId(product.getProductId());
 
-        // 4. LoanDecision 전체 목록 조회 (createdAt 내림차순)
+        // 4. LoanDecision 전체 목록 조회 (createdAt 오름차순)
         List<LoanDecision> decisions = loanDecisionRepository
-                .findAllByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId);
+                .findAllByApplication_ApplicationIdOrderByCreatedAtAsc(applicationId);
 
-        // 5. 시스템 심사 추출: created_by == null && decision == APPROVED인 건 → Recommendation
+        // 5. 시스템 심사 추출: DecisionStatus.SYSTEM_APPROVED인 건 → Recommendation
         LoanDecision systemApproved = decisions.stream()
-                .filter(d -> d.getCreatedBy() == null && d.getDecision() == Decision.APPROVED)
+                .filter(d -> d.getStatus() == DecisionStatus.SYSTEM_APPROVED)
                 .findFirst()
                 .orElse(null);
 

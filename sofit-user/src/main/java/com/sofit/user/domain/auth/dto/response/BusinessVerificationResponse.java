@@ -1,5 +1,6 @@
 package com.sofit.user.domain.auth.dto.response;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record BusinessVerificationResponse(
@@ -7,7 +8,7 @@ public record BusinessVerificationResponse(
         String representativeName,
         String businessName,
         String businessType,
-        String openDate,
+        LocalDate openDate,
         LocalDateTime verifiedAt
 ) {
 }
