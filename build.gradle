@@ -34,14 +34,52 @@ subprojects {
     }
 
     jacoco {
-        toolVersion = "0.8.12"
+        toolVersion = '0.8.12'  // 한 번만
     }
 
     jacocoTestReport {
         dependsOn test
         reports {
+            xml.required = true   // SonarQube 쓰면 true, 안 쓰면 false
             html.required = true
-            xml.required = true
+            csv.required = false
         }
+        // afterEvaluate {
+        //     classDirectories.setFrom(files(classDirectories.files.collect {
+        //         fileTree(dir: it, exclude: [
+        //             '**/dto/**',
+        //             '**/enums/**',
+        //             '**/filter/**',
+        //             '**/*Application.class',
+        //             '**/config/**'
+        //             '**/*Request.class',
+        //             '**/*Response.class',
+        //             '**/*ErrorCode.class',
+        //             '**/*SuccessCode.class',
+        //             '**/BaseException.class',
+        //             '**/ApiResponse.class',
+        //             '**/SecurityConfig.class',
+        //             '**/JpaConfig.class',
+        //             '**/JacksonConfig.class',
+        //             '**/RedisConfig.class',
+        //             '**/SwaggerConfig.class',
+        //             '**/CorsConfig.class',
+        //             '**/*ExceptionHandler.class',
+        //             '**/CustomAccessDeniedHandler.class',
+        //             '**/CustomAuthenticationEntryPoint.class',
+        //         ])
+        //     }))
+        // }
     }
+
+    // 커버리지 최소 기준 (필요 시 활성화)
+    // jacocoTestCoverageVerification {
+    //     violationRules {
+    //         rule {
+    //             limit {
+    //                 minimum = 0.70
+    //             }
+    //         }
+    //     }
+    // }
 }
