@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.sofit.common.entity.BaseEntity;
 import com.sofit.common.entity.mybiz.enums.InsurancePaymentStatus;
 import com.sofit.common.entity.mybiz.enums.VatFilingStatus;
 import com.sofit.common.entity.user.User;
@@ -27,7 +28,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "my_biz_data")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MyBizData {
+public class MyBizData extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -177,9 +178,4 @@ public class MyBizData {
 
     @Column(name = "is_near_subway")
     private Boolean isNearSubway;
-
-    // --- 메타 ---
-
-    @Column(name = "generated_at")
-    private LocalDateTime generatedAt;
 }

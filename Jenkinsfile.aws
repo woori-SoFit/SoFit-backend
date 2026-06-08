@@ -1,0 +1,89 @@
+pipeline {
+    agent any
+    options { disableConcurrentBuilds() }
+    triggers { githubPush() }
+    environment {
+        AWS_REGION      = 'ap-northeast-2'
+        AWS_ACCOUNT_ID  = '532056685779'
+        ECR_URL         = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        ECR_REPO        = 'sofit-user-api'
+        S3_BUCKET       = 'sofit-deploy-artifacts-532056685779-ap-northeast-2-an'
+        APP_NAME        = 'sofit-user-api'
+        DEPLOY_GROUP    = 'sofit-dg-user-api'
+    }
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+        stage('Build Common') {
+            steps {
+                sh './gradlew :sofit-common:jar -x test --rerun-tasks'
+            }
+        }
+        stage('Build sofit-user') {
+            when {
+                anyOf {
+                    changeset 'sofit-user/**'
+                    changeset 'sofit-common/**'
+                    triggeredBy 'UserIdCause'
+                }
+            }
+            steps {
+                sh './gradlew :sofit-user:bootJar -x test'
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh """${tool 'sonar-scanner'}/bin/sonar-scanner \
+                        -Dsonar.projectKey=sofit-backend \
+                        -Dsonar.sources=sofit-user/src/main/java,sofit-common/src/main/java \
+                        -Dsonar.java.binaries=sofit-user/build/classes/java/main,sofit-common/build/classes/java/main"""
+                }
+            }
+        }
+        stage('Docker Build & ECR Push') {
+            when {
+                anyOf {
+                    changeset 'sofit-user/**'
+                    changeset 'sofit-common/**'
+                    triggeredBy 'UserIdCause'
+                }
+            }
+            steps {
+                sh """
+                    aws ecr get-login-password --region ${AWS_REGION} | \
+                        docker login --username AWS --password-stdin ${ECR_URL}
+                    docker build -t ${ECR_URL}/${ECR_REPO}:latest -f sofit-user/Dockerfile .
+                    docker push ${ECR_URL}/${ECR_REPO}:latest
+                """
+            }
+        }
+        stage('Deploy via CodeDeploy') {
+            when {
+                anyOf {
+                    changeset 'sofit-user/**'
+                    changeset 'sofit-common/**'
+                    triggeredBy 'UserIdCause'
+                }
+            }
+            steps {
+                sh """
+                    zip -r deploy-bundle.zip appspec.yml scripts/
+                    aws s3 cp deploy-bundle.zip s3://${S3_BUCKET}/${APP_NAME}/deploy.zip
+                    aws deploy create-deployment \
+                        --application-name ${APP_NAME} \
+                        --deployment-group-name ${DEPLOY_GROUP} \
+                        --region ${AWS_REGION} \
+                        --s3-location bucket=${S3_BUCKET},key=${APP_NAME}/deploy.zip,bundleType=zip \
+                        --file-exists-behavior OVERWRITE
+                """
+            }
+        }
+    }
+    post {
+        always { sh 'docker image prune -f' }
+        success { echo '배포 성공' }
+        failure { echo '배포 실패' }
+    }
+}

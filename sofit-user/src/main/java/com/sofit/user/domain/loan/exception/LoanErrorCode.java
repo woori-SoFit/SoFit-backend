@@ -25,6 +25,7 @@ public enum LoanErrorCode implements BaseErrorCode {
     INVALID_BIZ_NO_FORMAT(HttpStatus.BAD_REQUEST, "LOAN4006", "사업자등록번호는 10자리 숫자여야 합니다."),
     APPLICATION_NOT_OWNED(HttpStatus.FORBIDDEN, "LOAN4032", "본인의 대출 신청만 처리할 수 있습니다."),
     BIZ_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "LOAN4045", "해당 사업자등록번호로 사업자 정보를 찾을 수 없습니다."),
+    MYBIZ_DATA_NOT_FOUND(HttpStatus.NOT_FOUND, "LOAN4046", "마이비즈 데이터를 찾을 수 없습니다."),
     NO_AVAILABLE_BANKER(HttpStatus.INTERNAL_SERVER_ERROR, "LOAN5001", "배정 가능한 은행원이 없습니다."),
     EXTERNAL_SERVICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "LOAN5002", "외부 서비스 호출에 실패했습니다."),
 

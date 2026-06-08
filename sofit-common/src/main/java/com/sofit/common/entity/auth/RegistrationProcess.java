@@ -5,6 +5,7 @@ import com.sofit.common.entity.auth.enums.RegistrationStep;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -21,7 +22,7 @@ public class RegistrationProcess extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "registration_process_id")
-    private Long id;
+    private Long registrationProcessId;
 
     // 회원가입 단계 상태
     @Enumerated(EnumType.STRING)
@@ -38,8 +39,8 @@ public class RegistrationProcess extends BaseEntity {
     @Column(name = "representative_name", length = 50)
     private String representativeName;
 
-    @Column(name = "open_date", length = 10)
-    private String openDate;
+    @Column(name = "open_date")
+    private LocalDate openDate;
 
     @Column(name = "business_type", length = 50)
     private String businessType;
@@ -63,7 +64,7 @@ public class RegistrationProcess extends BaseEntity {
     public static RegistrationProcess createForStep1(String businessNumber,
                                                       String businessName,
                                                       String representativeName,
-                                                      String openDate,
+                                                      LocalDate openDate,
                                                       String businessType,
                                                       String businessCategory,
                                                       String businessAddress) {
@@ -86,7 +87,7 @@ public class RegistrationProcess extends BaseEntity {
     public void updateKycResult(String businessNumber,
                                  String businessName,
                                  String representativeName,
-                                 String openDate,
+                                 LocalDate openDate,
                                  String businessType,
                                  String businessCategory,
                                  String businessAddress) {
