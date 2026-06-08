@@ -86,6 +86,18 @@ INSERT INTO my_biz_data (
 (9,  '1090123456', 'I56111', '음식점업(한식)',    'SEOUL-GD',    '2026-05-01', 15, 108000000, 9200000,  8100000,  13.58, 9200000.00,  95,  96842.11,  5, 12, 10100000, 6900000,  15000000, 3600000, 3200000, 0,       0,   NULL, 18.00, 83.00, 10, 4.6, 75,  86.00, 36.00, 30.50, 38.00, 'FILED', '2026-05-14', false, 'PAID', 1, true,  false, false, NOW(), NOW()),
 (10, '1101234567', 'I56111', '음식점업(한식)',    'SEOUL-NW',    '2026-05-01', 72, 264000000, 22600000, 21400000, 5.61,  22600000.00, 410, 55121.95,  1, 3,  23800000, 18100000, 58000000, 7900000, 5700000, 0,       0,   NULL, 22.00, 87.00, 6,  4.7, 220, 88.90, 16.00, 15.50, 18.00, 'FILED', '2026-05-07', false, 'PAID', 8, true,  true,  true,  NOW(), NOW());
 
+
+-- user_id=1 (음식점업 분식, SEOUL-GN) 추가 5개월치
+-- 2025-12 ~ 2026-04, 5월 데이터(monthly_revenue=21,000,000)로 역산한 완만한 성장 추세
+INSERT INTO my_biz_data (user_id, business_number, industry_code, industry_name, district_code, reference_month, business_age_months, annual_income, monthly_revenue, prev_month_revenue, monthly_revenue_growth_rate, monthly_transaction_amount, monthly_transaction_count, avg_transaction_amount, days_since_last_transaction, max_inactive_days, monthly_inflow, monthly_outflow, account_balance, estimated_profit, cash_flow, delivery_sales_amount, delivery_order_count, delivery_rating, online_reorder_rate, online_reply_rate, online_info_update_count, review_rating, review_count, positive_review_ratio, industry_sales_rank, industry_profit_rank, industry_stability_rank, vat_filing_status, vat_filing_date, tax_overdue, insurance_payment_status, employee_count, has_sns, has_online_reservation, is_near_subway, created_at, updated_at) VALUES
+(1, '1012345678', 'I56111', '음식점업(분식)', 'SEOUL-GN', '2025-12-01', 31, 240000000, 16800000, 16200000, 3.70, 16800000.00, 710, 23661.97, 1, 3, 18200000, 15100000, 42000000, 4100000, 3500000, 6100000, 270, 4.5, 35.00, 88.00, 4, 4.6, 440, 86.10, 22.50, 25.00, 28.00, 'FILED', '2025-12-10', false, 'PAID', 5, true, true, true, NOW(), NOW()),
+(1, '1012345678', 'I56111', '음식점업(분식)', 'SEOUL-GN', '2026-01-01', 32, 240000000, 17400000, 16800000, 3.57, 17400000.00, 730, 23835.62, 1, 3, 18900000, 15600000, 42000000, 4300000, 3700000, 6400000, 285, 4.5, 36.00, 89.00, 5, 4.6, 460, 86.50, 21.50, 24.00, 27.00, 'FILED', '2026-01-10', false, 'PAID', 5, true, true, true, NOW(), NOW()),
+(1, '1012345678', 'I56111', '음식점업(분식)', 'SEOUL-GN', '2026-02-01', 33, 240000000, 18100000, 17400000, 4.02, 18100000.00, 755, 23973.51, 1, 3, 19600000, 16100000, 42000000, 4500000, 3900000, 6700000, 300, 4.6, 36.50, 90.00, 5, 4.7, 475, 87.00, 21.00, 23.00, 26.50, 'FILED', '2026-02-10', false, 'PAID', 5, true, true, true, NOW(), NOW()),
+(1, '1012345678', 'I56111', '음식점업(분식)', 'SEOUL-GN', '2026-03-01', 34, 240000000, 19000000, 18100000, 4.97, 19000000.00, 780, 24358.97, 1, 3, 20500000, 17000000, 42000000, 4700000, 4100000, 7100000, 315, 4.6, 37.00, 91.00, 6, 4.7, 490, 87.50, 20.00, 22.00, 25.50, 'FILED', '2026-03-10', false, 'PAID', 5, true, true, true, NOW(), NOW()),
+(1, '1012345678', 'I56111', '음식점업(분식)', 'SEOUL-GN', '2026-04-01', 35, 240000000, 19500000, 19000000, 2.63, 19500000.00, 800, 24375.00, 1, 3, 21200000, 17800000, 42000000, 4900000, 4200000, 7400000, 328, 4.6, 37.50, 91.00, 6, 4.7, 500, 87.80, 19.50, 21.50, 25.00, 'FILED', '2026-04-10', false, 'PAID', 5, true, true, true, NOW(), NOW());
+
+
+
 -- =====================================================
 -- 4. s_grade_feature
 -- =====================================================
