@@ -21,4 +21,9 @@ public interface LoanDecisionRepository extends JpaRepository<LoanDecision, Long
      * 최종 결정 조회 (MANAGER_APPROVED, MANAGER_REJECTED, TELLER_REJECTED 중 하나)
      */
     Optional<LoanDecision> findByApplication_ApplicationIdAndStatusIn(Long applicationId, List<DecisionStatus> statuses);
+
+    /**
+     * 여러 신청 건에 대해 승인 상태의 decision 일괄 조회 (대시보드 목록용)
+     */
+    List<LoanDecision> findByApplication_ApplicationIdInAndStatusIn(List<Long> applicationIds, List<DecisionStatus> statuses);
 }

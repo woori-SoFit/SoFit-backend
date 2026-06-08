@@ -43,7 +43,8 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
             ApplicationStatus.SYSTEM_REJECTED,
             ApplicationStatus.MANAGER_REVIEW,
             ApplicationStatus.APPROVED,
-            ApplicationStatus.REJECTED
+            ApplicationStatus.REJECTED,
+            ApplicationStatus.EXECUTED
     );
 
     private final LoanDashboardService loanDashboardService;

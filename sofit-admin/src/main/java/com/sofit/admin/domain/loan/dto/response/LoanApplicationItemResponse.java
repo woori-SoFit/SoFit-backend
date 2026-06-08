@@ -12,6 +12,8 @@ public record LoanApplicationItemResponse(
         String productName,
         ApplicationStatus status,
         Long assignedBankerId,
-        String assigneeName
+        String assigneeName,
+        Long requestedAmount,
+        Long approvedAmount
 ) {
 }
