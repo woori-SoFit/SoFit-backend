@@ -1,6 +1,7 @@
 package com.sofit.admin.domain.dev.service;
 
 import com.sofit.admin.domain.dev.dto.response.UserListResponse;
+import com.sofit.admin.domain.dev.dto.response.UserStatisticsResponse;
 
 public interface DevUserService {
 
@@ -15,4 +16,11 @@ public interface DevUserService {
      * @return 페이징된 사용자 목록
      */
     UserListResponse findUsers(Integer page, Integer size, String keyword, String role, String status);
+
+    /**
+     * 고객 정보 통계 조회
+     *
+     * @return 사용자 통계 (전체, 활성, 은행원, 고객, 비활성 수)
+     */
+    UserStatisticsResponse findUserStatistics();
 }

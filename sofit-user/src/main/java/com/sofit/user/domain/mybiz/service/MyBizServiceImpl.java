@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.common.entity.mybiz.MyBizData;
-import com.sofit.common.repository.MyBizDataRepository;
+import com.sofit.common.repository.mybiz.MyBizDataRepository;
 import com.sofit.user.domain.mybiz.converter.MyBizConverter;
 import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse;
 import com.sofit.user.domain.mybiz.exception.MyBizErrorCode;

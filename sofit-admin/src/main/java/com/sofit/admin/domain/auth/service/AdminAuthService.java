@@ -11,4 +11,6 @@ public interface AdminAuthService {
     AdminLoginResponse login(AdminLoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse);
 
     AdminMeResponse findMe();
+
+    void logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse);
 }

@@ -2,9 +2,9 @@ package com.sofit.user.domain.report.service;
 
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.auth.BusinessProfile;
-import com.sofit.common.entity.report.ShapExplanation;
-import com.sofit.common.repository.ShapExplanationRepository;
+import com.sofit.common.entity.sGrade.SGradeReport;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
+import com.sofit.common.repository.sGrade.SGradeReportRepository;
 import com.sofit.user.domain.report.converter.ReportConverter;
 import com.sofit.user.domain.report.dto.response.GradeDetailResponse;
 import com.sofit.user.domain.report.dto.response.GradeResponse;
@@ -19,25 +19,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class ReportServiceImpl implements ReportService {
 
-    private final ShapExplanationRepository shapExplanationRepository;
+    private final SGradeReportRepository sGradeReportRepository;
     private final BusinessProfileRepository businessProfileRepository;
 
     @Override
     public GradeResponse findGrade(Long userId) {
-        ShapExplanation explanation = shapExplanationRepository
-                .findTopByUser_UserIdOrderByCreatedAtDesc(userId)
+        SGradeReport sGradeReport = sGradeReportRepository
+                .findLatestCompletedByUserId(userId)
                 .orElseThrow(() -> new BaseException(ReportErrorCode.GRADE_NOT_FOUND));
 
-        return ReportConverter.toGradeResponse(explanation);
+        return ReportConverter.toGradeResponse(sGradeReport);
     }
 
     @Override
     public GradeDetailResponse findGradeDetail(Long userId) {
-        ShapExplanation explanation = shapExplanationRepository
-                .findTopByUser_UserIdOrderByCreatedAtDesc(userId)
+        SGradeReport sGradeReport = sGradeReportRepository
+                .findLatestCompletedByUserId(userId)
                 .orElseThrow(() -> new BaseException(ReportErrorCode.GRADE_NOT_FOUND));
 
-        return ReportConverter.toGradeDetailResponse(explanation);
+        return ReportConverter.toGradeDetailResponse(sGradeReport);
     }
 
     @Override

@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@org.junit.jupiter.api.Disabled("실제 DB/Redis 연결 필요 — CI에서 제외")
 class AdminAuthRealIntegrationTest {
 
     @Autowired

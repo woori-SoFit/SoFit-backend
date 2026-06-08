@@ -141,14 +141,14 @@ import com.sofit.admin.domain.loan.dto.response.LoanApplicationGradeResponse;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
 import com.sofit.common.entity.loan.LoanApplication;
-import com.sofit.common.entity.report.Scb;
-import com.sofit.common.entity.report.SScoringRule;
-import com.sofit.common.entity.report.ShapExplanation;
-import com.sofit.common.entity.report.enums.SGrade;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.ScbRepository;
-import com.sofit.common.repository.SScoringRuleRepository;
-import com.sofit.common.repository.ShapExplanationRepository;
+import com.sofit.common.entity.sGrade.Scb;
+import com.sofit.common.entity.sGrade.SScoringRule;
+import com.sofit.common.entity.sGrade.ShapExplanation;
+import com.sofit.common.entity.sGrade.enums.SGrade;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.sGrade.ScbRepository;
+import com.sofit.common.repository.sGrade.SScoringRuleRepository;
+import com.sofit.common.repository.sGrade.ShapExplanationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -208,10 +208,10 @@ public class LoanApplicationGradeServiceImpl implements LoanApplicationGradeServ
 package com.sofit.admin.domain.loan.converter;
 
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationGradeResponse;
-import com.sofit.common.entity.report.Scb;
-import com.sofit.common.entity.report.SScoringRule;
-import com.sofit.common.entity.report.ShapExplanation;
-import com.sofit.common.entity.report.enums.SGrade;
+import com.sofit.common.entity.sGrade.Scb;
+import com.sofit.common.entity.sGrade.SScoringRule;
+import com.sofit.common.entity.sGrade.ShapExplanation;
+import com.sofit.common.entity.sGrade.enums.SGrade;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -222,7 +222,8 @@ public class LoanApplicationGradeConverter {
 
     private static final int MAX_SCORE = 1000;
 
-    private LoanApplicationGradeConverter() {}
+    private LoanApplicationGradeConverter() {
+    }
 
     public static LoanApplicationGradeResponse toLoanApplicationGradeResponse(
             Scb scb, SGrade sGrade, SScoringRule scoringRule, ShapExplanation shapExplanation) {
@@ -300,7 +301,7 @@ LOAN_APPLICATION_GRADE_OK(HttpStatus.OK, "LOAN2005", "성장 S등급 탭 조회�
 ```java
 package com.sofit.common.repository;
 
-import com.sofit.common.entity.report.Scb;
+import com.sofit.common.entity.sGrade.Scb;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -316,7 +317,7 @@ public interface ScbRepository extends JpaRepository<Scb, Long> {
 ```java
 package com.sofit.common.repository;
 
-import com.sofit.common.entity.report.SScoringRule;
+import com.sofit.common.entity.sGrade.SScoringRule;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SScoringRuleRepository extends JpaRepository<SScoringRule, String> {
@@ -370,7 +371,7 @@ public record LoanApplicationGradeResponse(
 **파일**: `Scb.java` (신규)
 
 ```java
-package com.sofit.common.entity.report;
+package com.sofit.common.entity.sGrade;
 
 import com.sofit.common.entity.BaseEntity;
 import com.sofit.common.entity.user.User;
@@ -414,7 +415,7 @@ public class Scb extends BaseEntity {
 **파일**: `SScoringRule.java` (신규)
 
 ```java
-package com.sofit.common.entity.report;
+package com.sofit.common.entity.sGrade;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
