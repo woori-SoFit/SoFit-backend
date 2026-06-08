@@ -36,7 +36,7 @@ public class AuthConverter {
                 process.getRepresentativeName(),
                 process.getBusinessName(),
                 process.getBusinessType(),
-                process.getOpenDate() != null ? process.getOpenDate().toString() : null,
+                process.getOpenDate(),
                 process.getCreatedAt()
         );
     }
