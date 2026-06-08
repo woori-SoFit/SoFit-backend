@@ -98,20 +98,25 @@ public class LoanDashboardServiceImpl implements LoanDashboardService {
                 .map(LoanApplication::getApplicationId)
                 .toList();
 
-        List<DecisionStatus> approvalStatuses = List.of(
-                DecisionStatus.SYSTEM_APPROVED,
-                DecisionStatus.TELLER_APPROVED,
-                DecisionStatus.MANAGER_APPROVED
-        );
+        Map<Long, Long> approvedAmountMap;
+        if (applicationIds.isEmpty()) {
+            approvedAmountMap = Map.of();
+        } else {
+            List<DecisionStatus> approvalStatuses = List.of(
+                    DecisionStatus.SYSTEM_APPROVED,
+                    DecisionStatus.TELLER_APPROVED,
+                    DecisionStatus.MANAGER_APPROVED
+            );
 
-        Map<Long, Long> approvedAmountMap = loanDecisionRepository
-                .findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(applicationIds, approvalStatuses)
-                .stream()
-                .collect(Collectors.toMap(
-                        d -> d.getApplication().getApplicationId(),
-                        LoanDecision::getApprovedAmount,
-                        (existing, replacement) -> replacement // createdAt ASC 정렬이므로 뒤에 오는 값이 최신
-                ));
+            approvedAmountMap = loanDecisionRepository
+                    .findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(applicationIds, approvalStatuses)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            d -> d.getApplication().getApplicationId(),
+                            LoanDecision::getApprovedAmount,
+                            (existing, replacement) -> replacement // createdAt ASC 정렬이므로 뒤에 오는 값이 최신
+                    ));
+        }
 
         return LoanDashboardConverter.toLoanDashboardResponse(page, businessNameMap, bankerNameMap, approvedAmountMap);
     }
