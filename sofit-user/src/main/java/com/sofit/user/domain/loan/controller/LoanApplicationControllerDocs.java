@@ -6,6 +6,7 @@ import com.sofit.user.domain.loan.dto.request.LoanApplicationSubmitRequest;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
+import com.sofit.user.domain.loan.dto.response.DraftListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationDetailResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationListResponse;
@@ -37,6 +38,12 @@ public interface LoanApplicationControllerDocs {
     })
     ApiResponse<DraftCheckResponse> checkDraft(
             @Parameter(description = "대출 상품 ID", required = true, example = "1") Long productId);
+
+    @Operation(summary = "진행 중인 DRAFT 목록 조회", description = "현재 사용자의 모든 DRAFT 상태 대출 신청 목록을 상품명 포함하여 조회합니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공")
+    })
+    ApiResponse<DraftListResponse> getDrafts();
 
     @Operation(summary = "이어가기 데이터 조회", description = "DRAFT 상태인 대출 신청의 저장된 데이터를 조회합니다.")
     @ApiResponses(value = {

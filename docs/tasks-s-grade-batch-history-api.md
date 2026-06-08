@@ -1,84 +1,67 @@
-# 성장 S등급 배치 관리 조회 API - tasks.md
+# S등급 배치 연동 — Spring Boot 변경 작업
 
 ## 브랜치/커밋 정보
-- 브랜치: `feat/SOFIT-XXX-s-grade-batch-history`
-- 커밋: `[SOFIT-XXX] Feat: 성장 S등급 배치 실행 이력 조회 API 구현`
+- 브랜치: `feat/SOFIT-XXX-s-grade-batch-integration`
+- 커밋: `[SOFIT-XXX] Feat: S등급 배치 연동을 위한 테이블 매핑 및 로직 변경`
 
 ---
 
-## Phase 1: Entity + Enum + Repository
+## Phase 1: SQL 파일 테이블명 수정 (`s_input_feature` → `s_grade_feature`)
 
 ### 작업 내용
-1. Enum 생성 (위치: `sofit-admin/.../domain/dev/entity/enums/`)
-   - `ExecutionType`: AUTO, MANUAL
-   - `ExecutionCycle`: DAILY, MONTHLY
-   - `BatchStatus`: RUNNING, COMPLETED, FAILED
+- [ ] `data_static.sql` — DDL 테이블명/인덱스명 변경
+- [ ] `data_dummy.sql` — INSERT문 테이블명 및 주석 변경
 
-2. `BatchExecutionHistory` 엔티티 생성 (BaseEntity 상속 안 함)
-   - 위치: `sofit-admin/.../domain/dev/entity/BatchExecutionHistory.java`
-   - 테이블: `batch_execution_history`
-   - 컬럼 매핑:
-     - `execution_id` → Long (PK, GeneratedValue)
-     - `execution_type` → ExecutionType (ENUM)
-     - `execution_cycle` → ExecutionCycle (ENUM)
-     - `triggered_by` → Long (nullable)
-     - `status` → BatchStatus (ENUM)
-     - `total_count` → Integer
-     - `success_count` → Integer
-     - `fail_count` → Integer
-     - `error_message` → String (nullable, TEXT)
-     - `started_at` → LocalDateTime
-     - `completed_at` → LocalDateTime (nullable)
-
-3. `BatchExecutionHistoryRepository` 생성
-   - 위치: `sofit-admin/.../domain/dev/repository/BatchExecutionHistoryRepository.java`
-   - JpaRepository<BatchExecutionHistory, Long>
+### 대상 파일
+- `sofit-user/src/main/resources/sql/data_static.sql`
+- `sofit-user/src/main/resources/sql/data_dummy.sql`
 
 ---
 
-## Phase 2: DTO + Converter
+## Phase 2: `SGradeHistoryRepository` 생성 + `SGradeHistory` 엔티티 생성 메서드 추가
 
 ### 작업 내용
-1. `BatchHistoryItemResponse` (record)
-   - 필드: id, status, processedCount, elapsedSeconds, errorMessage, startedAt, finishedAt
+- [ ] `SGradeHistoryRepository` 생성 (JpaRepository)
+  - `findByUser_UserIdAndStatus(Long userId, SGradeStatus status)` — FAILED 상태 조회 (수동 배치 복구용)
+- [ ] `SGradeHistory` 엔티티에 `createRequested(User user)` 정적 팩토리 메서드 추가
+  - status = REQUESTED, requestedAt = NOW(), featureId = null, batchExecutionId = null
 
-2. `BatchHistoryListResponse` (record)
-   - 필드: contents, totalCount, totalPages, currentPage, size
-
-3. `DevBatchConverter`
-   - Entity → DTO 변환
-   - elapsedSeconds: `completed_at - started_at`을 초(seconds) 단위로 계산 (completed_at이 null이면 null)
+### 대상 파일
+- `sofit-common/src/main/java/com/sofit/common/repository/sGrade/SGradeHistoryRepository.java` (신규)
+- `sofit-common/src/main/java/com/sofit/common/entity/sGrade/SGradeHistory.java` (수정)
 
 ---
 
-## Phase 3: Service
+## Phase 3: 회원가입 완료 시 `SGradeHistory` REQUESTED INSERT
 
 ### 작업 내용
-1. `DevBatchService` 인터페이스
-2. `DevBatchServiceImpl` 구현체
-   - 페이징: page 기본값 0, size 기본값 5
-   - 정렬: started_at DESC
+- [ ] `AuthServiceImpl.completeSignup()` 내부 트랜잭션에서 User 저장 후 `SGradeHistory.createRequested(user)` INSERT 추가
+
+### 대상 파일
+- `sofit-user/src/main/java/com/sofit/user/domain/auth/service/AuthServiceImpl.java`
 
 ---
 
-## Phase 4: Controller + ControllerDocs
+## Phase 4: `SGradeReportRepository` 조회 쿼리에 COMPLETED 조건 추가
 
 ### 작업 내용
-1. `DevBatchControllerDocs` 인터페이스 (Swagger)
-2. `DevBatchController`
-   - GET `/api/admin/dev/batch/s-grade`
-   - 권한 체크: ADMIN_DEV만 허용 → 불일치 시 GeneralErrorCode.FORBIDDEN
+- [ ] 기존 `findTopByUser_UserIdOrderByCreatedAtDesc` → JPQL 커스텀 쿼리로 변경
+  - `s_grade_history`와 JOIN하여 `status = COMPLETED`인 건만 조회
+  - `s_grade_history.evaluated_at DESC` 기준 정렬
+
+### 대상 파일
+- `sofit-common/src/main/java/com/sofit/common/repository/sGrade/SGradeReportRepository.java`
 
 ---
 
-## 응답 매핑 (Response ↔ DB 컬럼)
+## Phase 5: 코드 정리 (주석/변수명)
 
-| Response 필드 | DB 컬럼 | 비고 |
-|---|---|---|
-| id | execution_id | PK |
-| status | status | ENUM → String |
-| processedCount | success_count | 성공 건수 |
-| elapsedSeconds | completed_at - started_at | 초 단위 변환, null 가능 |
-| errorMessage | error_message | nullable |
-| startedAt | started_at | |
-| finishedAt | completed_at | DB 컬럼명 completed_at |
+### 작업 내용
+- [ ] `LoanApplicationRepository.java` — 주석 "s_evaluation_id" → "s_grade_id"
+- [ ] `LoanApplicationGradeServiceImpl.java` — 변수명 `sEvaluationId` → `sGradeId`, 주석 수정
+- [ ] `ReportConverter.java` — Javadoc "ShapExplanation 엔티티" → "SGradeReport 엔티티"
+
+### 대상 파일
+- `sofit-common/src/main/java/com/sofit/common/repository/loan/LoanApplicationRepository.java`
+- `sofit-admin/src/main/java/com/sofit/admin/domain/loan/service/LoanApplicationGradeServiceImpl.java`
+- `sofit-user/src/main/java/com/sofit/user/domain/report/converter/ReportConverter.java`

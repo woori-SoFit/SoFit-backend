@@ -23,6 +23,47 @@ import com.sofit.user.domain.terms.dto.response.ConsentCreateResponse.ConsentIte
 class TermConverterTest {
 
     @Nested
+    @DisplayName("toListResponse 메서드")
+    class ToListResponseTest {
+
+        @Test
+        @DisplayName("Term 목록이 TermListResponse의 TermItem 목록으로 변환된다")
+        void term_목록이_TermItem으로_변환된다() {
+            // given
+            LocalDateTime effectiveAt = LocalDateTime.of(2026, 1, 1, 0, 0);
+            Term term1 = createTermFull(1L, TermType.PERSONAL_INFO, "v1.0", "개인정보 수집 동의",
+                    "/terms/personal_info_v1.0.pdf", true, effectiveAt);
+            Term term2 = createTermFull(2L, TermType.LOAN_APPLICATION, "v1.0", "대출 신청 동의",
+                    "/terms/loan_application_v1.0.pdf", false, effectiveAt);
+
+            // when
+            var response = TermConverter.toListResponse(List.of(term1, term2));
+
+            // then
+            assertThat(response.terms()).hasSize(2);
+
+            var first = response.terms().get(0);
+            assertThat(first.termId()).isEqualTo(1L);
+            assertThat(first.termType()).isEqualTo("PERSONAL_INFO");
+            assertThat(first.version()).isEqualTo("v1.0");
+            assertThat(first.title()).isEqualTo("개인정보 수집 동의");
+            assertThat(first.fileUrl()).isEqualTo("/terms/personal_info_v1.0.pdf");
+            assertThat(first.isRequired()).isTrue();
+            assertThat(first.effectiveAt()).isEqualTo(effectiveAt);
+        }
+
+        @Test
+        @DisplayName("빈 목록이 들어오면 빈 TermListResponse를 반환한다")
+        void 빈_목록이면_빈_응답을_반환한다() {
+            // when
+            var response = TermConverter.toListResponse(List.of());
+
+            // then
+            assertThat(response.terms()).isEmpty();
+        }
+    }
+
+    @Nested
     @DisplayName("toConsentHistoryList 메서드")
     class ToConsentHistoryListTest {
 
@@ -199,6 +240,25 @@ class TermConverterTest {
             ReflectionTestUtils.setField(term, "termId", termId);
             ReflectionTestUtils.setField(term, "termType", termType);
             ReflectionTestUtils.setField(term, "isRequired", isRequired);
+            return term;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Term createTermFull(Long termId, TermType termType, String version, String title,
+                                String fileUrl, Boolean isRequired, LocalDateTime effectiveAt) {
+        try {
+            var constructor = Term.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            Term term = constructor.newInstance();
+            ReflectionTestUtils.setField(term, "termId", termId);
+            ReflectionTestUtils.setField(term, "termType", termType);
+            ReflectionTestUtils.setField(term, "version", version);
+            ReflectionTestUtils.setField(term, "title", title);
+            ReflectionTestUtils.setField(term, "fileUrl", fileUrl);
+            ReflectionTestUtils.setField(term, "isRequired", isRequired);
+            ReflectionTestUtils.setField(term, "effectiveAt", effectiveAt);
             return term;
         } catch (Exception e) {
             throw new RuntimeException(e);

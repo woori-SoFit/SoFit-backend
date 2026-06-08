@@ -2,7 +2,7 @@ package com.sofit.admin.domain.dev.converter;
 
 import com.sofit.admin.domain.dev.dto.response.BatchHistoryItemResponse;
 import com.sofit.admin.domain.dev.dto.response.BatchHistoryListResponse;
-import com.sofit.admin.domain.dev.entity.BatchExecutionHistory;
+import com.sofit.common.entity.sGrade.BatchExecutionHistory;
 import org.springframework.data.domain.Page;
 
 import java.time.Duration;

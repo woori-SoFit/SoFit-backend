@@ -22,6 +22,7 @@ public class AdminAuthConverter {
      */
     public static AdminMeResponse toMeResponse(User user) {
         return new AdminMeResponse(
+                user.getUserId(),
                 user.getName(),
                 user.getLoginId(),
                 user.getPhoneNumber(),

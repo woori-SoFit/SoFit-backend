@@ -6,20 +6,22 @@ import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.loan.enums.ProductStatus;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanProductRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanProductRepository;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import com.sofit.user.domain.loan.converter.LoanApplicationConverter;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationSubmitRequest;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
+import com.sofit.user.domain.loan.dto.response.DraftListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.notification.event.LoanSubmittedEvent;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -57,10 +59,11 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
             throw new BaseException(LoanErrorCode.PRODUCT_NOT_ACTIVE);
         }
 
-        // 3. 동일 상품 중복 신청 체크 (CANCELLED 제외)
+        // 3. 동일 상품 중복 신청 체크 (EXECUTED, REJECTED, CANCELLED, EXPIRED 상태는 재신청 허용)
         boolean exists = loanApplicationRepository
-                .existsByUser_UserIdAndProduct_ProductIdAndStatusNot(
-                        userId, productId, ApplicationStatus.CANCELLED);
+                .existsByUser_UserIdAndProduct_ProductIdAndStatusNotIn(
+                        userId, productId,
+                        List.of(ApplicationStatus.EXECUTED, ApplicationStatus.REJECTED, ApplicationStatus.CANCELLED, ApplicationStatus.EXPIRED));
 
         if (exists) {
             throw new BaseException(LoanErrorCode.DUPLICATE_APPLICATION);
@@ -91,6 +94,17 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 .findByUser_UserIdAndProduct_ProductIdAndStatus(userId, productId, ApplicationStatus.DRAFT)
                 .map(LoanApplicationConverter::toDraftCheckResponse)
                 .orElse(new DraftCheckResponse(false, null, null, null));
+    }
+
+    /**
+     * 사용자의 전체 DRAFT 목록 조회
+     * - 로그인 사용자의 모든 DRAFT 상태 신청을 상품명 포함하여 반환
+     */
+    @Override
+    public DraftListResponse findDrafts(Long userId) {
+        java.util.List<LoanApplication> drafts = loanApplicationRepository
+                .findDraftsByUserIdWithProduct(userId, ApplicationStatus.DRAFT);
+        return LoanApplicationConverter.toDraftListResponse(drafts);
     }
 
     /**

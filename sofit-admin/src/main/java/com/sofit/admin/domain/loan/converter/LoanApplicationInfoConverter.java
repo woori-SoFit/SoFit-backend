@@ -60,10 +60,10 @@ public class LoanApplicationInfoConverter {
 
     public static LoanApplicationInfoResponse.UserInputInfo toUserInputInfo(LoanApplication app) {
         return new LoanApplicationInfoResponse.UserInputInfo(
-                app.getUserInputAnnualIncome() != null ? app.getUserInputAnnualIncome().name() : null,
-                app.getUserInputCreditScore() != null ? app.getUserInputCreditScore().name() : null,
+                app.getUserInputAnnualIncome() != null ? app.getUserInputAnnualIncome() : null,
+                app.getUserInputCreditScore() != null ? app.getUserInputCreditScore() : null,
                 app.getUserInputIncomeType() != null ? app.getUserInputIncomeType().getCode() : null,
-                app.getUserInputExistingLoanAmt() != null ? app.getUserInputExistingLoanAmt().name() : null
+                app.getUserInputExistingLoanAmt() != null ? app.getUserInputExistingLoanAmt() : null
         );
     }
 
