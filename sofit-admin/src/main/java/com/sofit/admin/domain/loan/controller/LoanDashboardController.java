@@ -7,6 +7,7 @@ import com.sofit.admin.domain.loan.dto.response.LoanApplicationReviewResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
 import com.sofit.admin.domain.loan.dto.response.LoanStatisticsResponse;
 import com.sofit.admin.domain.loan.dto.response.MyBizDataDetailResponse;
+import com.sofit.admin.domain.loan.exception.LoanDashboardErrorCode;
 import com.sofit.admin.domain.loan.exception.LoanDashboardSuccessCode;
 import com.sofit.admin.domain.loan.service.LoanApplicationGradeService;
 import com.sofit.admin.domain.loan.service.LoanApplicationInfoService;
@@ -81,11 +82,11 @@ public class LoanDashboardController implements LoanDashboardControllerDocs {
                 try {
                     ApplicationStatus parsed = ApplicationStatus.valueOf(s);
                     if (!ALLOWED_STATUSES.contains(parsed)) {
-                        throw new BaseException(GeneralErrorCode.BAD_REQUEST);
+                        throw new BaseException(LoanDashboardErrorCode.INVALID_STATUS_FILTER);
                     }
                     statuses.add(parsed);
                 } catch (IllegalArgumentException e) {
-                    throw new BaseException(GeneralErrorCode.BAD_REQUEST);
+                    throw new BaseException(LoanDashboardErrorCode.INVALID_STATUS_FILTER);
                 }
             }
             if (statuses.isEmpty()) {

@@ -135,7 +135,8 @@ class LoanDashboardControllerTest {
                             .param("size", "10")
                             .param("status", "INVALID_STATUS"))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.isSuccess").value(false));
+                    .andExpect(jsonPath("$.isSuccess").value(false))
+                    .andExpect(jsonPath("$.code").value("LOAN4001"));
         }
 
         @Test
@@ -146,7 +147,8 @@ class LoanDashboardControllerTest {
                             .param("size", "10")
                             .param("status", "SUBMITTED"))
                     .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.isSuccess").value(false));
+                    .andExpect(jsonPath("$.isSuccess").value(false))
+                    .andExpect(jsonPath("$.code").value("LOAN4001"));
         }
 
         @Test
@@ -158,7 +160,7 @@ class LoanDashboardControllerTest {
                     new LoanApplicationItemResponse(
                             10L, LocalDateTime.of(2025, 6, 1, 10, 0),
                             "홍길동", "길동상회", "소상공인 대출",
-                            ApplicationStatus.SYSTEM_APPROVED, 50L, "김은행"
+                            ApplicationStatus.SYSTEM_APPROVED, 50L, "김은행", 10000000L, null
                     )
             ));
             given(loanDashboardService.findLoanApplications(any(), eq(false), eq(1L), any()))
@@ -342,6 +344,55 @@ class LoanDashboardControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.result.productInfo.productName").value("소상공인 대출"))
                     .andExpect(jsonPath("$.result.applicationInfo.requestedAmount").value(50_000_000));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/admin/loan-applications/{applicationId}/grade")
+    class FindLoanApplicationGradeTest {
+
+        @Test
+        @DisplayName("정상 조회 시 200 응답을 반환한다")
+        void shouldReturn200OnSuccess() throws Exception {
+            // given
+            LoanApplicationGradeResponse response = new LoanApplicationGradeResponse(
+                    new LoanApplicationGradeResponse.CbScoreInfo(750, 1000),
+                    "S3",
+                    new LoanApplicationGradeResponse.ScbInfo(800, 1000, 50),
+                    new LoanApplicationGradeResponse.ShapResult(
+                            "S3", "S2",
+                            List.of("매출 성장"), List.of("업종 순위"),
+                            java.util.Map.of("매출 성장", 0.35),
+                            java.util.Map.of("업종 순위", -0.15),
+                            "매출 성장세를 유지하세요.")
+            );
+            given(loanApplicationGradeService.findLoanApplicationGrade(10L)).willReturn(response);
+
+            // when & then
+            mockMvc.perform(get("/api/admin/loan-applications/10/grade"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.isSuccess").value(true))
+                    .andExpect(jsonPath("$.result.cbScore.score").value(750))
+                    .andExpect(jsonPath("$.result.sGrade").value("S3"))
+                    .andExpect(jsonPath("$.result.scbInfo.score").value(800))
+                    .andExpect(jsonPath("$.result.scbInfo.bonusPoints").value(50))
+                    .andExpect(jsonPath("$.result.shapResult.grade").value("S3"))
+                    .andExpect(jsonPath("$.result.shapResult.targetGrade").value("S2"))
+                    .andExpect(jsonPath("$.result.shapResult.advice").value("매출 성장세를 유지하세요."));
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 건 조회 시 404 응답을 반환한다")
+        void shouldReturn404WhenNotFound() throws Exception {
+            // given
+            given(loanApplicationGradeService.findLoanApplicationGrade(999L))
+                    .willThrow(new BaseException(GeneralErrorCode.NOT_FOUND));
+
+            // when & then
+            mockMvc.perform(get("/api/admin/loan-applications/999/grade"))
+                    .andExpect(status().isNotFound())
+                    .andExpect(jsonPath("$.isSuccess").value(false))
+                    .andExpect(jsonPath("$.code").value("COMMON4004"));
         }
     }
 }

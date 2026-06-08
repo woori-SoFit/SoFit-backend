@@ -8,7 +8,7 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.LoanProductOption;
-import com.sofit.common.entity.loan.enums.Decision;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.loan.enums.LoanPurpose;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
 import com.sofit.common.entity.user.User;
@@ -148,7 +148,7 @@ class LoanApplicationReviewConverterTest {
             // given
             LoanDecision decision = mock(LoanDecision.class);
             given(decision.getCreatedBy()).willReturn(null);
-            given(decision.getDecision()).willReturn(Decision.REJECTED);
+            given(decision.getStatus()).willReturn(DecisionStatus.SYSTEM_REJECTED);
 
             // when
             RecommendationResponse response = LoanApplicationReviewConverter.toRecommendationResponse(decision);
@@ -163,7 +163,7 @@ class LoanApplicationReviewConverterTest {
             // given
             LoanDecision decision = mock(LoanDecision.class);
             given(decision.getCreatedBy()).willReturn(null);
-            given(decision.getDecision()).willReturn(Decision.APPROVED);
+            given(decision.getStatus()).willReturn(DecisionStatus.SYSTEM_APPROVED);
             given(decision.getApprovedAmount()).willReturn(45_000_000L);
             given(decision.getApprovedRate()).willReturn(new BigDecimal("4.5"));
             given(decision.getApprovedTerm()).willReturn(36);
@@ -186,7 +186,7 @@ class LoanApplicationReviewConverterTest {
             // given
             LoanDecision decision = mock(LoanDecision.class);
             given(decision.getCreatedBy()).willReturn(null);
-            given(decision.getDecision()).willReturn(Decision.APPROVED);
+            given(decision.getStatus()).willReturn(DecisionStatus.SYSTEM_APPROVED);
             given(decision.getApprovedAmount()).willReturn(45_000_000L);
             given(decision.getApprovedRate()).willReturn(new BigDecimal("4.5"));
             given(decision.getApprovedTerm()).willReturn(36);
@@ -211,7 +211,7 @@ class LoanApplicationReviewConverterTest {
             // given
             LoanDecision decision = mock(LoanDecision.class);
             given(decision.getCreatedBy()).willReturn(null);
-            given(decision.getDecision()).willReturn(Decision.APPROVED);
+            given(decision.getStatus()).willReturn(DecisionStatus.SYSTEM_APPROVED);
             given(decision.getComment()).willReturn("시스템 자동 승인");
             given(decision.getCreatedAt()).willReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
 
@@ -230,7 +230,7 @@ class LoanApplicationReviewConverterTest {
             // given
             LoanDecision decision = mock(LoanDecision.class);
             given(decision.getCreatedBy()).willReturn(null);
-            given(decision.getDecision()).willReturn(Decision.REJECTED);
+            given(decision.getStatus()).willReturn(DecisionStatus.SYSTEM_REJECTED);
             given(decision.getComment()).willReturn("시스템 자동 거절");
             given(decision.getCreatedAt()).willReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
 
@@ -238,7 +238,7 @@ class LoanApplicationReviewConverterTest {
             DecisionResponse response = LoanApplicationReviewConverter.toDecisionResponse(decision, null);
 
             // then
-            assertThat(response.status()).isEqualTo("REJECTED");
+            assertThat(response.status()).isEqualTo("SYSTEM_REJECTED");
             assertThat(response.reviewerName()).isEqualTo("시스템");
             assertThat(response.reviewerRole()).isEqualTo("SYSTEM");
         }
@@ -249,7 +249,7 @@ class LoanApplicationReviewConverterTest {
             // given
             LoanDecision decision = mock(LoanDecision.class);
             given(decision.getCreatedBy()).willReturn(50L);
-            given(decision.getDecision()).willReturn(Decision.APPROVED);
+            given(decision.getStatus()).willReturn(DecisionStatus.TELLER_APPROVED);
             given(decision.getComment()).willReturn("승인합니다.");
             given(decision.getCreatedAt()).willReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
 
@@ -261,7 +261,7 @@ class LoanApplicationReviewConverterTest {
             DecisionResponse response = LoanApplicationReviewConverter.toDecisionResponse(decision, banker);
 
             // then
-            assertThat(response.status()).isEqualTo("APPROVED");
+            assertThat(response.status()).isEqualTo("TELLER_APPROVED");
             assertThat(response.reviewerName()).isEqualTo("김은행");
             assertThat(response.reviewerRole()).isEqualTo("ADMIN_BANK_TELLER");
         }
@@ -272,7 +272,7 @@ class LoanApplicationReviewConverterTest {
             // given
             LoanDecision decision = mock(LoanDecision.class);
             given(decision.getCreatedBy()).willReturn(50L);
-            given(decision.getDecision()).willReturn(Decision.REJECTED);
+            given(decision.getStatus()).willReturn(DecisionStatus.TELLER_REJECTED);
             given(decision.getComment()).willReturn("거절합니다.");
             given(decision.getCreatedAt()).willReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
 
@@ -280,9 +280,9 @@ class LoanApplicationReviewConverterTest {
             DecisionResponse response = LoanApplicationReviewConverter.toDecisionResponse(decision, null);
 
             // then
-            assertThat(response.status()).isEqualTo("REJECTED");
+            assertThat(response.status()).isEqualTo("TELLER_REJECTED");
             assertThat(response.reviewerName()).isEqualTo("알 수 없음");
-            assertThat(response.reviewerRole()).isEqualTo("SYSTEM");
+            assertThat(response.reviewerRole()).isEqualTo("ADMIN_BANK_TELLER");
         }
     }
 }

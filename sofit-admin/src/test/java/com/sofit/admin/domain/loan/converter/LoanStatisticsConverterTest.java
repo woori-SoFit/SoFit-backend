@@ -65,6 +65,24 @@ class LoanStatisticsConverterTest {
         assertThat(response.rejected()).isEqualTo(7);
     }
 
+    @Test
+    @DisplayName("일부 상태만 존재할 때 없는 상태는 0으로 처리한다")
+    void shouldReturnZeroForMissingStatuses() {
+        // given
+        List<StatusCountProjection> counts = List.of(
+                createProjection(ApplicationStatus.SYSTEM_APPROVED, 3L)
+        );
+
+        // when
+        LoanStatisticsResponse response = LoanStatisticsConverter.toLoanStatisticsResponse(counts);
+
+        // then
+        assertThat(response.pending()).isEqualTo(3);
+        assertThat(response.managerReview()).isZero();
+        assertThat(response.approved()).isZero();
+        assertThat(response.rejected()).isZero();
+    }
+
     private StatusCountProjection createProjection(ApplicationStatus status, Long count) {
         return new StatusCountProjection() {
             @Override

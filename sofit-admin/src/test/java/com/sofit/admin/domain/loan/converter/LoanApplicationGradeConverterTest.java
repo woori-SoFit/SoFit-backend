@@ -1,13 +1,12 @@
 package com.sofit.admin.domain.loan.converter;
 
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationGradeResponse;
-import com.sofit.common.entity.report.Scb;
-import com.sofit.common.entity.report.ShapExplanation;
-import com.sofit.common.entity.report.enums.SGrade;
+import com.sofit.common.entity.sGrade.Scb;
+import com.sofit.common.entity.sGrade.SGradeReport;
+import com.sofit.common.entity.sGrade.enums.SGrade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -23,18 +22,18 @@ class LoanApplicationGradeConverterTest {
     void shouldConvertToGradeResponse() {
         // given
         Scb scb = mock(Scb.class);
-        given(scb.getCbGrade()).willReturn(750);
-        given(scb.getScbGrade()).willReturn(800);
+        given(scb.getCbScore()).willReturn(750);
+        given(scb.getScbScore()).willReturn(800);
         given(scb.getScoreAddition()).willReturn(50);
 
-        ShapExplanation shap = mock(ShapExplanation.class);
+        SGradeReport shap = mock(SGradeReport.class);
         given(shap.getSGrade()).willReturn(SGrade.S3);
         given(shap.getTargetGrade()).willReturn(SGrade.S2);
         given(shap.getStrengthKeywords()).willReturn(List.of("매출 성장"));
         given(shap.getImprovementKeywords()).willReturn(List.of("업종 순위"));
         given(shap.getStrengthDetails()).willReturn(Map.of("매출 성장", 0.35));
         given(shap.getImprovementDetails()).willReturn(Map.of("업종 순위", -0.15));
-        given(shap.getAdvice()).willReturn("매출 성장세를 유지하세요.");
+        given(shap.getAdminAdvice()).willReturn("매출 성장세를 유지하세요.");
 
         // when
         LoanApplicationGradeResponse response = LoanApplicationGradeConverter
@@ -61,18 +60,18 @@ class LoanApplicationGradeConverterTest {
     void shouldHandleNullFields() {
         // given
         Scb scb = mock(Scb.class);
-        given(scb.getCbGrade()).willReturn(700);
-        given(scb.getScbGrade()).willReturn(700);
+        given(scb.getCbScore()).willReturn(700);
+        given(scb.getScbScore()).willReturn(700);
         given(scb.getScoreAddition()).willReturn(0);
 
-        ShapExplanation shap = mock(ShapExplanation.class);
+        SGradeReport shap = mock(SGradeReport.class);
         given(shap.getSGrade()).willReturn(SGrade.S5);
         given(shap.getTargetGrade()).willReturn(null);
         given(shap.getStrengthKeywords()).willReturn(null);
         given(shap.getImprovementKeywords()).willReturn(null);
         given(shap.getStrengthDetails()).willReturn(null);
         given(shap.getImprovementDetails()).willReturn(null);
-        given(shap.getAdvice()).willReturn(null);
+        given(shap.getAdminAdvice()).willReturn(null);
 
         // when
         LoanApplicationGradeResponse response = LoanApplicationGradeConverter

@@ -3,6 +3,7 @@ package com.sofit.admin.domain.loan.converter;
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationInfoResponse;
 import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.loan.LoanApplication;
+import com.sofit.common.entity.loan.enums.IncomeType;
 import com.sofit.common.entity.loan.enums.LoanPurpose;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
 import com.sofit.common.entity.term.ConsentHistory;
@@ -129,10 +130,10 @@ class LoanApplicationInfoConverterTest {
         void shouldReturnNamesWhenAllFieldsNonNull() {
             // given
             LoanApplication app = mock(LoanApplication.class);
-            given(app.getUserInputAnnualIncome()).willReturn(com.sofit.common.entity.loan.enums.AnnualIncome.AMT_30_50M);
-            given(app.getUserInputCreditScore()).willReturn(com.sofit.common.entity.loan.enums.CreditScoreRange.CS_850_OVER);
+            given(app.getUserInputAnnualIncome()).willReturn("AMT_30_50M");
+            given(app.getUserInputCreditScore()).willReturn("CS_850_OVER");
             given(app.getUserInputIncomeType()).willReturn(com.sofit.common.entity.loan.enums.IncomeType.BUSINESS);
-            given(app.getUserInputExistingLoanAmt()).willReturn(com.sofit.common.entity.loan.enums.ExistingLoanAmount.LOAN_0_100M);
+            given(app.getUserInputExistingLoanAmt()).willReturn("LOAN_0_100M");
 
             // when
             LoanApplicationInfoResponse.UserInputInfo result = LoanApplicationInfoConverter.toUserInputInfo(app);

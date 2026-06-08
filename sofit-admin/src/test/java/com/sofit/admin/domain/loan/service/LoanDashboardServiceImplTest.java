@@ -5,10 +5,12 @@ import com.sofit.admin.domain.loan.dto.response.LoanDashboardResponse;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.loan.LoanApplication;
+import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.repository.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.user.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -50,6 +52,9 @@ class LoanDashboardServiceImplTest {
 
     @Mock
     private LoanApplicationRepository loanApplicationRepository;
+
+    @Mock
+    private LoanDecisionRepository loanDecisionRepository;
 
     @Mock
     private BusinessProfileRepository businessProfileRepository;
@@ -124,6 +129,7 @@ class LoanDashboardServiceImplTest {
             given(app.getProduct()).willReturn(product);
             given(app.getStatus()).willReturn(ApplicationStatus.SYSTEM_APPROVED);
             given(app.getAssignedBankerId()).willReturn(50L);
+            given(app.getRequestedAmount()).willReturn(50_000_000L);
             given(app.getAppliedAt()).willReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
 
             Page<LoanApplication> page = new PageImpl<>(List.of(app), pageable, 1);
@@ -142,6 +148,9 @@ class LoanDashboardServiceImplTest {
             given(banker.getName()).willReturn("김은행");
             given(userRepository.findAllById(anyList())).willReturn(List.of(banker));
 
+            given(loanDecisionRepository.findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(
+                    anyList(), anyList())).willReturn(Collections.emptyList());
+
             // when
             LoanDashboardResponse response = loanDashboardService.findLoanApplications(
                     null, false, 1L, pageable);
@@ -151,6 +160,170 @@ class LoanDashboardServiceImplTest {
             assertThat(response.contents()).hasSize(1);
             assertThat(response.contents().get(0).businessName()).isEqualTo("길동상회");
             assertThat(response.contents().get(0).assigneeName()).isEqualTo("김은행");
+        }
+
+        @Test
+        @DisplayName("assignedBankerId가 null인 항목은 assigneeName이 null이다")
+        void shouldReturnNullAssigneeNameWhenBankerIdIsNull() {
+            // given
+            Pageable pageable = PageRequest.of(0, 10);
+
+            User user = mock(User.class);
+            given(user.getUserId()).willReturn(1L);
+            given(user.getName()).willReturn("홍길동");
+
+            LoanProduct product = mock(LoanProduct.class);
+            given(product.getProductName()).willReturn("소상공인 대출");
+
+            LoanApplication app = mock(LoanApplication.class);
+            given(app.getApplicationId()).willReturn(10L);
+            given(app.getUser()).willReturn(user);
+            given(app.getProduct()).willReturn(product);
+            given(app.getStatus()).willReturn(ApplicationStatus.SYSTEM_APPROVED);
+            given(app.getAssignedBankerId()).willReturn(null);
+            given(app.getRequestedAmount()).willReturn(30_000_000L);
+            given(app.getAppliedAt()).willReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
+
+            Page<LoanApplication> page = new PageImpl<>(List.of(app), pageable, 1);
+            given(loanApplicationRepository.findDashboardApplications(anyList(), eq(pageable)))
+                    .willReturn(page);
+
+            given(businessProfileRepository.findByUser_UserIdIn(anyList()))
+                    .willReturn(Collections.emptyList());
+            given(loanDecisionRepository.findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(
+                    anyList(), anyList())).willReturn(Collections.emptyList());
+
+            // when
+            LoanDashboardResponse response = loanDashboardService.findLoanApplications(
+                    null, false, 1L, pageable);
+
+            // then
+            assertThat(response.contents()).hasSize(1);
+            assertThat(response.contents().get(0).assigneeName()).isNull();
+            assertThat(response.contents().get(0).businessName()).isNull();
+        }
+
+        @Test
+        @DisplayName("approvedAmount가 있는 decision이 있으면 매핑한다")
+        void shouldMapApprovedAmountFromDecision() {
+            // given
+            Pageable pageable = PageRequest.of(0, 10);
+
+            User user = mock(User.class);
+            given(user.getUserId()).willReturn(1L);
+            given(user.getName()).willReturn("홍길동");
+
+            LoanProduct product = mock(LoanProduct.class);
+            given(product.getProductName()).willReturn("소상공인 대출");
+
+            LoanApplication app = mock(LoanApplication.class);
+            given(app.getApplicationId()).willReturn(10L);
+            given(app.getUser()).willReturn(user);
+            given(app.getProduct()).willReturn(product);
+            given(app.getStatus()).willReturn(ApplicationStatus.APPROVED);
+            given(app.getAssignedBankerId()).willReturn(50L);
+            given(app.getRequestedAmount()).willReturn(50_000_000L);
+            given(app.getAppliedAt()).willReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
+
+            Page<LoanApplication> page = new PageImpl<>(List.of(app), pageable, 1);
+            given(loanApplicationRepository.findDashboardApplications(anyList(), eq(pageable)))
+                    .willReturn(page);
+
+            given(businessProfileRepository.findByUser_UserIdIn(anyList()))
+                    .willReturn(Collections.emptyList());
+
+            User banker = mock(User.class);
+            given(banker.getUserId()).willReturn(50L);
+            given(banker.getName()).willReturn("김은행");
+            given(userRepository.findAllById(anyList())).willReturn(List.of(banker));
+
+            // approvedAmount를 가진 LoanDecision
+            LoanDecision decision = mock(LoanDecision.class);
+            given(decision.getApplication()).willReturn(app);
+            given(decision.getApprovedAmount()).willReturn(45_000_000L);
+            given(loanDecisionRepository.findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(
+                    anyList(), anyList())).willReturn(List.of(decision));
+
+            // when
+            LoanDashboardResponse response = loanDashboardService.findLoanApplications(
+                    null, false, 1L, pageable);
+
+            // then
+            assertThat(response.contents()).hasSize(1);
+            assertThat(response.contents().get(0).approvedAmount()).isEqualTo(45_000_000L);
+        }
+
+        @Test
+        @DisplayName("같은 userId에 여러 BusinessProfile이 있을 때 최신 createdAt 기준으로 선택한다")
+        void shouldSelectLatestBusinessProfile() {
+            // given
+            Pageable pageable = PageRequest.of(0, 10);
+
+            User user = mock(User.class);
+            given(user.getUserId()).willReturn(1L);
+            given(user.getName()).willReturn("홍길동");
+
+            LoanProduct product = mock(LoanProduct.class);
+            given(product.getProductName()).willReturn("소상공인 대출");
+
+            LoanApplication app = mock(LoanApplication.class);
+            given(app.getApplicationId()).willReturn(10L);
+            given(app.getUser()).willReturn(user);
+            given(app.getProduct()).willReturn(product);
+            given(app.getStatus()).willReturn(ApplicationStatus.SYSTEM_APPROVED);
+            given(app.getAssignedBankerId()).willReturn(null);
+            given(app.getRequestedAmount()).willReturn(50_000_000L);
+            given(app.getAppliedAt()).willReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
+
+            Page<LoanApplication> page = new PageImpl<>(List.of(app), pageable, 1);
+            given(loanApplicationRepository.findDashboardApplications(anyList(), eq(pageable)))
+                    .willReturn(page);
+
+            // 오래된 BP
+            BusinessProfile oldBp = mock(BusinessProfile.class);
+            given(oldBp.getUser()).willReturn(user);
+            given(oldBp.getBusinessName()).willReturn("구 상호명");
+            given(oldBp.getCreatedAt()).willReturn(LocalDateTime.of(2024, 1, 1, 0, 0));
+
+            // 최신 BP
+            BusinessProfile newBp = mock(BusinessProfile.class);
+            given(newBp.getUser()).willReturn(user);
+            given(newBp.getBusinessName()).willReturn("신 상호명");
+            given(newBp.getCreatedAt()).willReturn(LocalDateTime.of(2025, 5, 1, 0, 0));
+
+            given(businessProfileRepository.findByUser_UserIdIn(anyList()))
+                    .willReturn(List.of(oldBp, newBp));
+
+            given(loanDecisionRepository.findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(
+                    anyList(), anyList())).willReturn(Collections.emptyList());
+
+            // when
+            LoanDashboardResponse response = loanDashboardService.findLoanApplications(
+                    null, false, 1L, pageable);
+
+            // then
+            assertThat(response.contents()).hasSize(1);
+            assertThat(response.contents().get(0).businessName()).isEqualTo("신 상호명");
+        }
+
+        @Test
+        @DisplayName("명시적 statuses 필터를 전달하면 해당 상태로만 조회한다")
+        void shouldUseProvidedStatusFilter() {
+            // given
+            Pageable pageable = PageRequest.of(0, 10);
+            List<ApplicationStatus> statuses = List.of(ApplicationStatus.APPROVED, ApplicationStatus.REJECTED);
+            Page<LoanApplication> emptyPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
+
+            given(loanApplicationRepository.findDashboardApplications(eq(statuses), eq(pageable)))
+                    .willReturn(emptyPage);
+
+            // when
+            LoanDashboardResponse response = loanDashboardService.findLoanApplications(
+                    statuses, false, 1L, pageable);
+
+            // then
+            assertThat(response.totalCount()).isZero();
+            verify(loanApplicationRepository).findDashboardApplications(eq(statuses), eq(pageable));
         }
     }
 
@@ -239,6 +412,70 @@ class LoanDashboardServiceImplTest {
             // then
             assertThat(response.assigneeName()).isNull();
             verify(userRepository, never()).findById(any());
+        }
+
+        @Test
+        @DisplayName("BusinessProfile이 없으면 businessName은 null이다")
+        void shouldReturnNullBusinessNameWhenProfileNotExists() {
+            // given
+            User user = mock(User.class);
+            given(user.getUserId()).willReturn(1L);
+            given(user.getName()).willReturn("홍길동");
+
+            LoanProduct product = mock(LoanProduct.class);
+            given(product.getProductName()).willReturn("소상공인 대출");
+
+            LoanApplication app = mock(LoanApplication.class);
+            given(app.getApplicationId()).willReturn(10L);
+            given(app.getUser()).willReturn(user);
+            given(app.getProduct()).willReturn(product);
+            given(app.getStatus()).willReturn(ApplicationStatus.SYSTEM_APPROVED);
+            given(app.getAssignedBankerId()).willReturn(50L);
+            given(app.getAppliedAt()).willReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
+
+            given(loanApplicationRepository.findById(10L)).willReturn(Optional.of(app));
+            given(businessProfileRepository.findByUser_UserId(1L)).willReturn(Optional.empty());
+
+            User banker = mock(User.class);
+            given(banker.getName()).willReturn("김은행");
+            given(userRepository.findById(50L)).willReturn(Optional.of(banker));
+
+            // when
+            LoanApplicationDetailResponse response = loanDashboardService.findLoanApplicationDetail(10L);
+
+            // then
+            assertThat(response.businessName()).isNull();
+            assertThat(response.assigneeName()).isEqualTo("김은행");
+        }
+
+        @Test
+        @DisplayName("은행원이 존재하지 않으면 assigneeName은 null이다")
+        void shouldReturnNullAssigneeNameWhenBankerNotFound() {
+            // given
+            User user = mock(User.class);
+            given(user.getUserId()).willReturn(1L);
+            given(user.getName()).willReturn("홍길동");
+
+            LoanProduct product = mock(LoanProduct.class);
+            given(product.getProductName()).willReturn("소상공인 대출");
+
+            LoanApplication app = mock(LoanApplication.class);
+            given(app.getApplicationId()).willReturn(10L);
+            given(app.getUser()).willReturn(user);
+            given(app.getProduct()).willReturn(product);
+            given(app.getStatus()).willReturn(ApplicationStatus.SYSTEM_APPROVED);
+            given(app.getAssignedBankerId()).willReturn(50L);
+            given(app.getAppliedAt()).willReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
+
+            given(loanApplicationRepository.findById(10L)).willReturn(Optional.of(app));
+            given(businessProfileRepository.findByUser_UserId(1L)).willReturn(Optional.empty());
+            given(userRepository.findById(50L)).willReturn(Optional.empty());
+
+            // when
+            LoanApplicationDetailResponse response = loanDashboardService.findLoanApplicationDetail(10L);
+
+            // then
+            assertThat(response.assigneeName()).isNull();
         }
 
         @Test

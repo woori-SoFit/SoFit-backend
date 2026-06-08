@@ -2,12 +2,12 @@ package com.sofit.admin.domain.loan.service;
 
 import com.sofit.admin.domain.loan.dto.response.LoanApplicationGradeResponse;
 import com.sofit.common.apiPayload.BaseException;
-import com.sofit.common.entity.report.Scb;
-import com.sofit.common.entity.report.ShapExplanation;
-import com.sofit.common.entity.report.enums.SGrade;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.ScbRepository;
-import com.sofit.common.repository.ShapExplanationRepository;
+import com.sofit.common.entity.sGrade.SGradeReport;
+import com.sofit.common.entity.sGrade.Scb;
+import com.sofit.common.entity.sGrade.enums.SGrade;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.sGrade.SGradeReportRepository;
+import com.sofit.common.repository.sGrade.ScbRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ class LoanApplicationGradeServiceImplTest {
     private ScbRepository scbRepository;
 
     @Mock
-    private ShapExplanationRepository shapExplanationRepository;
+    private SGradeReportRepository sGradeReportRepository;
 
     @Nested
     @DisplayName("findLoanApplicationGrade")
@@ -114,7 +114,7 @@ class LoanApplicationGradeServiceImplTest {
             Scb scb = mock(Scb.class);
             given(scb.getSGrade()).willReturn("S3");
             given(scbRepository.findByApplicationId(1L)).willReturn(Optional.of(scb));
-            given(loanApplicationRepository.findSEvaluationIdByApplicationId(1L)).willReturn(Optional.empty());
+            given(loanApplicationRepository.findSGradeIdByApplicationId(1L)).willReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> loanApplicationGradeService.findLoanApplicationGrade(1L))
@@ -131,8 +131,8 @@ class LoanApplicationGradeServiceImplTest {
             Scb scb = mock(Scb.class);
             given(scb.getSGrade()).willReturn("S3");
             given(scbRepository.findByApplicationId(1L)).willReturn(Optional.of(scb));
-            given(loanApplicationRepository.findSEvaluationIdByApplicationId(1L)).willReturn(Optional.of(100L));
-            given(shapExplanationRepository.findById(100L)).willReturn(Optional.empty());
+            given(loanApplicationRepository.findSGradeIdByApplicationId(1L)).willReturn(Optional.of(100L));
+            given(sGradeReportRepository.findById(100L)).willReturn(Optional.empty());
 
             // when & then
             assertThatThrownBy(() -> loanApplicationGradeService.findLoanApplicationGrade(1L))
@@ -148,22 +148,22 @@ class LoanApplicationGradeServiceImplTest {
             // given
             Scb scb = mock(Scb.class);
             given(scb.getSGrade()).willReturn("S3");
-            given(scb.getCbGrade()).willReturn(750);
-            given(scb.getScbGrade()).willReturn(800);
+            given(scb.getCbScore()).willReturn(750);
+            given(scb.getScbScore()).willReturn(800);
             given(scb.getScoreAddition()).willReturn(50);
             given(scbRepository.findByApplicationId(1L)).willReturn(Optional.of(scb));
 
-            given(loanApplicationRepository.findSEvaluationIdByApplicationId(1L)).willReturn(Optional.of(100L));
+            given(loanApplicationRepository.findSGradeIdByApplicationId(1L)).willReturn(Optional.of(100L));
 
-            ShapExplanation shapExplanation = mock(ShapExplanation.class);
-            given(shapExplanation.getSGrade()).willReturn(SGrade.S3);
-            given(shapExplanation.getTargetGrade()).willReturn(SGrade.S2);
-            given(shapExplanation.getStrengthKeywords()).willReturn(List.of("매출 성장", "현금 흐름"));
-            given(shapExplanation.getImprovementKeywords()).willReturn(List.of("업종 순위"));
-            given(shapExplanation.getStrengthDetails()).willReturn(Map.of("매출 성장", 0.35));
-            given(shapExplanation.getImprovementDetails()).willReturn(Map.of("업종 순위", -0.15));
-            given(shapExplanation.getAdvice()).willReturn("매출 성장세를 유지하세요.");
-            given(shapExplanationRepository.findById(100L)).willReturn(Optional.of(shapExplanation));
+            SGradeReport sGradeReport = mock(SGradeReport.class);
+            given(sGradeReport.getSGrade()).willReturn(SGrade.S3);
+            given(sGradeReport.getTargetGrade()).willReturn(SGrade.S2);
+            given(sGradeReport.getStrengthKeywords()).willReturn(List.of("매출 성장", "현금 흐름"));
+            given(sGradeReport.getImprovementKeywords()).willReturn(List.of("업종 순위"));
+            given(sGradeReport.getStrengthDetails()).willReturn(Map.of("매출 성장", 0.35));
+            given(sGradeReport.getImprovementDetails()).willReturn(Map.of("업종 순위", -0.15));
+            given(sGradeReport.getAdminAdvice()).willReturn("매출 성장세를 유지하세요.");
+            given(sGradeReportRepository.findById(100L)).willReturn(Optional.of(sGradeReport));
 
             // when
             LoanApplicationGradeResponse response = loanApplicationGradeService.findLoanApplicationGrade(1L);

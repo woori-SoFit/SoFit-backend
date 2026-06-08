@@ -39,7 +39,7 @@ class LoanDashboardConverterTest {
 
             // when
             LoanDashboardResponse response = LoanDashboardConverter
-                    .toLoanDashboardResponse(emptyPage, Map.of(), Map.of());
+                    .toLoanDashboardResponse(emptyPage, Map.of(), Map.of(), Map.of());
 
             // then
             assertThat(response.totalCount()).isZero();
@@ -66,6 +66,7 @@ class LoanDashboardConverterTest {
             given(app.getProduct()).willReturn(product);
             given(app.getStatus()).willReturn(ApplicationStatus.SYSTEM_APPROVED);
             given(app.getAssignedBankerId()).willReturn(50L);
+            given(app.getRequestedAmount()).willReturn(50_000_000L);
             given(app.getAppliedAt()).willReturn(LocalDateTime.of(2025, 6, 1, 10, 0));
 
             Page<LoanApplication> page = new PageImpl<>(
@@ -73,10 +74,11 @@ class LoanDashboardConverterTest {
 
             Map<Long, String> businessNameMap = Map.of(1L, "길동상회");
             Map<Long, String> bankerNameMap = Map.of(50L, "김은행");
+            Map<Long, Long> approvedAmountMap = Map.of(10L, 45_000_000L);
 
             // when
             LoanDashboardResponse response = LoanDashboardConverter
-                    .toLoanDashboardResponse(page, businessNameMap, bankerNameMap);
+                    .toLoanDashboardResponse(page, businessNameMap, bankerNameMap, approvedAmountMap);
 
             // then
             assertThat(response.totalCount()).isEqualTo(1);
@@ -89,6 +91,8 @@ class LoanDashboardConverterTest {
             assertThat(item.businessName()).isEqualTo("길동상회");
             assertThat(item.productName()).isEqualTo("소상공인 대출");
             assertThat(item.assigneeName()).isEqualTo("김은행");
+            assertThat(item.requestedAmount()).isEqualTo(50_000_000L);
+            assertThat(item.approvedAmount()).isEqualTo(45_000_000L);
         }
     }
 

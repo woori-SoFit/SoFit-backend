@@ -2,7 +2,7 @@ package com.sofit.admin.domain.loan.service;
 
 import com.sofit.admin.domain.loan.dto.response.LoanStatisticsResponse;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.repository.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
 import com.sofit.common.repository.projection.StatusCountProjection;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

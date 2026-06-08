@@ -1,18 +1,24 @@
 package com.sofit.admin.domain.loan.service;
 
+import com.sofit.admin.domain.loan.client.NotificationPushClient;
 import com.sofit.admin.domain.loan.dto.request.LoanApproveRequest;
 import com.sofit.admin.domain.loan.dto.request.LoanRejectRequest;
 import com.sofit.admin.domain.loan.dto.response.LoanDecisionResponse;
 import com.sofit.admin.domain.loan.exception.LoanDecisionErrorCode;
+import com.sofit.admin.global.util.AdminRoleService;
 import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
+import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.entity.loan.enums.Decision;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
+import com.sofit.common.entity.user.User;
+import com.sofit.common.entity.user.enums.UserRole;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
+import com.sofit.common.repository.notification.NotificationRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +33,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,6 +56,15 @@ class LoanDecisionServiceImplTest {
 
     @Mock
     private LoanDecisionRepository loanDecisionRepository;
+
+    @Mock
+    private NotificationRepository notificationRepository;
+
+    @Mock
+    private NotificationPushClient notificationPushClient;
+
+    @Mock
+    private AdminRoleService adminRoleService;
 
     private MockedStatic<SecurityUtil> securityUtilMock;
 
@@ -128,7 +142,7 @@ class LoanDecisionServiceImplTest {
         }
 
         @Test
-        @DisplayName("본인에게 배정되지 않은 건에 대해 승인 시 NOT_ASSIGNED_TO_ME 예외를 던진다")
+        @DisplayName("TELLER 역할에서 본인에게 배정되지 않은 건에 대해 승인 시 NOT_ASSIGNED_TO_ME 예외를 던진다")
         void shouldThrowNotAssignedWhenDifferentBanker() {
             // given
             LoanApplication app = mock(LoanApplication.class);
@@ -137,6 +151,7 @@ class LoanDecisionServiceImplTest {
             given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
 
             securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(100L);
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_TELLER);
 
             // when & then
             assertThatThrownBy(() -> loanDecisionService.approveLoanApplication(1L, createApproveRequest()))
@@ -155,6 +170,7 @@ class LoanDecisionServiceImplTest {
             given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
 
             securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(100L);
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_TELLER);
             securityUtilMock.when(() -> SecurityUtil.hasAuthority("ADMIN_BANK_TELLER")).thenReturn(false);
 
             // when & then
@@ -165,7 +181,7 @@ class LoanDecisionServiceImplTest {
         }
 
         @Test
-        @DisplayName("assignedBankerId가 null이면 NOT_ASSIGNED_TO_ME 예외를 던진다")
+        @DisplayName("TELLER 역할에서 assignedBankerId가 null이면 NOT_ASSIGNED_TO_ME 예외를 던진다")
         void shouldThrowNotAssignedWhenBankerIdIsNull() {
             // given
             LoanApplication app = mock(LoanApplication.class);
@@ -174,6 +190,7 @@ class LoanDecisionServiceImplTest {
             given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
 
             securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(100L);
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_TELLER);
 
             // when & then
             assertThatThrownBy(() -> loanDecisionService.approveLoanApplication(1L, createApproveRequest()))
@@ -192,6 +209,9 @@ class LoanDecisionServiceImplTest {
             given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
 
             securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(100L);
+            // TELLER 역할이면 MANAGER가 아니므로 배정 검증을 수행함
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_TELLER);
+            securityUtilMock.when(() -> SecurityUtil.hasAuthority("ADMIN_BANK_TELLER")).thenReturn(false);
             securityUtilMock.when(() -> SecurityUtil.hasAuthority("ADMIN_BANK_MANAGER")).thenReturn(false);
 
             // when & then
@@ -202,23 +222,29 @@ class LoanDecisionServiceImplTest {
         }
 
         @Test
-        @DisplayName("MANAGER_REVIEW 상태에서 ADMIN_BANK_MANAGER 권한이 있으면 정상 승인한다")
+        @DisplayName("MANAGER_REVIEW 상태에서 ADMIN_BANK_MANAGER 권한이 있으면 최종 승인한다")
         void shouldApproveSuccessfullyForManagerReview() {
             // given
+            User user = mock(User.class);
+            LoanProduct product = mock(LoanProduct.class);
+            given(product.getProductName()).willReturn("소상공인 대출");
+
             LoanApplication app = mock(LoanApplication.class);
             given(app.getStatus()).willReturn(ApplicationStatus.MANAGER_REVIEW);
             given(app.getAssignedBankerId()).willReturn(100L);
             given(app.getApplicationId()).willReturn(1L);
+            given(app.getUser()).willReturn(user);
+            given(app.getProduct()).willReturn(product);
             given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
 
             securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(100L);
-            securityUtilMock.when(() -> SecurityUtil.hasAuthority("ADMIN_BANK_TELLER")).thenReturn(false);
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_MANAGER);
             securityUtilMock.when(() -> SecurityUtil.hasAuthority("ADMIN_BANK_MANAGER")).thenReturn(true);
 
             LoanDecision savedDecision = mock(LoanDecision.class);
             given(savedDecision.getDecisionId()).willReturn(3L);
             given(savedDecision.getApplication()).willReturn(app);
-            given(savedDecision.getDecision()).willReturn(Decision.APPROVED);
+            given(savedDecision.getStatus()).willReturn(DecisionStatus.MANAGER_APPROVED);
             given(loanDecisionRepository.save(any(LoanDecision.class))).willReturn(savedDecision);
 
             LoanApproveRequest request = createApproveRequest();
@@ -227,7 +253,7 @@ class LoanDecisionServiceImplTest {
             LoanDecisionResponse response = loanDecisionService.approveLoanApplication(1L, request);
 
             // then
-            assertThat(response.decision()).isEqualTo(Decision.APPROVED);
+            assertThat(response.decision()).isEqualTo(DecisionStatus.MANAGER_APPROVED);
             verify(app).updateStatus(ApplicationStatus.APPROVED);
         }
 
@@ -241,6 +267,7 @@ class LoanDecisionServiceImplTest {
             given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
 
             securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(100L);
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_TELLER);
 
             // when & then
             assertThatThrownBy(() -> loanDecisionService.approveLoanApplication(1L, createApproveRequest()))
@@ -250,22 +277,23 @@ class LoanDecisionServiceImplTest {
         }
 
         @Test
-        @DisplayName("정상 승인 시 LoanDecision을 저장하고 상태를 APPROVED로 변경한다")
-        void shouldApproveSuccessfully() {
+        @DisplayName("TELLER 정상 승인 시 LoanDecision을 저장하고 상태를 MANAGER_REVIEW로 변경한다")
+        void shouldApproveSuccessfullyAsTeller() {
             // given
             LoanApplication app = mock(LoanApplication.class);
             given(app.getStatus()).willReturn(ApplicationStatus.SYSTEM_APPROVED);
             given(app.getAssignedBankerId()).willReturn(100L);
+            given(app.getApplicationId()).willReturn(1L);
             given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
 
             securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(100L);
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_TELLER);
             securityUtilMock.when(() -> SecurityUtil.hasAuthority("ADMIN_BANK_TELLER")).thenReturn(true);
 
             LoanDecision savedDecision = mock(LoanDecision.class);
             given(savedDecision.getDecisionId()).willReturn(1L);
             given(savedDecision.getApplication()).willReturn(app);
-            given(savedDecision.getDecision()).willReturn(Decision.APPROVED);
-            given(app.getApplicationId()).willReturn(1L);
+            given(savedDecision.getStatus()).willReturn(DecisionStatus.TELLER_APPROVED);
             given(loanDecisionRepository.save(any(LoanDecision.class))).willReturn(savedDecision);
 
             LoanApproveRequest request = createApproveRequest();
@@ -274,9 +302,106 @@ class LoanDecisionServiceImplTest {
             LoanDecisionResponse response = loanDecisionService.approveLoanApplication(1L, request);
 
             // then
-            assertThat(response.decision()).isEqualTo(Decision.APPROVED);
+            assertThat(response.decision()).isEqualTo(DecisionStatus.TELLER_APPROVED);
             verify(loanDecisionRepository).save(any(LoanDecision.class));
+            verify(app).updateStatus(ApplicationStatus.MANAGER_REVIEW);
+        }
+
+        @Test
+        @DisplayName("SYSTEM_REJECTED 상태에서 승인 시 NOT_DECIDABLE_STATUS 예외를 던진다")
+        void shouldThrowNotDecidableStatusWhenSystemRejected() {
+            // given
+            LoanApplication app = mock(LoanApplication.class);
+            given(app.getStatus()).willReturn(ApplicationStatus.SYSTEM_REJECTED);
+            given(app.getAssignedBankerId()).willReturn(100L);
+            given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
+
+            securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(100L);
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_TELLER);
+            securityUtilMock.when(() -> SecurityUtil.hasAuthority("ADMIN_BANK_TELLER")).thenReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> loanDecisionService.approveLoanApplication(1L, createApproveRequest()))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanDecisionErrorCode.NOT_DECIDABLE_STATUS);
+        }
+
+        @Test
+        @DisplayName("MANAGER 역할은 배정과 무관하게 승인할 수 있다")
+        void shouldAllowManagerToApproveWithoutAssignment() {
+            // given
+            User user = mock(User.class);
+            LoanProduct product = mock(LoanProduct.class);
+            given(product.getProductName()).willReturn("소상공인 대출");
+
+            LoanApplication app = mock(LoanApplication.class);
+            given(app.getStatus()).willReturn(ApplicationStatus.MANAGER_REVIEW);
+            given(app.getAssignedBankerId()).willReturn(999L); // 다른 사람에게 배정됨
+            given(app.getApplicationId()).willReturn(1L);
+            given(app.getUser()).willReturn(user);
+            given(app.getProduct()).willReturn(product);
+            given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
+
+            securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(200L); // 배정자와 다른 ID
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_MANAGER);
+            securityUtilMock.when(() -> SecurityUtil.hasAuthority("ADMIN_BANK_MANAGER")).thenReturn(true);
+
+            LoanDecision savedDecision = mock(LoanDecision.class);
+            given(savedDecision.getDecisionId()).willReturn(4L);
+            given(savedDecision.getApplication()).willReturn(app);
+            given(savedDecision.getStatus()).willReturn(DecisionStatus.MANAGER_APPROVED);
+            given(loanDecisionRepository.save(any(LoanDecision.class))).willReturn(savedDecision);
+
+            LoanApproveRequest request = createApproveRequest();
+
+            // when
+            LoanDecisionResponse response = loanDecisionService.approveLoanApplication(1L, request);
+
+            // then
+            assertThat(response.decision()).isEqualTo(DecisionStatus.MANAGER_APPROVED);
             verify(app).updateStatus(ApplicationStatus.APPROVED);
+        }
+
+        @Test
+        @DisplayName("MANAGER가 SYSTEM_APPROVED 상태의 건을 처리하면 TELLER 권한으로 판별된다")
+        void shouldThrowNoAuthorityWhenManagerTriesSystemApprovedWithoutTellerRole() {
+            // given
+            LoanApplication app = mock(LoanApplication.class);
+            given(app.getStatus()).willReturn(ApplicationStatus.SYSTEM_APPROVED);
+            given(app.getAssignedBankerId()).willReturn(100L);
+            given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
+
+            securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(100L);
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_MANAGER);
+            // MANAGER 역할이므로 배정 검증 건너뜀
+            // 하지만 SYSTEM_APPROVED는 TELLER 권한 필요
+            securityUtilMock.when(() -> SecurityUtil.hasAuthority("ADMIN_BANK_TELLER")).thenReturn(false);
+
+            // when & then
+            assertThatThrownBy(() -> loanDecisionService.approveLoanApplication(1L, createApproveRequest()))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanDecisionErrorCode.NO_DECISION_AUTHORITY);
+        }
+
+        @Test
+        @DisplayName("EXECUTED 상태에서 승인 시 NOT_DECIDABLE_STATUS 예외를 던진다")
+        void shouldThrowNotDecidableStatusWhenExecuted() {
+            // given
+            LoanApplication app = mock(LoanApplication.class);
+            given(app.getStatus()).willReturn(ApplicationStatus.EXECUTED);
+            given(app.getAssignedBankerId()).willReturn(100L);
+            given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
+
+            securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(100L);
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_TELLER);
+
+            // when & then
+            assertThatThrownBy(() -> loanDecisionService.approveLoanApplication(1L, createApproveRequest()))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanDecisionErrorCode.NOT_DECIDABLE_STATUS);
         }
     }
 
@@ -298,22 +423,29 @@ class LoanDecisionServiceImplTest {
         }
 
         @Test
-        @DisplayName("정상 거절 시 LoanDecision을 저장하고 상태를 REJECTED로 변경한다")
-        void shouldRejectSuccessfully() {
+        @DisplayName("TELLER 정상 거절 시 LoanDecision을 저장하고 상태를 REJECTED로 변경한다")
+        void shouldRejectSuccessfullyAsTeller() {
             // given
+            User user = mock(User.class);
+            LoanProduct product = mock(LoanProduct.class);
+            given(product.getProductName()).willReturn("소상공인 대출");
+
             LoanApplication app = mock(LoanApplication.class);
             given(app.getStatus()).willReturn(ApplicationStatus.SYSTEM_APPROVED);
             given(app.getAssignedBankerId()).willReturn(100L);
+            given(app.getApplicationId()).willReturn(1L);
+            given(app.getUser()).willReturn(user);
+            given(app.getProduct()).willReturn(product);
             given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
 
             securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(100L);
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_TELLER);
             securityUtilMock.when(() -> SecurityUtil.hasAuthority("ADMIN_BANK_TELLER")).thenReturn(true);
 
             LoanDecision savedDecision = mock(LoanDecision.class);
             given(savedDecision.getDecisionId()).willReturn(2L);
             given(savedDecision.getApplication()).willReturn(app);
-            given(savedDecision.getDecision()).willReturn(Decision.REJECTED);
-            given(app.getApplicationId()).willReturn(1L);
+            given(savedDecision.getStatus()).willReturn(DecisionStatus.TELLER_REJECTED);
             given(loanDecisionRepository.save(any(LoanDecision.class))).willReturn(savedDecision);
 
             LoanRejectRequest request = createRejectRequest();
@@ -322,7 +454,44 @@ class LoanDecisionServiceImplTest {
             LoanDecisionResponse response = loanDecisionService.rejectLoanApplication(1L, request);
 
             // then
-            assertThat(response.decision()).isEqualTo(Decision.REJECTED);
+            assertThat(response.decision()).isEqualTo(DecisionStatus.TELLER_REJECTED);
+            verify(loanDecisionRepository).save(any(LoanDecision.class));
+            verify(app).updateStatus(ApplicationStatus.REJECTED);
+        }
+
+        @Test
+        @DisplayName("MANAGER 정상 거절 시 MANAGER_REJECTED로 저장하고 상태를 REJECTED로 변경한다")
+        void shouldRejectSuccessfullyAsManager() {
+            // given
+            User user = mock(User.class);
+            LoanProduct product = mock(LoanProduct.class);
+            given(product.getProductName()).willReturn("소상공인 대출");
+
+            LoanApplication app = mock(LoanApplication.class);
+            given(app.getStatus()).willReturn(ApplicationStatus.MANAGER_REVIEW);
+            given(app.getAssignedBankerId()).willReturn(999L); // 다른 사람에게 배정됨
+            given(app.getApplicationId()).willReturn(1L);
+            given(app.getUser()).willReturn(user);
+            given(app.getProduct()).willReturn(product);
+            given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
+
+            securityUtilMock.when(SecurityUtil::getCurrentUserId).thenReturn(200L); // 배정자와 다른 ID
+            given(adminRoleService.getCurrentUserRole()).willReturn(UserRole.ADMIN_BANK_MANAGER);
+            securityUtilMock.when(() -> SecurityUtil.hasAuthority("ADMIN_BANK_MANAGER")).thenReturn(true);
+
+            LoanDecision savedDecision = mock(LoanDecision.class);
+            given(savedDecision.getDecisionId()).willReturn(5L);
+            given(savedDecision.getApplication()).willReturn(app);
+            given(savedDecision.getStatus()).willReturn(DecisionStatus.MANAGER_REJECTED);
+            given(loanDecisionRepository.save(any(LoanDecision.class))).willReturn(savedDecision);
+
+            LoanRejectRequest request = createRejectRequest();
+
+            // when
+            LoanDecisionResponse response = loanDecisionService.rejectLoanApplication(1L, request);
+
+            // then
+            assertThat(response.decision()).isEqualTo(DecisionStatus.MANAGER_REJECTED);
             verify(loanDecisionRepository).save(any(LoanDecision.class));
             verify(app).updateStatus(ApplicationStatus.REJECTED);
         }

@@ -6,14 +6,14 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.LoanProductOption;
-import com.sofit.common.entity.loan.enums.Decision;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.loan.enums.LoanPurpose;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserRole;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
-import com.sofit.common.repository.LoanProductOptionRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
+import com.sofit.common.repository.loan.LoanProductOptionRepository;
 import com.sofit.common.repository.user.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -97,7 +97,7 @@ class LoanApplicationReviewServiceImplTest {
 
             given(loanApplicationRepository.findById(10L)).willReturn(Optional.of(app));
             given(loanProductOptionRepository.findByProduct_ProductId(1L)).willReturn(Collections.emptyList());
-            given(loanDecisionRepository.findAllByApplication_ApplicationIdOrderByCreatedAtDesc(10L))
+            given(loanDecisionRepository.findAllByApplication_ApplicationIdOrderByCreatedAtAsc(10L))
                     .willReturn(Collections.emptyList());
 
             // when
@@ -132,10 +132,10 @@ class LoanApplicationReviewServiceImplTest {
             given(app.getPurpose()).willReturn(LoanPurpose.WORKING_CAPITAL);
             given(app.getRepaymentMethod()).willReturn(RepaymentMethod.EQUAL_PAYMENT);
 
-            // 시스템 심사 (created_by == null, APPROVED)
+            // 시스템 심사 (created_by == null, SYSTEM_APPROVED)
             LoanDecision systemDecision = mock(LoanDecision.class);
             given(systemDecision.getCreatedBy()).willReturn(null);
-            given(systemDecision.getDecision()).willReturn(Decision.APPROVED);
+            given(systemDecision.getStatus()).willReturn(DecisionStatus.SYSTEM_APPROVED);
             given(systemDecision.getApprovedAmount()).willReturn(45_000_000L);
             given(systemDecision.getApprovedRate()).willReturn(new BigDecimal("4.5"));
             given(systemDecision.getApprovedTerm()).willReturn(36);
@@ -145,7 +145,7 @@ class LoanApplicationReviewServiceImplTest {
 
             given(loanApplicationRepository.findById(10L)).willReturn(Optional.of(app));
             given(loanProductOptionRepository.findByProduct_ProductId(1L)).willReturn(Collections.emptyList());
-            given(loanDecisionRepository.findAllByApplication_ApplicationIdOrderByCreatedAtDesc(10L))
+            given(loanDecisionRepository.findAllByApplication_ApplicationIdOrderByCreatedAtAsc(10L))
                     .willReturn(List.of(systemDecision));
 
             // when
@@ -182,16 +182,16 @@ class LoanApplicationReviewServiceImplTest {
             given(app.getPurpose()).willReturn(LoanPurpose.WORKING_CAPITAL);
             given(app.getRepaymentMethod()).willReturn(RepaymentMethod.EQUAL_PAYMENT);
 
-            // 시스템 심사 (created_by == null, REJECTED) — recommendation 대상 아님
+            // 시스템 심사 (created_by == null, SYSTEM_REJECTED) — recommendation 대상 아님
             LoanDecision systemRejected = mock(LoanDecision.class);
             given(systemRejected.getCreatedBy()).willReturn(null);
-            given(systemRejected.getDecision()).willReturn(Decision.REJECTED);
+            given(systemRejected.getStatus()).willReturn(DecisionStatus.SYSTEM_REJECTED);
             given(systemRejected.getComment()).willReturn("시스템 자동 거절");
             given(systemRejected.getCreatedAt()).willReturn(null);
 
             given(loanApplicationRepository.findById(10L)).willReturn(Optional.of(app));
             given(loanProductOptionRepository.findByProduct_ProductId(1L)).willReturn(Collections.emptyList());
-            given(loanDecisionRepository.findAllByApplication_ApplicationIdOrderByCreatedAtDesc(10L))
+            given(loanDecisionRepository.findAllByApplication_ApplicationIdOrderByCreatedAtAsc(10L))
                     .willReturn(List.of(systemRejected));
 
             // when
@@ -200,7 +200,7 @@ class LoanApplicationReviewServiceImplTest {
             // then
             assertThat(response.recommendation()).isNull();
             assertThat(response.decisions()).hasSize(1);
-            assertThat(response.decisions().get(0).status()).isEqualTo("REJECTED");
+            assertThat(response.decisions().get(0).status()).isEqualTo("SYSTEM_REJECTED");
             assertThat(response.decisions().get(0).reviewerName()).isEqualTo("시스템");
         }
 
@@ -229,7 +229,7 @@ class LoanApplicationReviewServiceImplTest {
             // 은행원 심사 (created_by != null)
             LoanDecision bankerDecision = mock(LoanDecision.class);
             given(bankerDecision.getCreatedBy()).willReturn(50L);
-            given(bankerDecision.getDecision()).willReturn(Decision.APPROVED);
+            given(bankerDecision.getStatus()).willReturn(DecisionStatus.TELLER_APPROVED);
             given(bankerDecision.getComment()).willReturn("승인합니다.");
             given(bankerDecision.getCreatedAt()).willReturn(null);
 
@@ -240,7 +240,7 @@ class LoanApplicationReviewServiceImplTest {
 
             given(loanApplicationRepository.findById(10L)).willReturn(Optional.of(app));
             given(loanProductOptionRepository.findByProduct_ProductId(1L)).willReturn(Collections.emptyList());
-            given(loanDecisionRepository.findAllByApplication_ApplicationIdOrderByCreatedAtDesc(10L))
+            given(loanDecisionRepository.findAllByApplication_ApplicationIdOrderByCreatedAtAsc(10L))
                     .willReturn(List.of(bankerDecision));
             given(userRepository.findAllById(List.of(50L))).willReturn(List.of(banker));
 
@@ -251,7 +251,7 @@ class LoanApplicationReviewServiceImplTest {
             assertThat(response.decisions()).hasSize(1);
             assertThat(response.decisions().get(0).reviewerName()).isEqualTo("김은행");
             assertThat(response.decisions().get(0).reviewerRole()).isEqualTo("ADMIN_BANK_TELLER");
-            assertThat(response.decisions().get(0).status()).isEqualTo("APPROVED");
+            assertThat(response.decisions().get(0).status()).isEqualTo("TELLER_APPROVED");
         }
 
         @Test
@@ -286,7 +286,7 @@ class LoanApplicationReviewServiceImplTest {
 
             given(loanApplicationRepository.findById(10L)).willReturn(Optional.of(app));
             given(loanProductOptionRepository.findByProduct_ProductId(1L)).willReturn(List.of(option1, option2));
-            given(loanDecisionRepository.findAllByApplication_ApplicationIdOrderByCreatedAtDesc(10L))
+            given(loanDecisionRepository.findAllByApplication_ApplicationIdOrderByCreatedAtAsc(10L))
                     .willReturn(Collections.emptyList());
 
             // when

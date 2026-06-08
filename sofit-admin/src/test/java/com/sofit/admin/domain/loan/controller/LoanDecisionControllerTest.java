@@ -5,7 +5,7 @@ import com.sofit.admin.domain.loan.exception.LoanDecisionErrorCode;
 import com.sofit.admin.domain.loan.service.LoanDecisionService;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.GlobalExceptionHandler;
-import com.sofit.common.entity.loan.enums.Decision;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,7 +44,7 @@ class LoanDecisionControllerTest {
         @DisplayName("정상 승인 시 200 응답을 반환한다")
         void shouldReturn200OnSuccess() throws Exception {
             // given
-            LoanDecisionResponse response = new LoanDecisionResponse(1L, 10L, Decision.APPROVED);
+            LoanDecisionResponse response = new LoanDecisionResponse(1L, 10L, DecisionStatus.TELLER_APPROVED);
             given(loanDecisionService.approveLoanApplication(eq(10L), any())).willReturn(response);
 
             String requestBody = """
@@ -63,7 +63,7 @@ class LoanDecisionControllerTest {
                             .content(requestBody))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.isSuccess").value(true))
-                    .andExpect(jsonPath("$.result.decision").value("APPROVED"))
+                    .andExpect(jsonPath("$.result.decision").value("TELLER_APPROVED"))
                     .andExpect(jsonPath("$.result.applicationId").value(10));
         }
 
@@ -167,7 +167,7 @@ class LoanDecisionControllerTest {
         @DisplayName("정상 거절 시 200 응답을 반환한다")
         void shouldReturn200OnSuccess() throws Exception {
             // given
-            LoanDecisionResponse response = new LoanDecisionResponse(2L, 10L, Decision.REJECTED);
+            LoanDecisionResponse response = new LoanDecisionResponse(2L, 10L, DecisionStatus.TELLER_REJECTED);
             given(loanDecisionService.rejectLoanApplication(eq(10L), any())).willReturn(response);
 
             String requestBody = """
@@ -182,7 +182,7 @@ class LoanDecisionControllerTest {
                             .content(requestBody))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.isSuccess").value(true))
-                    .andExpect(jsonPath("$.result.decision").value("REJECTED"));
+                    .andExpect(jsonPath("$.result.decision").value("TELLER_REJECTED"));
         }
 
         @Test
