@@ -7,7 +7,6 @@ import com.sofit.user.domain.auth.dto.request.LoginRequest;
 import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
 import com.sofit.user.domain.auth.dto.response.CheckLoginIdResponse;
-import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,13 +31,13 @@ public interface AuthControllerDocs {
             HttpSession session
     );
 
-    @Operation(summary = "금융인증서 PIN 인증", description = "금융인증서 PIN 인증 및 실명 검증을 수행합니다. 회원가입/대출 등 세션 컨텍스트에 따라 후처리가 분기됩니다.")
+    @Operation(summary = "금융인증서 본인인증 + PIN 검증", description = "금융인증서 본인인증과 PIN 검증을 수행합니다. 회원가입/대출 등 세션 컨텍스트에 따라 후처리가 분기됩니다.")
     @ApiResponses(value = {
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "PIN 인증 성공"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "본인인증 성공"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "PIN 불일치, 단계 미완료, 만료, 인증서 검증 실패"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "인증서를 찾을 수 없음")
     })
-    ApiResponse<FinancialCertVerifyResponse> verifyFinancialCertificate(
+    ApiResponse<Void> verifyFinancialCertificate(
             FinancialCertVerifyRequest request,
             HttpSession session
     );

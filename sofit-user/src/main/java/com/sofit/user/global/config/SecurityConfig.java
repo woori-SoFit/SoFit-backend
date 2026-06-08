@@ -42,7 +42,9 @@ public class SecurityConfig {
                         // Swagger UI 허용
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         // 인증 불필요 경로
-                        .requestMatchers("/api/auth/signup/**", "/api/auth/login", "/api/auth/verify-pin").permitAll()
+                        .requestMatchers("/api/auth/signup/**", "/api/auth/login").permitAll()
+                        // 금융인증서 조회 (회원가입 플로우에서도 비인증 상태로 호출)
+                        .requestMatchers("/api/financial-cert/lookup").permitAll()
                         // 내부 알림 푸시 API (sofit-admin → sofit-user, 세션 인증 불필요)
                         .requestMatchers("/api/notifications/internal/**").permitAll()
                         // 내 정보 조회는 비로그인 상태에서도 접근 가능 (로그인 여부에 따라 분기)

@@ -5,6 +5,7 @@ import com.sofit.common.entity.auth.enums.RegistrationStep;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -38,8 +39,8 @@ public class RegistrationProcess extends BaseEntity {
     @Column(name = "representative_name", length = 50)
     private String representativeName;
 
-    @Column(name = "open_date", length = 10)
-    private String openDate;
+    @Column(name = "open_date")
+    private LocalDate openDate;
 
     @Column(name = "business_type", length = 50)
     private String businessType;
@@ -63,7 +64,7 @@ public class RegistrationProcess extends BaseEntity {
     public static RegistrationProcess createForStep1(String businessNumber,
                                                       String businessName,
                                                       String representativeName,
-                                                      String openDate,
+                                                      LocalDate openDate,
                                                       String businessType,
                                                       String businessCategory,
                                                       String businessAddress) {
@@ -71,7 +72,7 @@ public class RegistrationProcess extends BaseEntity {
         process.businessNumber = businessNumber;
         process.businessName = businessName;
         process.representativeName = representativeName;
-        process.openDate = openDate;
+        process.openDate = openDate != null ? LocalDate.parse(openDate) : null;
         process.businessType = businessType;
         process.businessCategory = businessCategory;
         process.businessAddress = businessAddress;
@@ -86,14 +87,14 @@ public class RegistrationProcess extends BaseEntity {
     public void updateKycResult(String businessNumber,
                                  String businessName,
                                  String representativeName,
-                                 String openDate,
+                                 LocalDate openDate,
                                  String businessType,
                                  String businessCategory,
                                  String businessAddress) {
         this.businessNumber = businessNumber;
         this.businessName = businessName;
         this.representativeName = representativeName;
-        this.openDate = openDate;
+        this.openDate = openDate != null ? LocalDate.parse(openDate) : null;
         this.businessType = businessType;
         this.businessCategory = businessCategory;
         this.businessAddress = businessAddress;

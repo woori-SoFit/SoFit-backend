@@ -4,6 +4,7 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanRatePolicy;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.sGrade.Scb;
 import com.sofit.common.entity.sGrade.SGradeReport;
 import com.sofit.common.entity.sGrade.SScoringRule;
@@ -118,12 +119,15 @@ public class LoanDecisionProcessor {
         application.updateStatus(ApplicationStatus.SYSTEM_APPROVED);
         loanApplicationRepository.save(application);
 
-        LoanDecision decision = LoanDecision.createSystemApproval(
+        LoanDecision decision = LoanDecision.createApproval(
                 application,
+                DecisionStatus.SYSTEM_APPROVED,
                 approvedAmount,
                 policy.getInterestRate(),
                 application.getRequestedTerm(),
-                application.getRepaymentMethod()
+                application.getRepaymentMethod(),
+                null,
+                null
         );
         loanDecisionRepository.save(decision);
 
@@ -135,7 +139,7 @@ public class LoanDecisionProcessor {
         application.updateStatus(ApplicationStatus.SYSTEM_REJECTED);
         loanApplicationRepository.save(application);
 
-        LoanDecision decision = LoanDecision.createSystemRejection(application, comment);
+        LoanDecision decision = LoanDecision.createRejection(application, DecisionStatus.SYSTEM_REJECTED, comment, null);
         loanDecisionRepository.save(decision);
     }
 }

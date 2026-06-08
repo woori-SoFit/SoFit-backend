@@ -2,11 +2,12 @@ package com.sofit.user.domain.auth.dto.response;
 
 import java.time.LocalDateTime;
 
-public record FinancialCertVerifyResponse(
+public record FinancialCertLookupResponse(
+        String phoneNumber,
         String certNumber,
         String holderName,
-        String phoneNumber,
         String status,
-        LocalDateTime verifiedAt
+        LocalDateTime issuedAt,
+        LocalDateTime expiresAt
 ) {
 }
