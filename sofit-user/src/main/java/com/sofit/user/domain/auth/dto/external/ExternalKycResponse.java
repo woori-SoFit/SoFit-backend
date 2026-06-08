@@ -1,4 +1,4 @@
-package com.sofit.user.domain.auth.dto.response;
+package com.sofit.user.domain.auth.dto.external;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
