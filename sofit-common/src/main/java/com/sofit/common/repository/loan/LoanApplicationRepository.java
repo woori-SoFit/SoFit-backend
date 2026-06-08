@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -67,13 +68,22 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
             @Param("userId") Long userId,
             @Param("statuses") List<ApplicationStatus> statuses);
 
-    // 동일 상품 중복 신청 체크 (CANCELLED 제외한 모든 상태에 신청이 존재하는지)
-    boolean existsByUser_UserIdAndProduct_ProductIdAndStatusNot(
-            Long userId, Long productId, ApplicationStatus status);
+    // 동일 상품 중복 신청 체크 (특정 상태 제외한 진행 중 신청이 존재하는지)
+    boolean existsByUser_UserIdAndProduct_ProductIdAndStatusNotIn(
+            Long userId, Long productId, List<ApplicationStatus> statuses);
 
     // 특정 상품에 대한 DRAFT 상태 신청 조회
     Optional<LoanApplication> findByUser_UserIdAndProduct_ProductIdAndStatus(
             Long userId, Long productId, ApplicationStatus status);
+
+    // 사용자의 전체 DRAFT 신청 목록 조회 (product fetch join, N+1 방지)
+    @Query("SELECT la FROM LoanApplication la " +
+           "JOIN FETCH la.product " +
+           "WHERE la.user.userId = :userId AND la.status = :status " +
+           "ORDER BY la.createdAt DESC")
+    List<LoanApplication> findDraftsByUserIdWithProduct(
+            @Param("userId") Long userId,
+            @Param("status") ApplicationStatus status);
 
     // 특정 사용자의 EXECUTED 상태 대출 건수 카운트
     int countByUser_UserIdAndStatus(Long userId, ApplicationStatus status);
@@ -98,4 +108,13 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
 
     // 특정 상태의 대출 신청 목록 조회 (배치용)
     List<LoanApplication> findByStatus(ApplicationStatus status);
+
+    // DRAFT 만료 처리: 7일 경과한 DRAFT 상태를 EXPIRED로 일괄 변경
+    @Modifying
+    @Query("UPDATE LoanApplication la SET la.status = :newStatus " +
+           "WHERE la.status = :currentStatus AND la.createdAt < :expiredBefore")
+    int bulkUpdateStatusByStatusAndCreatedAtBefore(
+            @Param("currentStatus") ApplicationStatus currentStatus,
+            @Param("newStatus") ApplicationStatus newStatus,
+            @Param("expiredBefore") java.time.LocalDateTime expiredBefore);
 }
