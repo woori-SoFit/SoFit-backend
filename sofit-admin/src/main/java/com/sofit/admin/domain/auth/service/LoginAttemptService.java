@@ -1,4 +1,4 @@
-package com.sofit.admin.global.config;
+package com.sofit.admin.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;

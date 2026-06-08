@@ -1,4 +1,4 @@
-package com.sofit.admin.global.config;
+package com.sofit.admin.domain.auth.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
