@@ -23,7 +23,7 @@ public interface LoanDecisionRepository extends JpaRepository<LoanDecision, Long
     Optional<LoanDecision> findByApplication_ApplicationIdAndStatusIn(Long applicationId, List<DecisionStatus> statuses);
 
     /**
-     * 여러 신청 건에 대해 승인 상태의 decision 일괄 조회 (대시보드 목록용)
+     * 여러 신청 건에 대해 승인 상태의 decision 일괄 조회 (대시보드 목록용, 최신 결정 우선)
      */
-    List<LoanDecision> findByApplication_ApplicationIdInAndStatusIn(List<Long> applicationIds, List<DecisionStatus> statuses);
+    List<LoanDecision> findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(List<Long> applicationIds, List<DecisionStatus> statuses);
 }

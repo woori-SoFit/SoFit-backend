@@ -105,12 +105,12 @@ public class LoanDashboardServiceImpl implements LoanDashboardService {
         );
 
         Map<Long, Long> approvedAmountMap = loanDecisionRepository
-                .findByApplication_ApplicationIdInAndStatusIn(applicationIds, approvalStatuses)
+                .findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(applicationIds, approvalStatuses)
                 .stream()
                 .collect(Collectors.toMap(
                         d -> d.getApplication().getApplicationId(),
                         LoanDecision::getApprovedAmount,
-                        (existing, replacement) -> replacement // 최신 결정 우선
+                        (existing, replacement) -> replacement // createdAt ASC 정렬이므로 뒤에 오는 값이 최신
                 ));
 
         return LoanDashboardConverter.toLoanDashboardResponse(page, businessNameMap, bankerNameMap, approvedAmountMap);
