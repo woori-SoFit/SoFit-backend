@@ -10,7 +10,7 @@ public class ReportConverter {
     private ReportConverter() {}
 
     /**
-     * ShapExplanation 엔티티 → GradeResponse 변환.
+     * SGradeReport 엔티티 → GradeResponse 변환.
      * comment, commentDetail은 등급 기반 고정 문자열에서 가져온다.
      */
     public static GradeResponse toGradeResponse(SGradeReport entity) {
@@ -30,7 +30,7 @@ public class ReportConverter {
     }
 
     /**
-     * ShapExplanation 엔티티 → GradeDetailResponse 변환.
+     * SGradeReport 엔티티 → GradeDetailResponse 변환.
      */
     public static GradeDetailResponse toGradeDetailResponse(SGradeReport entity) {
         return new GradeDetailResponse(

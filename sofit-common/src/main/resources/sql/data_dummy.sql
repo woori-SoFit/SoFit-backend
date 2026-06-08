@@ -1,7 +1,7 @@
 -- =====================================================
 -- SoFit Dummy Data (테스트용 더미 데이터 - user 포함)
 -- 실행 순서: 2번째 (data_static.sql 이후)
--- users → business_profile → my_biz_data → s_input_feature
+-- users → business_profile → my_biz_data → s_grade_feature
 -- =====================================================
 
 -- AUTO_INCREMENT 11부터 시작 (신규 가입 테스트 충돌 방지)
@@ -87,9 +87,9 @@ INSERT INTO my_biz_data (
 (10, '1101234567', 'I56111', '음식점업(한식)',    'SEOUL-NW',    '2026-05-01', 72, 264000000, 22600000, 21400000, 5.61,  22600000.00, 410, 55121.95,  1, 3,  23800000, 18100000, 58000000, 7900000, 5700000, 0,       0,   NULL, 22.00, 87.00, 6,  4.7, 220, 88.90, 16.00, 15.50, 18.00, 'FILED', '2026-05-07', false, 'PAID', 8, true,  true,  true,  NOW(), NOW());
 
 -- =====================================================
--- 4. s_input_feature
+-- 4. s_grade_feature
 -- =====================================================
-INSERT INTO s_input_feature (
+INSERT INTO s_grade_feature (
     biz_data_id, user_id,
     business_age_months, quarterly_revenue_growth_rate, annual_revenue_growth_rate,
     revenue_vs_industry_avg_ratio,

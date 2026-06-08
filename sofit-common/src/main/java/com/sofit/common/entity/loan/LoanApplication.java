@@ -121,4 +121,8 @@ public class LoanApplication extends BaseEntity {
     public void updateBizDataId(Long bizDataId) {
         this.bizDataId = bizDataId;
     }
+
+    public void updateSGradeId(Long sGradeId) {
+        this.sGradeId = sGradeId;
+    }
 }

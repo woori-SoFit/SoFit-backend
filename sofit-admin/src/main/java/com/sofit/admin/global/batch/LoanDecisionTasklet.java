@@ -23,11 +23,11 @@ public class LoanDecisionTasklet implements Tasklet {
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-        // S_COMPLETED 상태의 대출 신청 건 조회
+        // SUBMITTED 상태의 대출 신청 건 조회
         List<LoanApplication> applications =
-                loanApplicationRepository.findByStatus(ApplicationStatus.S_COMPLETED);
+                loanApplicationRepository.findByStatus(ApplicationStatus.SUBMITTED);
 
-        log.info("[LoanDecisionBatch] S_COMPLETED 대출 신청 건수: {}", applications.size());
+        log.info("[LoanDecisionBatch] SUBMITTED 대출 신청 건수: {}", applications.size());
 
         for (LoanApplication application : applications) {
             try {

@@ -4,6 +4,7 @@ import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.auth.RegistrationProcess;
 import com.sofit.common.entity.auth.enums.RegistrationStep;
+import com.sofit.common.entity.sGrade.SGradeHistory;
 import com.sofit.common.entity.term.ConsentHistory;
 import com.sofit.common.entity.term.Term;
 import com.sofit.common.entity.term.enums.TermType;
@@ -13,6 +14,7 @@ import com.sofit.common.repository.term.ConsentHistoryRepository;
 import com.sofit.common.repository.term.TermRepository;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.auth.RegistrationProcessRepository;
+import com.sofit.common.repository.sGrade.SGradeHistoryRepository;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.auth.client.ExternalMockClient;
 import com.sofit.user.domain.terms.exception.TermErrorCode;
@@ -60,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
     private final BusinessProfileRepository businessProfileRepository;
     private final TermRepository termRepository;
     private final ConsentHistoryRepository consentHistoryRepository;
+    private final SGradeHistoryRepository sGradeHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final HttpSessionSecurityContextRepository securityContextRepository;
     private final TransactionTemplate transactionTemplate;
@@ -287,6 +290,10 @@ public class AuthServiceImpl implements AuthService {
                             .build())
                     .toList();
             consentHistoryRepository.saveAll(consentHistories);
+
+            // S등급 산출 요청 레코드 생성 (Python 배치 대상으로 등록)
+            SGradeHistory sGradeHistory = SGradeHistory.createRequested(newUser);
+            sGradeHistoryRepository.save(sGradeHistory);
 
             // RegistrationProcess 삭제 (가입 완료)
             registrationProcessRepository.delete(process);

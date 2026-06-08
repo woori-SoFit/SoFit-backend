@@ -39,11 +39,11 @@ public class BatchExecutionHistory {
     @Column(name = "total_count", nullable = false)
     private Integer totalCount;
 
-    @Column(name = "success_count", nullable = false)
+    @Column(name = "success_count", columnDefinition = "INT DEFAULT 0")
     private Integer successCount;
 
-    @Column(name = "fail_count", nullable = false)
-    private Integer failCount;
+    @Column(name = "fail_count", columnDefinition = "INT DEFAULT 0")
+    private Integer failCount = 0;
 
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;

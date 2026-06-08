@@ -32,12 +32,12 @@ public class LoanApplicationGradeServiceImpl implements LoanApplicationGradeServ
         // 2. s_grade → SGrade 변환
         SGrade sGrade = convertToSGrade(scb.getSGrade());
 
-        // 3. s_evaluation_id 조회 (LoanApplication 전체 로딩 없이 필요한 필드만)
-        Long sEvaluationId = loanApplicationRepository.findSGradeIdByApplicationId(applicationId)
+        // 3. s_grade_id 조회 (LoanApplication 전체 로딩 없이 필요한 필드만)
+        Long sGradeId = loanApplicationRepository.findSGradeIdByApplicationId(applicationId)
                 .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
 
         // 4. SGradeReport 조회
-        SGradeReport sGradeReport = sGradeReportRepository.findById(sEvaluationId)
+        SGradeReport sGradeReport = sGradeReportRepository.findById(sGradeId)
                 .orElseThrow(() -> new BaseException(GeneralErrorCode.NOT_FOUND));
 
         // 5. Converter로 DTO 변환

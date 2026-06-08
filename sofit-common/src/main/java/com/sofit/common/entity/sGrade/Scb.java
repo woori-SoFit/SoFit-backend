@@ -23,7 +23,7 @@ public class Scb extends BaseEntity {
     @Column(name = "cb_score")
     private Integer cbScore;
 
-    @Column(name = "s_grade")
+    @Column(name = "s_grade", nullable = false)
     private String sGrade;
 
     @Column(name = "score_addition")
@@ -31,4 +31,20 @@ public class Scb extends BaseEntity {
 
     @Column(name = "scb_score")
     private Integer scbScore;
+
+    // === 비즈니스 메서드 ===
+
+    /**
+     * 대출 심사 배치에서 SCB 레코드를 생성한다.
+     */
+    public static Scb create(Long applicationId, Integer cbScore,
+                             String sGrade, Integer scoreAddition, Integer scbScore) {
+        Scb scb = new Scb();
+        scb.applicationId = applicationId;
+        scb.cbScore = cbScore;
+        scb.sGrade = sGrade;
+        scb.scoreAddition = scoreAddition;
+        scb.scbScore = scbScore;
+        return scb;
+    }
 }
