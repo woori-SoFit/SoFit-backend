@@ -62,14 +62,14 @@ public class LoanApplicationReviewConverter {
     }
 
     /**
-     * 시스템 심사(created_by == null) 중 APPROVED인 LoanDecision을 RecommendationResponse로 변환한다.
-     * created_by != null이거나 decision != APPROVED이면 null을 반환한다.
+     * 시스템 심사(SYSTEM_APPROVED)인 LoanDecision을 RecommendationResponse로 변환한다.
+     * decision이 SYSTEM_APPROVED가 아니면 null을 반환한다.
      */
     public static RecommendationResponse toRecommendationResponse(LoanDecision decision) {
         if (decision == null) {
             return null;
         }
-        if (decision.getCreatedBy() != null || decision.getStatus() != DecisionStatus.APPROVED) {
+        if (decision.getStatus() != DecisionStatus.SYSTEM_APPROVED) {
             return null;
         }
         return new RecommendationResponse(
@@ -82,30 +82,18 @@ public class LoanApplicationReviewConverter {
 
     /**
      * LoanDecision + User를 DecisionResponse로 변환한다.
-     * - created_by == null: reviewerName="시스템", reviewerRole="SYSTEM", APPROVED면 status="SYSTEM_APPROVED"
-     * - created_by != null && User 존재: reviewerName=user.name, reviewerRole=user.role.name()
-     * - created_by != null && User 미존재: reviewerName="알 수 없음", reviewerRole="SYSTEM"
+     * - reviewerRole: DecisionStatus에서 결정
+     * - reviewerName: 시스템이면 "시스템", 은행원이면 User.name, User 미존재 시 "알 수 없음"
      */
     public static DecisionResponse toDecisionResponse(LoanDecision decision, User user) {
-        String status;
+        String status = decision.getStatus().name();
+        String reviewerRole = decision.getStatus().getReviewerRole();
         String reviewerName;
-        String reviewerRole;
 
-        if (decision.getCreatedBy() == null) {
-            // 시스템 심사
+        if (decision.getStatus().isSystem()) {
             reviewerName = "시스템";
-            reviewerRole = "SYSTEM";
-            status = decision.getStatus() == DecisionStatus.APPROVED ? "SYSTEM_APPROVED" : decision.getStatus().name();
-        } else if (user != null) {
-            // 은행원 심사 - 사용자 존재
-            reviewerName = user.getName();
-            reviewerRole = user.getRole().name();
-            status = decision.getStatus().name();
         } else {
-            // 은행원 심사 - 사용자 미존재
-            reviewerName = "알 수 없음";
-            reviewerRole = "SYSTEM";
-            status = decision.getStatus().name();
+            reviewerName = user == null? "알 수 없음" : user.getName();
         }
 
         return new DecisionResponse(

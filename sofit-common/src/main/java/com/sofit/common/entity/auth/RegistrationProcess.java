@@ -72,7 +72,7 @@ public class RegistrationProcess extends BaseEntity {
         process.businessNumber = businessNumber;
         process.businessName = businessName;
         process.representativeName = representativeName;
-        process.openDate = openDate;
+        process.openDate = openDate != null ? LocalDate.parse(openDate) : null;
         process.businessType = businessType;
         process.businessCategory = businessCategory;
         process.businessAddress = businessAddress;
@@ -94,7 +94,7 @@ public class RegistrationProcess extends BaseEntity {
         this.businessNumber = businessNumber;
         this.businessName = businessName;
         this.representativeName = representativeName;
-        this.openDate = openDate;
+        this.openDate = openDate != null ? LocalDate.parse(openDate) : null;
         this.businessType = businessType;
         this.businessCategory = businessCategory;
         this.businessAddress = businessAddress;

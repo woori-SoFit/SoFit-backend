@@ -61,68 +61,41 @@ public class LoanDecision extends BaseEntity {
 
     // === 정적 팩토리 메서드 ===
 
+    /**
+     * 승인 (SYSTEM_APPROVED, TELLER_APPROVED, MANAGER_APPROVED)
+     */
     public static LoanDecision createApproval(LoanApplication application,
+                                              DecisionStatus status,
                                               Long approvedAmount,
                                               BigDecimal approvedRate,
                                               Integer approvedTerm,
                                               RepaymentMethod repaymentMethod,
                                               String comment,
-                                              Long createdByUserId) {
+                                              Long createdBy) {
         LoanDecision decision = new LoanDecision();
         decision.application = application;
-        decision.status = DecisionStatus.APPROVED;
+        decision.status = status;
         decision.approvedAmount = approvedAmount;
         decision.approvedRate = approvedRate;
         decision.approvedTerm = approvedTerm;
         decision.repaymentMethod = repaymentMethod;
         decision.comment = comment;
-        decision.setCreatedBy(createdByUserId);
+        decision.createdBy = createdBy;
         return decision;
     }
 
+    /**
+     * 거절 (SYSTEM_REJECTED, TELLER_REJECTED, MANAGER_REJECTED)
+     */
     public static LoanDecision createRejection(LoanApplication application,
+                                               DecisionStatus status,
                                                String comment,
-                                               Long createdByUserId) {
+                                               Long createdBy) {
         LoanDecision decision = new LoanDecision();
         decision.application = application;
-        decision.status = DecisionStatus.REJECTED;
+        decision.status = status;
         decision.comment = comment;
-        decision.setCreatedBy(createdByUserId);
+        decision.createdBy = createdBy;
         return decision;
-    }
-
-    /**
-     * 시스템 자동 승인 (배치)
-     */
-    public static LoanDecision createSystemApproval(LoanApplication application,
-                                                    Long approvedAmount,
-                                                    BigDecimal approvedRate,
-                                                    Integer approvedTerm,
-                                                    RepaymentMethod repaymentMethod) {
-        LoanDecision decision = new LoanDecision();
-        decision.application = application;
-        decision.status = DecisionStatus.APPROVED;
-        decision.approvedAmount = approvedAmount;
-        decision.approvedRate = approvedRate;
-        decision.approvedTerm = approvedTerm;
-        decision.repaymentMethod = repaymentMethod;
-        decision.comment = null;
-        return decision;
-    }
-
-    /**
-     * 시스템 자동 거절 (배치)
-     */
-    public static LoanDecision createSystemRejection(LoanApplication application,
-                                                     String comment) {
-        LoanDecision decision = new LoanDecision();
-        decision.application = application;
-        decision.status = DecisionStatus.REJECTED;
-        decision.comment = comment;
-        return decision;
-    }
-
-    private void setCreatedBy(Long createdBy) {
-        this.createdBy = createdBy;
     }
 }

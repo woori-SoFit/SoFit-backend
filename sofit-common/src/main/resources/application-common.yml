@@ -45,7 +45,7 @@ spring:
     activate:
       on-profile: local
   datasource:
-    url: jdbc:mysql://localhost:13306/sofit?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://localhost:13306/sofit_test_v2?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
   data:
     redis:
       host: localhost
