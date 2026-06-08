@@ -19,10 +19,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.auth.BusinessProfile;
-import com.sofit.common.entity.report.ShapExplanation;
-import com.sofit.common.entity.report.enums.SGrade;
+import com.sofit.common.entity.sGrade.SGradeReport;
+import com.sofit.common.entity.sGrade.enums.SGrade;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.repository.ShapExplanationRepository;
+import com.sofit.common.repository.sGrade.SGradeReportRepository;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.user.domain.report.dto.response.GradeDetailResponse;
 import com.sofit.user.domain.report.dto.response.GradeResponse;
@@ -36,7 +36,7 @@ class ReportServiceImplTest {
     private ReportServiceImpl reportService;
 
     @Mock
-    private ShapExplanationRepository shapExplanationRepository;
+    private SGradeReportRepository sGradeReportRepository;
 
     @Mock
     private BusinessProfileRepository businessProfileRepository;
@@ -49,13 +49,13 @@ class ReportServiceImplTest {
     @DisplayName("findGrade - 성장 S등급 결과 존재 시 GradeResponse를 반환한다")
     void findGrade_whenExplanationExists_returnsGradeResponse() {
         // given
-        ShapExplanation explanation = createShapExplanation(1L, USER_ID, SGrade.S3,
+        SGradeReport sGradeReport = createSGradeReport(1L, USER_ID, SGrade.S3,
                 List.of("매출 성장", "고객 재방문율"),
                 List.of("현금흐름"),
                 "매출 성장을 지속하면서 현금흐름 관리를 강화하세요.");
 
-        given(shapExplanationRepository.findTopByUser_UserIdOrderByCreatedAtDesc(USER_ID))
-                .willReturn(Optional.of(explanation));
+        given(sGradeReportRepository.findLatestCompletedByUserId(USER_ID))
+                .willReturn(Optional.of(sGradeReport));
 
         // when
         GradeResponse response = reportService.findGrade(USER_ID);
@@ -67,18 +67,18 @@ class ReportServiceImplTest {
         assertThat(response.sGrade()).isEqualTo("S3");
         assertThat(response.comment()).isNotBlank();
         assertThat(response.commentDetail()).isNotBlank();
-        verify(shapExplanationRepository).findTopByUser_UserIdOrderByCreatedAtDesc(USER_ID);
+        verify(sGradeReportRepository).findLatestCompletedByUserId(USER_ID);
     }
 
     @Test
     @DisplayName("findGrade - S등급이 S1일 때 최상위 코멘트를 반환한다")
     void findGrade_whenGradeIsS1_returnsTopGradeComment() {
         // given
-        ShapExplanation explanation = createShapExplanation(2L, USER_ID, SGrade.S1,
+        SGradeReport sGradeReport = createSGradeReport(2L, USER_ID, SGrade.S1,
                 List.of("탁월한 매출"), List.of(), "계속 성장하세요.");
 
-        given(shapExplanationRepository.findTopByUser_UserIdOrderByCreatedAtDesc(USER_ID))
-                .willReturn(Optional.of(explanation));
+        given(sGradeReportRepository.findLatestCompletedByUserId(USER_ID))
+                .willReturn(Optional.of(sGradeReport));
 
         // when
         GradeResponse response = reportService.findGrade(USER_ID);
@@ -93,11 +93,11 @@ class ReportServiceImplTest {
     @DisplayName("findGrade - S등급이 S10일 때 최하위 코멘트를 반환한다")
     void findGrade_whenGradeIsS10_returnsBottomGradeComment() {
         // given
-        ShapExplanation explanation = createShapExplanation(3L, USER_ID, SGrade.S10,
+        SGradeReport sGradeReport = createSGradeReport(3L, USER_ID, SGrade.S10,
                 List.of(), List.of("매출 회복 필요"), "적극적인 조치가 필요합니다.");
 
-        given(shapExplanationRepository.findTopByUser_UserIdOrderByCreatedAtDesc(USER_ID))
-                .willReturn(Optional.of(explanation));
+        given(sGradeReportRepository.findLatestCompletedByUserId(USER_ID))
+                .willReturn(Optional.of(sGradeReport));
 
         // when
         GradeResponse response = reportService.findGrade(USER_ID);
@@ -112,7 +112,7 @@ class ReportServiceImplTest {
     @DisplayName("findGrade - 성장 S등급 미산출 시 GRADE_NOT_FOUND 예외를 던진다")
     void findGrade_whenExplanationNotFound_throwsGradeNotFoundException() {
         // given
-        given(shapExplanationRepository.findTopByUser_UserIdOrderByCreatedAtDesc(USER_ID))
+        given(sGradeReportRepository.findLatestCompletedByUserId(USER_ID))
                 .willReturn(Optional.empty());
 
         // when & then
@@ -134,10 +134,10 @@ class ReportServiceImplTest {
         List<String> improvementKeywords = List.of("현금흐름 관리");
         String advice = "현금흐름 관리를 강화하고 비용 구조를 개선하세요.";
 
-        ShapExplanation explanation = createShapExplanation(1L, USER_ID, SGrade.S4,
+        SGradeReport explanation = createSGradeReport(1L, USER_ID, SGrade.S4,
                 strengthKeywords, improvementKeywords, advice);
 
-        given(shapExplanationRepository.findTopByUser_UserIdOrderByCreatedAtDesc(USER_ID))
+        given(sGradeReportRepository.findLatestCompletedByUserId(USER_ID))
                 .willReturn(Optional.of(explanation));
 
         // when
@@ -149,17 +149,17 @@ class ReportServiceImplTest {
         assertThat(response.strengthKeywords()).containsExactlyElementsOf(strengthKeywords);
         assertThat(response.improvementKeywords()).containsExactlyElementsOf(improvementKeywords);
         assertThat(response.advice()).isEqualTo(advice);
-        verify(shapExplanationRepository).findTopByUser_UserIdOrderByCreatedAtDesc(USER_ID);
+        verify(sGradeReportRepository).findLatestCompletedByUserId(USER_ID);
     }
 
     @Test
     @DisplayName("findGradeDetail - strengthKeywords와 improvementKeywords가 비어있어도 정상 반환한다")
     void findGradeDetail_whenKeywordsAreEmpty_returnsEmptyLists() {
         // given
-        ShapExplanation explanation = createShapExplanation(1L, USER_ID, SGrade.S5,
+        SGradeReport explanation = createSGradeReport(1L, USER_ID, SGrade.S5,
                 List.of(), List.of(), "꾸준히 유지하세요.");
 
-        given(shapExplanationRepository.findTopByUser_UserIdOrderByCreatedAtDesc(USER_ID))
+        given(sGradeReportRepository.findLatestCompletedByUserId(USER_ID))
                 .willReturn(Optional.of(explanation));
 
         // when
@@ -175,7 +175,7 @@ class ReportServiceImplTest {
     @DisplayName("findGradeDetail - 성장 S등급 미산출 시 GRADE_NOT_FOUND 예외를 던진다")
     void findGradeDetail_whenExplanationNotFound_throwsGradeNotFoundException() {
         // given
-        given(shapExplanationRepository.findTopByUser_UserIdOrderByCreatedAtDesc(USER_ID))
+        given(sGradeReportRepository.findLatestCompletedByUserId(USER_ID))
                 .willReturn(Optional.empty());
 
         // when & then
@@ -238,22 +238,22 @@ class ReportServiceImplTest {
     // ===================== 테스트 픽스처 =====================
 
     /**
-     * 리플렉션을 사용하여 ShapExplanation 테스트 인스턴스를 생성한다.
+     * 리플렉션을 사용하여 SGradeReport 테스트 인스턴스를 생성한다.
      */
-    private ShapExplanation createShapExplanation(Long evaluationId, Long userId, SGrade sGrade,
+    private SGradeReport createSGradeReport(Long evaluationId, Long userId, SGrade sGrade,
                                                    List<String> strengthKeywords,
                                                    List<String> improvementKeywords,
                                                    String advice) {
         try {
-            var constructor = ShapExplanation.class.getDeclaredConstructor();
+            var constructor = SGradeReport.class.getDeclaredConstructor();
             constructor.setAccessible(true);
-            ShapExplanation explanation = constructor.newInstance();
+            SGradeReport explanation = constructor.newInstance();
 
-            setField(explanation, "evaluationId", evaluationId);
+            setField(explanation, "sGradeId", evaluationId);
             setField(explanation, "sGrade", sGrade);
             setField(explanation, "strengthKeywords", strengthKeywords);
             setField(explanation, "improvementKeywords", improvementKeywords);
-            setField(explanation, "advice", advice);
+            setField(explanation, "userAdvice", advice);
             setField(explanation, "createdAt", LocalDateTime.of(2024, 5, 1, 10, 0, 0));
 
             // User 픽스처 세팅
@@ -262,7 +262,7 @@ class ReportServiceImplTest {
 
             return explanation;
         } catch (Exception e) {
-            throw new RuntimeException("ShapExplanation 테스트 데이터 생성 실패", e);
+            throw new RuntimeException("SGradeReport 테스트 데이터 생성 실패", e);
         }
     }
 

@@ -9,8 +9,8 @@ import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.sofit.common.entity.report.ShapExplanation;
-import com.sofit.common.entity.report.enums.SGrade;
+import com.sofit.common.entity.sGrade.SGradeReport;
+import com.sofit.common.entity.sGrade.enums.SGrade;
 import com.sofit.common.entity.user.User;
 import com.sofit.user.domain.report.dto.response.GradeDetailResponse;
 import com.sofit.user.domain.report.dto.response.GradeResponse;
@@ -23,7 +23,7 @@ class ReportConverterTest {
     @DisplayName("toGradeResponse - S3 등급 → 올바른 comment와 commentDetail이 매핑된다")
     void toGradeResponse_withS3Grade_mapsCommentCorrectly() {
         // given
-        ShapExplanation explanation = createShapExplanation(
+        SGradeReport sGradeReport = createSGradeReport(
                 1L, 10L, SGrade.S3,
                 List.of("매출 성장", "업종 순위"), List.of("현금흐름"),
                 "현금흐름 안정화를 통해 등급을 높이세요.",
@@ -31,7 +31,7 @@ class ReportConverterTest {
         );
 
         // when
-        GradeResponse response = ReportConverter.toGradeResponse(explanation);
+        GradeResponse response = ReportConverter.toGradeResponse(sGradeReport);
 
         // then
         assertThat(response).isNotNull();
@@ -47,7 +47,7 @@ class ReportConverterTest {
     @DisplayName("toGradeResponse - S1 등급 → 최상위 comment가 매핑된다")
     void toGradeResponse_withS1Grade_mapsTopComment() {
         // given
-        ShapExplanation explanation = createShapExplanation(
+        SGradeReport sGradeReport = createSGradeReport(
                 2L, 20L, SGrade.S1,
                 List.of("탁월한 매출 성장세"), List.of(),
                 "이 수준을 유지하세요.",
@@ -55,7 +55,7 @@ class ReportConverterTest {
         );
 
         // when
-        GradeResponse response = ReportConverter.toGradeResponse(explanation);
+        GradeResponse response = ReportConverter.toGradeResponse(sGradeReport);
 
         // then
         assertThat(response.sGrade()).isEqualTo("S1");
@@ -67,7 +67,7 @@ class ReportConverterTest {
     @DisplayName("toGradeResponse - S10 등급 → 최하위 comment가 매핑된다")
     void toGradeResponse_withS10Grade_mapsBottomComment() {
         // given
-        ShapExplanation explanation = createShapExplanation(
+        SGradeReport sGradeReport = createSGradeReport(
                 3L, 30L, SGrade.S10,
                 List.of(), List.of("매출 회복", "재무 구조 개선"),
                 "적극적인 조치가 필요합니다.",
@@ -75,7 +75,7 @@ class ReportConverterTest {
         );
 
         // when
-        GradeResponse response = ReportConverter.toGradeResponse(explanation);
+        GradeResponse response = ReportConverter.toGradeResponse(sGradeReport);
 
         // then
         assertThat(response.sGrade()).isEqualTo("S10");
@@ -88,7 +88,7 @@ class ReportConverterTest {
     void toGradeResponse_forAllGrades_commentIsNotBlank() {
         for (SGrade grade : SGrade.values()) {
             // given
-            ShapExplanation explanation = createShapExplanation(
+            SGradeReport explanation = createSGradeReport(
                     1L, 1L, grade,
                     List.of(), List.of(), "조언입니다.",
                     LocalDateTime.now()
@@ -117,14 +117,14 @@ class ReportConverterTest {
         List<String> improvementKeywords = List.of("현금흐름 관리", "비용 구조");
         String advice = "현금흐름을 안정화하고 비용 구조를 개선하여 등급 향상을 노려보세요.";
 
-        ShapExplanation explanation = createShapExplanation(
+        SGradeReport sGradeReport = createSGradeReport(
                 1L, 10L, SGrade.S5,
                 strengthKeywords, improvementKeywords, advice,
                 LocalDateTime.of(2024, 5, 20, 9, 0, 0)
         );
 
         // when
-        GradeDetailResponse response = ReportConverter.toGradeDetailResponse(explanation);
+        GradeDetailResponse response = ReportConverter.toGradeDetailResponse(sGradeReport);
 
         // then
         assertThat(response).isNotNull();
@@ -138,14 +138,14 @@ class ReportConverterTest {
     @DisplayName("toGradeDetailResponse - strengthKeywords가 빈 리스트여도 정상 매핑된다")
     void toGradeDetailResponse_withEmptyStrengthKeywords_returnsEmptyList() {
         // given
-        ShapExplanation explanation = createShapExplanation(
+        SGradeReport sGradeReport = createSGradeReport(
                 1L, 10L, SGrade.S8,
                 List.of(), List.of("매출 개선"), "매출 안정화가 필요합니다.",
                 LocalDateTime.now()
         );
 
         // when
-        GradeDetailResponse response = ReportConverter.toGradeDetailResponse(explanation);
+        GradeDetailResponse response = ReportConverter.toGradeDetailResponse(sGradeReport);
 
         // then
         assertThat(response.strengthKeywords()).isEmpty();
@@ -156,14 +156,14 @@ class ReportConverterTest {
     @DisplayName("toGradeDetailResponse - improvementKeywords가 빈 리스트여도 정상 매핑된다")
     void toGradeDetailResponse_withEmptyImprovementKeywords_returnsEmptyList() {
         // given
-        ShapExplanation explanation = createShapExplanation(
+        SGradeReport sGradeReport = createSGradeReport(
                 1L, 10L, SGrade.S2,
                 List.of("탁월한 매출", "안정적 현금흐름"), List.of(), "이 수준을 유지하세요.",
                 LocalDateTime.now()
         );
 
         // when
-        GradeDetailResponse response = ReportConverter.toGradeDetailResponse(explanation);
+        GradeDetailResponse response = ReportConverter.toGradeDetailResponse(sGradeReport);
 
         // then
         assertThat(response.strengthKeywords()).containsExactly("탁월한 매출", "안정적 현금흐름");
@@ -175,12 +175,12 @@ class ReportConverterTest {
     void toGradeDetailResponse_sGradeIsEnumName() {
         for (SGrade grade : SGrade.values()) {
             // given
-            ShapExplanation explanation = createShapExplanation(
+            SGradeReport sGradeReport = createSGradeReport(
                     1L, 1L, grade, List.of(), List.of(), "조언.", LocalDateTime.now()
             );
 
             // when
-            GradeDetailResponse response = ReportConverter.toGradeDetailResponse(explanation);
+            GradeDetailResponse response = ReportConverter.toGradeDetailResponse(sGradeReport);
 
             // then
             assertThat(response.sGrade())
@@ -191,29 +191,29 @@ class ReportConverterTest {
 
     // ===================== 테스트 픽스처 =====================
 
-    private ShapExplanation createShapExplanation(Long evaluationId, Long userId, SGrade sGrade,
+    private SGradeReport createSGradeReport(Long evaluationId, Long userId, SGrade sGrade,
                                                    List<String> strengthKeywords,
                                                    List<String> improvementKeywords,
                                                    String advice,
                                                    LocalDateTime createdAt) {
         try {
-            var constructor = ShapExplanation.class.getDeclaredConstructor();
+            var constructor = SGradeReport.class.getDeclaredConstructor();
             constructor.setAccessible(true);
-            ShapExplanation explanation = constructor.newInstance();
+            SGradeReport sGradeReport = constructor.newInstance();
 
-            setField(explanation, "evaluationId", evaluationId);
-            setField(explanation, "sGrade", sGrade);
-            setField(explanation, "strengthKeywords", strengthKeywords);
-            setField(explanation, "improvementKeywords", improvementKeywords);
-            setField(explanation, "advice", advice);
-            setField(explanation, "createdAt", createdAt);
+            setField(sGradeReport, "sGradeId", evaluationId);
+            setField(sGradeReport, "sGrade", sGrade);
+            setField(sGradeReport, "strengthKeywords", strengthKeywords);
+            setField(sGradeReport, "improvementKeywords", improvementKeywords);
+            setField(sGradeReport, "userAdvice", advice);
+            setField(sGradeReport, "createdAt", createdAt);
 
             User user = createUser(userId);
-            setField(explanation, "user", user);
+            setField(sGradeReport, "user", user);
 
-            return explanation;
+            return sGradeReport;
         } catch (Exception e) {
-            throw new RuntimeException("ShapExplanation 테스트 데이터 생성 실패", e);
+            throw new RuntimeException("SGradeReport 테스트 데이터 생성 실패", e);
         }
     }
 

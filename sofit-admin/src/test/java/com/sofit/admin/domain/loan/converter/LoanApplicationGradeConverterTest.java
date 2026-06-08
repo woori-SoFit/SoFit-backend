@@ -26,18 +26,18 @@ class LoanApplicationGradeConverterTest {
         given(scb.getScbScore()).willReturn(800);
         given(scb.getScoreAddition()).willReturn(50);
 
-        SGradeReport shap = mock(SGradeReport.class);
-        given(shap.getSGrade()).willReturn(SGrade.S3);
-        given(shap.getTargetGrade()).willReturn(SGrade.S2);
-        given(shap.getStrengthKeywords()).willReturn(List.of("매출 성장"));
-        given(shap.getImprovementKeywords()).willReturn(List.of("업종 순위"));
-        given(shap.getStrengthDetails()).willReturn(Map.of("매출 성장", 0.35));
-        given(shap.getImprovementDetails()).willReturn(Map.of("업종 순위", -0.15));
-        given(shap.getAdminAdvice()).willReturn("매출 성장세를 유지하세요.");
+        SGradeReport sGradeReport = mock(SGradeReport.class);
+        given(sGradeReport.getSGrade()).willReturn(SGrade.S3);
+        given(sGradeReport.getTargetGrade()).willReturn(SGrade.S2);
+        given(sGradeReport.getStrengthKeywords()).willReturn(List.of("매출 성장"));
+        given(sGradeReport.getImprovementKeywords()).willReturn(List.of("업종 순위"));
+        given(sGradeReport.getStrengthDetails()).willReturn(Map.of("매출 성장", 0.35));
+        given(sGradeReport.getImprovementDetails()).willReturn(Map.of("업종 순위", -0.15));
+        given(sGradeReport.getAdminAdvice()).willReturn("매출 성장세를 유지하세요.");
 
         // when
         LoanApplicationGradeResponse response = LoanApplicationGradeConverter
-                .toLoanApplicationGradeResponse(scb, SGrade.S3, shap);
+                .toLoanApplicationGradeResponse(scb, SGrade.S3, sGradeReport);
 
         // then
         assertThat(response.cbScore().score()).isEqualTo(750);
@@ -64,18 +64,18 @@ class LoanApplicationGradeConverterTest {
         given(scb.getScbScore()).willReturn(700);
         given(scb.getScoreAddition()).willReturn(0);
 
-        SGradeReport shap = mock(SGradeReport.class);
-        given(shap.getSGrade()).willReturn(SGrade.S5);
-        given(shap.getTargetGrade()).willReturn(null);
-        given(shap.getStrengthKeywords()).willReturn(null);
-        given(shap.getImprovementKeywords()).willReturn(null);
-        given(shap.getStrengthDetails()).willReturn(null);
-        given(shap.getImprovementDetails()).willReturn(null);
-        given(shap.getAdminAdvice()).willReturn(null);
+        SGradeReport sGradeReport = mock(SGradeReport.class);
+        given(sGradeReport.getSGrade()).willReturn(SGrade.S5);
+        given(sGradeReport.getTargetGrade()).willReturn(null);
+        given(sGradeReport.getStrengthKeywords()).willReturn(null);
+        given(sGradeReport.getImprovementKeywords()).willReturn(null);
+        given(sGradeReport.getStrengthDetails()).willReturn(null);
+        given(sGradeReport.getImprovementDetails()).willReturn(null);
+        given(sGradeReport.getAdminAdvice()).willReturn(null);
 
         // when
         LoanApplicationGradeResponse response = LoanApplicationGradeConverter
-                .toLoanApplicationGradeResponse(scb, SGrade.S5, shap);
+                .toLoanApplicationGradeResponse(scb, SGrade.S5, sGradeReport);
 
         // then
         assertThat(response.shapResult().targetGrade()).isNull();
