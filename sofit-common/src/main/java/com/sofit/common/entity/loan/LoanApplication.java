@@ -1,6 +1,6 @@
 package com.sofit.common.entity.loan;
 
-import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.TraceableEntity;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.loan.enums.IncomeType;
 import com.sofit.common.entity.loan.enums.LastCompletedStep;
@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Table(name = "loan_application")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class LoanApplication extends BaseEntity {
+public class LoanApplication extends TraceableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -2,7 +2,7 @@ package com.sofit.common.entity.loan;
 
 import java.math.BigDecimal;
 
-import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.TraceableEntity;
 import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
 
@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "loan_decision")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class LoanDecision extends BaseEntity {
+public class LoanDecision extends TraceableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
