@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.sofit.common.entity.loan.enums.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -12,15 +13,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanProduct;
-import com.sofit.common.entity.loan.enums.AnnualIncome;
-import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.entity.loan.enums.CreditScoreRange;
-import com.sofit.common.entity.loan.enums.Decision;
-import com.sofit.common.entity.loan.enums.ExistingLoanAmount;
-import com.sofit.common.entity.loan.enums.IncomeType;
-import com.sofit.common.entity.loan.enums.LoanPurpose;
-import com.sofit.common.entity.loan.enums.ProductStatus;
-import com.sofit.common.entity.loan.enums.RepaymentMethod;
 import com.sofit.common.entity.user.User;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
@@ -137,11 +129,13 @@ class LoanConverterTest {
         LoanApplication application = createSubmittedApplication();
         LoanDecision decision = LoanDecision.createApproval(
                 application,
+                DecisionStatus.TELLER_APPROVED,
                 25_000_000L,
                 new BigDecimal("4.50"),
                 36,
                 RepaymentMethod.EQUAL_PAYMENT,
-                "심사 승인"
+                "심사 승인",
+                1L
         );
 
         // when
@@ -154,7 +148,7 @@ class LoanConverterTest {
         assertThat(response.repaymentMethod()).isEqualTo(RepaymentMethod.EQUAL_PAYMENT);
 
         CompletedLoanDetailResponse.DecisionInfo decisionInfo = response.decisionInfo();
-        assertThat(decisionInfo.decision()).isEqualTo(Decision.APPROVED);
+        assertThat(decisionInfo.decision()).isEqualTo(DecisionStatus.TELLER_APPROVED);
         assertThat(decisionInfo.approvedAmount()).isEqualTo(25_000_000L);
         assertThat(decisionInfo.approvedRate()).isEqualByComparingTo(new BigDecimal("4.50"));
         assertThat(decisionInfo.approvedTerm()).isEqualTo(36);
@@ -166,14 +160,14 @@ class LoanConverterTest {
     void toCompletedDetailResponse_mapsRejectionDecisionCorrectly() {
         // given
         LoanApplication application = createSubmittedApplication();
-        LoanDecision decision = LoanDecision.createRejection(application, "신용점수 미달");
+        LoanDecision decision = LoanDecision.createRejection(application, DecisionStatus.SYSTEM_REJECTED, "신용점수 미달", null);
 
         // when
         CompletedLoanDetailResponse response = LoanConverter.toCompletedDetailResponse(application, decision);
 
         // then
         CompletedLoanDetailResponse.DecisionInfo decisionInfo = response.decisionInfo();
-        assertThat(decisionInfo.decision()).isEqualTo(Decision.REJECTED);
+        assertThat(decisionInfo.decision()).isEqualTo(DecisionStatus.SYSTEM_REJECTED);
         assertThat(decisionInfo.approvedAmount()).isNull();
         assertThat(decisionInfo.approvedRate()).isNull();
         assertThat(decisionInfo.comment()).isEqualTo("신용점수 미달");
@@ -189,10 +183,10 @@ class LoanConverterTest {
 
         LoanApplication application = LoanApplication.createDraft(
                 user, product,
-                AnnualIncome.AMT_30_50M,
-                CreditScoreRange.CS_0_850,
+                "AMT_30_50M",
+                "CS_0_850",
                 IncomeType.SALARY,
-                ExistingLoanAmount.LOAN_0_100M
+                "LOAN_0_100M"
         );
         ReflectionTestUtils.setField(application, "applicationId", APPLICATION_ID);
         return application;

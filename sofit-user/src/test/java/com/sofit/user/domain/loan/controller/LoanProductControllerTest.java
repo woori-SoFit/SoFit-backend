@@ -104,7 +104,7 @@ class LoanProductControllerTest {
                 .minLimit(1_000_000L)
                 .maxLimit(50_000_000L)
                 .maxTerm(60)
-                .targetDescription("소상공인 대상")
+                .targetSummary("소상공인 대상")
                 .filterConditions(LoanProductDetailResponse.FilterConditions.builder()
                         .annualIncomeLimit(new BigDecimal("50000000"))
                         .creditScoreLimit((short) 600)

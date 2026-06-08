@@ -7,6 +7,8 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Optional;
 
+import com.sofit.common.repository.mybiz.MyBizDataRepository;
+import com.sofit.common.entity.mybiz.MyBizData;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,15 +20,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanProduct;
-import com.sofit.common.entity.loan.enums.AnnualIncome;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.entity.loan.enums.CreditScoreRange;
-import com.sofit.common.entity.loan.enums.ExistingLoanAmount;
 import com.sofit.common.entity.loan.enums.IncomeType;
 import com.sofit.common.entity.loan.enums.LastCompletedStep;
 import com.sofit.common.entity.loan.enums.ProductStatus;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.repository.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.common.entity.term.enums.TermType;
 import com.sofit.user.domain.terms.dto.request.ConsentCreateRequest;
@@ -54,6 +53,9 @@ class LoanStepServiceImplTest {
 
     @Mock
     private BusinessService businessService;
+
+    @Mock
+    private MyBizDataRepository myBizDataRepository;
 
     private static final Long USER_ID = 1L;
     private static final Long OTHER_USER_ID = 999L;
@@ -239,11 +241,16 @@ class LoanStepServiceImplTest {
         LoanApplication application = createApplication(LastCompletedStep.DATA_COLLECTED);
         given(loanApplicationRepository.findById(APPLICATION_ID)).willReturn(Optional.of(application));
 
+        MyBizData myBizData = createMyBizData(100L);
+        given(myBizDataRepository.findFirstByUser_UserIdOrderByReferenceMonthDesc(USER_ID))
+                .willReturn(Optional.of(myBizData));
+
         // when
         loanStepService.processMybizData(USER_ID, APPLICATION_ID);
 
         // then
         verify(businessService).connectMybiz(USER_ID);
+        assertThat(application.getBizDataId()).isEqualTo(100L);
         assertThat(application.getLastCompletedStep()).isEqualTo(LastCompletedStep.MYBIZ_CONNECTED);
     }
 
@@ -282,13 +289,26 @@ class LoanStepServiceImplTest {
 
         LoanApplication application = LoanApplication.createDraft(
                 user, product,
-                AnnualIncome.AMT_30_50M,
-                CreditScoreRange.CS_0_850,
+                "AMT_30_50M",
+                "CS_0_850",
                 IncomeType.SALARY,
-                ExistingLoanAmount.LOAN_0_100M
+                "LOAN_0_100M"
         );
         ReflectionTestUtils.setField(application, "applicationId", APPLICATION_ID);
         ReflectionTestUtils.setField(application, "lastCompletedStep", lastCompletedStep);
         return application;
+    }
+
+    private MyBizData createMyBizData(Long bizDataId) {
+        MyBizData myBizData;
+        try {
+            var constructor = MyBizData.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            myBizData = constructor.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("MyBizData 인스턴스 생성 실패", e);
+        }
+        ReflectionTestUtils.setField(myBizData, "bizDataId", bizDataId);
+        return myBizData;
     }
 }

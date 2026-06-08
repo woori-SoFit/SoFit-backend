@@ -22,8 +22,8 @@ import com.sofit.common.entity.loan.LoanProductOption;
 import com.sofit.common.entity.loan.enums.LoanPurpose;
 import com.sofit.common.entity.loan.enums.ProductStatus;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
-import com.sofit.common.repository.LoanProductOptionRepository;
-import com.sofit.common.repository.LoanProductRepository;
+import com.sofit.common.repository.loan.LoanProductOptionRepository;
+import com.sofit.common.repository.loan.LoanProductRepository;
 import com.sofit.user.domain.loan.dto.response.LoanProductDetailResponse;
 import com.sofit.user.domain.loan.dto.response.LoanProductListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanProductOptionsResponse;
@@ -177,7 +177,7 @@ class LoanProductServiceImplTest {
         ReflectionTestUtils.setField(product, "maxTerm", 60);
         ReflectionTestUtils.setField(product, "minRate", new BigDecimal("3.50"));
         ReflectionTestUtils.setField(product, "maxRate", new BigDecimal("8.00"));
-        ReflectionTestUtils.setField(product, "targetDescription", "소상공인 대상");
+        ReflectionTestUtils.setField(product, "targetSummary", "소상공인 대상");
         return product;
     }
 

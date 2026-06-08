@@ -8,9 +8,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanProduct;
-import com.sofit.common.entity.loan.enums.AnnualIncome;
-import com.sofit.common.entity.loan.enums.CreditScoreRange;
-import com.sofit.common.entity.loan.enums.ExistingLoanAmount;
 import com.sofit.common.entity.loan.enums.IncomeType;
 import com.sofit.common.entity.loan.enums.LastCompletedStep;
 import com.sofit.common.entity.loan.enums.LoanPurpose;
@@ -129,10 +126,10 @@ class LoanApplicationConverterTest {
         // then
         assertThat(response.applicationId()).isEqualTo(APPLICATION_ID);
         assertThat(response.resumeStep()).isEqualTo("CONSENT");
-        assertThat(response.savedData().annualIncome()).isEqualTo(AnnualIncome.AMT_30_50M.name());
-        assertThat(response.savedData().creditScore()).isEqualTo(CreditScoreRange.CS_0_850.name());
+        assertThat(response.savedData().annualIncome()).isEqualTo("AMT_30_50M");
+        assertThat(response.savedData().creditScore()).isEqualTo("CS_0_850");
         assertThat(response.savedData().incomeType()).isEqualTo(IncomeType.SALARY.getCode());
-        assertThat(response.savedData().existingLoanAmt()).isEqualTo(ExistingLoanAmount.LOAN_0_100M.name());
+        assertThat(response.savedData().existingLoanAmt()).isEqualTo("LOAN_0_100M");
     }
 
     @Test
@@ -192,10 +189,10 @@ class LoanApplicationConverterTest {
 
         LoanApplication application = LoanApplication.createDraft(
                 user, product,
-                AnnualIncome.AMT_30_50M,
-                CreditScoreRange.CS_0_850,
+                "AMT_30_50M",
+                "CS_0_850",
                 IncomeType.SALARY,
-                ExistingLoanAmount.LOAN_0_100M
+                "LOAN_0_100M"
         );
         ReflectionTestUtils.setField(application, "applicationId", APPLICATION_ID);
         ReflectionTestUtils.setField(application, "lastCompletedStep", lastCompletedStep);
