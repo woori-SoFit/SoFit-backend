@@ -51,9 +51,9 @@ public class CbScoreClient {
                 if (response != null && response.isSuccess() && response.result() != null) {
                     return response.result().creditScore();
                 }
-                log.warn("[CbScoreClient] name={} CB 점수 조회 실패 (시도 {}/{}) — 응답 실패", name, attempt, MAX_RETRIES);
+                log.warn("[CbScoreClient] name={} CB 점수 조회 실패 (시도 {}/{}) — 응답 실패", mask(name), attempt, MAX_RETRIES);
             } catch (RestClientException e) {
-                log.warn("[CbScoreClient] name={} CB 점수 조회 실패 (시도 {}/{}): {}", name, attempt, MAX_RETRIES, e.getMessage());
+                log.warn("[CbScoreClient] name={} CB 점수 조회 실패 (시도 {}/{}): {}", mask(name), attempt, MAX_RETRIES, e.getMessage());
             }
 
             if (attempt < MAX_RETRIES) {
@@ -66,8 +66,19 @@ public class CbScoreClient {
             }
         }
 
-        log.error("[CbScoreClient] name={} CB 점수 조회 최종 실패 ({}회 재시도 소진)", name, MAX_RETRIES);
+        log.error("[CbScoreClient] name={} CB 점수 조회 최종 실패 ({}회 재시도 소진)", mask(name), MAX_RETRIES);
         return null;
+    }
+
+    /** 로그용 고객명 마스킹 (PII 평문 출력 금지). 예: 홍길동 → 홍** */
+    private static String mask(String name) {
+        if (name == null || name.isBlank()) {
+            return "(unknown)";
+        }
+        if (name.length() <= 1) {
+            return "*";
+        }
+        return name.charAt(0) + "*".repeat(name.length() - 1);
     }
 
     // === 응답 DTO ===
