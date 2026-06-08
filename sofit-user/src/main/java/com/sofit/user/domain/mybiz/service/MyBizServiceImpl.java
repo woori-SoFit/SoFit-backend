@@ -1,7 +1,9 @@
 package com.sofit.user.domain.mybiz.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
@@ -34,22 +36,46 @@ public class MyBizServiceImpl implements MyBizService {
         // 2. 기준월의 referenceMonth 추출
         LocalDate referenceMonth = baseData.getReferenceMonth();
 
-        // 3. 5개월 추이 조회 (revenueTrend / ratingTrend 공통, 기준월 포함 이전 5개월, 오름차순)
+        // 3. 직전 월 데이터 조회 (rankChange 계산용)
+        Optional<MyBizData> prevMonthData = myBizDataRepository
+                .findByUser_UserIdAndReferenceMonth(userId, referenceMonth.minusMonths(1));
+
+        // 4. rankChange 계산 (직전 월 데이터 부재 시 null)
+        BigDecimal salesRankChange = calculateRankChange(
+                baseData.getIndustrySalesRank(),
+                prevMonthData.map(MyBizData::getIndustrySalesRank).orElse(null));
+        BigDecimal profitRankChange = calculateRankChange(
+                baseData.getIndustryProfitRank(),
+                prevMonthData.map(MyBizData::getIndustryProfitRank).orElse(null));
+        BigDecimal stabilityRankChange = calculateRankChange(
+                baseData.getIndustryStabilityRank(),
+                prevMonthData.map(MyBizData::getIndustryStabilityRank).orElse(null));
+
+        // 5. 5개월 추이 조회 (revenueTrend / ratingTrend 공통, 기준월 포함 이전 5개월, 오름차순)
         List<MyBizData> fiveMonthTrendData = myBizDataRepository
                 .findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
                         userId, referenceMonth.minusMonths(4), referenceMonth);
 
-        // 4. cashFlowTrend 조회 (기준월 포함 이전 3개월, 오름차순)
+        // 6. cashFlowTrend 조회 (기준월 포함 이전 3개월, 오름차순)
         List<MyBizData> cashFlowTrendData = myBizDataRepository
                 .findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
                         userId, referenceMonth.minusMonths(2), referenceMonth);
 
-        // 5. 드롭다운용 전체 월 목록 조회 (referenceMonth만 내림차순)
+        // 7. 드롭다운용 전체 월 목록 조회 (referenceMonth만 내림차순)
         List<LocalDate> availableMonths = myBizDataRepository
                 .findReferenceMonthsByUserId(userId);
 
-        // 6. Converter로 DTO 변환 후 반환
-        return MyBizConverter.toMyBizDashboardResponse(baseData, fiveMonthTrendData, cashFlowTrendData, availableMonths);
+        // 8. Converter로 DTO 변환 후 반환
+        return MyBizConverter.toMyBizDashboardResponse(
+                baseData, fiveMonthTrendData, cashFlowTrendData, availableMonths,
+                salesRankChange, profitRankChange, stabilityRankChange);
+    }
+
+    private BigDecimal calculateRankChange(BigDecimal currentRank, BigDecimal prevRank) {
+        if (currentRank == null || prevRank == null) {
+            return null;
+        }
+        return currentRank.subtract(prevRank);
     }
 
     private MyBizData resolveBaseData(Long userId, String month) {

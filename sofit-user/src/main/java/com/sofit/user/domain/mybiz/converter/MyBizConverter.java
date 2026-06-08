@@ -23,7 +23,10 @@ public class MyBizConverter {
             MyBizData baseData,
             List<MyBizData> fiveMonthTrendData,
             List<MyBizData> cashFlowTrendData,
-            List<LocalDate> availableMonths) {
+            List<LocalDate> availableMonths,
+            BigDecimal salesRankChange,
+            BigDecimal profitRankChange,
+            BigDecimal stabilityRankChange) {
 
         String referenceMonth = baseData.getReferenceMonth().format(YEAR_MONTH_FORMATTER);
 
@@ -36,7 +39,10 @@ public class MyBizConverter {
                 baseData.getIndustryName(),
                 baseData.getIndustrySalesRank(),
                 baseData.getIndustryProfitRank(),
-                baseData.getIndustryStabilityRank()
+                baseData.getIndustryStabilityRank(),
+                salesRankChange,
+                profitRankChange,
+                stabilityRankChange
         );
 
         List<RevenueTrendResponse> revenueTrend = fiveMonthTrendData.stream()
@@ -69,20 +75,35 @@ public class MyBizConverter {
                 .toList();
 
         return new MyBizDashboardResponse(
+                // 공통
                 referenceMonth,
+                availableMonthStrings,
+                // 1번 탭: 매출
                 baseData.getMonthlyRevenue(),
                 revenueGrowthRate,
+                baseData.getPrevMonthRevenue(),
+                baseData.getMonthlyTransactionCount(),
+                baseData.getAvgTransactionAmount(),
+                revenueTrend,
+                // 2번 탭: 수익/현금흐름
                 baseData.getCashFlow(),
                 baseData.getEstimatedProfit(),
-                industryCompare,
-                revenueTrend,
                 cashFlowTrend,
-                ratingTrend,
+                // 3번 탭: 고객/온라인
                 baseData.getReviewRating(),
                 baseData.getReviewCount(),
                 baseData.getOnlineReorderRate(),
                 baseData.getDeliveryOrderCount(),
-                availableMonthStrings
+                baseData.getOnlineReplyRate(),
+                baseData.getOnlineInfoUpdateCount(),
+                baseData.getPositiveReviewRatio(),
+                baseData.getDeliveryRating(),
+                baseData.getDeliverySalesAmount(),
+                baseData.getHasOnlineReservation(),
+                baseData.getHasSns(),
+                ratingTrend,
+                // 4번 탭: 업종 비교
+                industryCompare
         );
     }
 }
