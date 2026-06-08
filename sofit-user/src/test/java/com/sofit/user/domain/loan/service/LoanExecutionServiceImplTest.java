@@ -32,10 +32,11 @@ import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanExecution;
 import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
-import com.sofit.common.repository.LoanExecutionRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
+import com.sofit.common.repository.loan.LoanExecutionRepository;
 import com.sofit.user.domain.loan.client.CodefClient;
 import com.sofit.user.domain.loan.dto.request.AccountVerificationConfirmRequest;
 import com.sofit.user.domain.loan.dto.request.AccountVerificationRequest;
@@ -71,6 +72,9 @@ class LoanExecutionServiceImplTest {
     @Mock
     private HashOperations<String, Object, Object> hashOperations;
 
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
     private static final Long USER_ID = 1L;
     private static final Long OTHER_USER_ID = 2L;
     private static final Long APPLICATION_ID = 100L;
@@ -87,7 +91,7 @@ class LoanExecutionServiceImplTest {
         LoanDecision decision = createDecision();
         given(loanExecutionRepository.findByApplicationIdAndUserId(APPLICATION_ID, USER_ID))
                 .willReturn(Optional.of(execution));
-        given(loanDecisionRepository.findByApplication_ApplicationId(APPLICATION_ID))
+        given(loanDecisionRepository.findByApplication_ApplicationIdAndStatus(APPLICATION_ID, DecisionStatus.MANAGER_APPROVED))
                 .willReturn(Optional.of(decision));
 
         // when
@@ -120,7 +124,7 @@ class LoanExecutionServiceImplTest {
         LoanExecution execution = new LoanExecution(application, 9_000_000L, ACCOUNT_NUMBER);
         given(loanExecutionRepository.findByApplicationIdAndUserId(APPLICATION_ID, USER_ID))
                 .willReturn(Optional.of(execution));
-        given(loanDecisionRepository.findByApplication_ApplicationId(APPLICATION_ID))
+        given(loanDecisionRepository.findByApplication_ApplicationIdAndStatus(APPLICATION_ID, DecisionStatus.MANAGER_APPROVED))
                 .willReturn(Optional.empty());
 
         // when & then
@@ -231,7 +235,7 @@ class LoanExecutionServiceImplTest {
         ));
         given(loanExecutionRepository.findByApplicationId(APPLICATION_ID)).willReturn(Optional.empty());
         given(loanApplicationRepository.findById(APPLICATION_ID)).willReturn(Optional.of(application));
-        given(loanDecisionRepository.findByApplication_ApplicationId(APPLICATION_ID))
+        given(loanDecisionRepository.findByApplication_ApplicationIdAndStatus(APPLICATION_ID, DecisionStatus.MANAGER_APPROVED))
                 .willReturn(Optional.of(decision));
 
         // when
@@ -332,7 +336,7 @@ class LoanExecutionServiceImplTest {
         ));
         given(loanExecutionRepository.findByApplicationId(APPLICATION_ID)).willReturn(Optional.empty());
         given(loanApplicationRepository.findById(APPLICATION_ID)).willReturn(Optional.of(application));
-        given(loanDecisionRepository.findByApplication_ApplicationId(APPLICATION_ID))
+        given(loanDecisionRepository.findByApplication_ApplicationIdAndStatus(APPLICATION_ID, DecisionStatus.MANAGER_APPROVED))
                 .willReturn(Optional.empty());
 
         // when & then

@@ -24,10 +24,10 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.LoanProduct;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.entity.loan.enums.Decision;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
 import com.sofit.common.entity.loan.enums.RepaymentMethod;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanDetailResponse;
 import com.sofit.user.domain.loan.dto.response.CompletedLoanListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationDetailResponse;
@@ -101,7 +101,7 @@ class LoanServiceImplTest {
     void findCompletedLoans_returnsMappedItems() {
         // given
         LoanApplication application = createApplication(ApplicationStatus.APPROVED);
-        given(loanApplicationRepository.findByUser_UserIdAndStatusInOrderByUpdatedAtDesc(eq(USER_ID), any()))
+        given(loanApplicationRepository.findCompletedByUserIdWithProduct(eq(USER_ID), any()))
                 .willReturn(List.of(application));
 
         // when
@@ -118,9 +118,9 @@ class LoanServiceImplTest {
         // given
         LoanApplication application = createApplication(ApplicationStatus.APPROVED);
         LoanDecision decision = createDecision(application);
-        given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
+        given(loanApplicationRepository.findCompletedDetailByApplicationIdAndUserId(APPLICATION_ID, USER_ID))
                 .willReturn(Optional.of(application));
-        given(loanDecisionRepository.findByApplication_ApplicationId(APPLICATION_ID))
+        given(loanDecisionRepository.findByApplication_ApplicationIdAndStatusIn(eq(APPLICATION_ID), any()))
                 .willReturn(Optional.of(decision));
 
         // when
@@ -128,7 +128,7 @@ class LoanServiceImplTest {
 
         // then
         assertThat(response.applicationId()).isEqualTo(APPLICATION_ID);
-        assertThat(response.decisionInfo().decision()).isEqualTo(Decision.APPROVED);
+        assertThat(response.decisionInfo().decision()).isEqualTo(DecisionStatus.SYSTEM_APPROVED);
         assertThat(response.decisionInfo().approvedAmount()).isEqualTo(9_000_000L);
     }
 
@@ -136,7 +136,7 @@ class LoanServiceImplTest {
     @DisplayName("심사 완료 상세 조회 시 신청 건이 없으면 APPLICATION_NOT_FOUND 예외를 던진다")
     void findCompletedLoanDetail_applicationNotFound_throws() {
         // given
-        given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
+        given(loanApplicationRepository.findCompletedDetailByApplicationIdAndUserId(APPLICATION_ID, USER_ID))
                 .willReturn(Optional.empty());
 
         // when & then
@@ -151,7 +151,7 @@ class LoanServiceImplTest {
     void findCompletedLoanDetail_notCompletedStatus_throws() {
         // given
         LoanApplication application = createApplication(ApplicationStatus.SUBMITTED);
-        given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
+        given(loanApplicationRepository.findCompletedDetailByApplicationIdAndUserId(APPLICATION_ID, USER_ID))
                 .willReturn(Optional.of(application));
 
         // when & then
@@ -166,9 +166,9 @@ class LoanServiceImplTest {
     void findCompletedLoanDetail_decisionNotFound_throws() {
         // given
         LoanApplication application = createApplication(ApplicationStatus.APPROVED);
-        given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
+        given(loanApplicationRepository.findCompletedDetailByApplicationIdAndUserId(APPLICATION_ID, USER_ID))
                 .willReturn(Optional.of(application));
-        given(loanDecisionRepository.findByApplication_ApplicationId(APPLICATION_ID))
+        given(loanDecisionRepository.findByApplication_ApplicationIdAndStatusIn(eq(APPLICATION_ID), any()))
                 .willReturn(Optional.empty());
 
         // when & then
@@ -202,7 +202,7 @@ class LoanServiceImplTest {
         try {
             LoanDecision decision = newInstance(LoanDecision.class);
             setField(decision, "application", application);
-            setField(decision, "decision", Decision.APPROVED);
+            setField(decision, "status", DecisionStatus.SYSTEM_APPROVED);
             setField(decision, "approvedAmount", 9_000_000L);
             setField(decision, "approvedRate", new BigDecimal("5.50"));
             setField(decision, "approvedTerm", 12);
