@@ -154,7 +154,7 @@ class LoanDecisionProcessorTest {
         assertThat(savedDecision.getApprovedRate()).isEqualByComparingTo(new BigDecimal("9.00"));
         assertThat(savedDecision.getApprovedTerm()).isEqualTo(12);
         assertThat(savedDecision.getRepaymentMethod()).isEqualTo(RepaymentMethod.EQUAL_PAYMENT);
-        assertThat(savedDecision.getComment()).isNull();
+        assertThat(savedDecision.getComment()).isEqualTo("시스템 자동 심사 승인");
     }
 
     @Test

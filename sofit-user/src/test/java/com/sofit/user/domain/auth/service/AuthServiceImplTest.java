@@ -10,11 +10,16 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import com.sofit.common.entity.sGrade.SGradeHistory;
+import com.sofit.common.repository.sGrade.SGradeHistoryRepository;
+import com.sofit.common.repository.sGrade.SGradeReportRepository;
+import com.sofit.user.domain.auth.client.ExternalMockClient;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -38,9 +43,8 @@ import com.sofit.common.entity.auth.enums.RegistrationStep;
 import com.sofit.common.entity.term.Term;
 import com.sofit.common.entity.term.enums.TermType;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.entity.user.enums.UserStatus;
-import com.sofit.common.repository.ConsentHistoryRepository;
-import com.sofit.common.repository.TermRepository;
+import com.sofit.common.repository.term.ConsentHistoryRepository;
+import com.sofit.common.repository.term.TermRepository;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.auth.RegistrationProcessRepository;
 import com.sofit.common.repository.user.UserRepository;
@@ -48,11 +52,10 @@ import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
 import com.sofit.user.domain.auth.dto.request.LoginRequest;
 import com.sofit.user.domain.auth.dto.request.SignupCompleteRequest;
 import com.sofit.user.domain.auth.dto.response.BusinessVerificationResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalKycResponse;
-import com.sofit.user.domain.auth.dto.response.ExternalMockApiResponse;
+import com.sofit.user.domain.auth.dto.external.ExternalKycResponse;
+import com.sofit.user.domain.auth.dto.external.ExternalMockApiResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import com.sofit.user.domain.auth.dto.response.CheckLoginIdResponse;
-import com.sofit.user.domain.auth.dto.response.FinancialCertVerifyResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 
@@ -72,6 +75,7 @@ class AuthServiceImplTest {
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private HttpSessionSecurityContextRepository securityContextRepository;
     @Mock private TransactionTemplate transactionTemplate;
+    @Mock private SGradeHistoryRepository sGradeHistoryRepository;
 
     // ===== checkLoginId 테스트 =====
 
@@ -923,24 +927,19 @@ class AuthServiceImplTest {
     class VerifyFinancialCertificateTest {
 
         @Test
-        @DisplayName("세션에 processId가 없는 경우 FinancialCertService에만 위임하고 반환한다")
+        @DisplayName("세션에 processId가 없는 경우 FinancialCertService에만 위임하고 정상 완료된다")
         void verifyFinancialCertificate_세션_processId_없는_경우_위임_후_반환() {
             // given
             var request = createFinancialCertRequest("01012345678", "123456");
             HttpSession session = mock(HttpSession.class);
-            FinancialCertVerifyResponse certResponse = new FinancialCertVerifyResponse(
-                    "CERT-001", "홍길동", "01012345678", "VALID", LocalDateTime.now()
-            );
 
             given(session.getAttribute("registrationProcessId")).willReturn(null);
-            given(financialCertService.verify(request)).willReturn(certResponse);
 
             // when
-            FinancialCertVerifyResponse response = authService.verifyFinancialCertificate(request, session);
+            authService.verifyFinancialCertificate(request, session);
 
             // then
-            assertThat(response).isNotNull();
-            assertThat(response.certNumber()).isEqualTo("CERT-001");
+            verify(financialCertService).verify(request);
             // processId 없으면 registrationProcessRepository 조회 안 함
             verify(registrationProcessRepository, never()).findById(any());
         }
@@ -952,16 +951,12 @@ class AuthServiceImplTest {
             // given
             var request = createFinancialCertRequest("01012345678", "123456");
             HttpSession session = mock(HttpSession.class);
-            FinancialCertVerifyResponse certResponse = new FinancialCertVerifyResponse(
-                    "CERT-001", "홍길동", "01012345678", "VALID", LocalDateTime.now()
-            );
 
             RegistrationProcess expiredProcess = createRegistrationProcess(
                     1L, RegistrationStep.KYC_VERIFIED, LocalDateTime.now().minusHours(1)
             );
 
             given(session.getAttribute("registrationProcessId")).willReturn(1L);
-            given(financialCertService.verify(request)).willReturn(certResponse);
 
             // TransactionTemplate.execute() 스텁 — processId 조회 반환
             given(transactionTemplate.execute(any(TransactionCallback.class)))
@@ -993,16 +988,12 @@ class AuthServiceImplTest {
             // given
             var request = createFinancialCertRequest("01012345678", "123456");
             HttpSession session = mock(HttpSession.class);
-            FinancialCertVerifyResponse certResponse = new FinancialCertVerifyResponse(
-                    "CERT-001", "홍길동", "01012345678", "VALID", LocalDateTime.now()
-            );
 
             RegistrationProcess completedProcess = createRegistrationProcess(
                     1L, RegistrationStep.PIN_VERIFIED, LocalDateTime.now().minusMinutes(5)
             );
 
             given(session.getAttribute("registrationProcessId")).willReturn(1L);
-            given(financialCertService.verify(request)).willReturn(certResponse);
             given(transactionTemplate.execute(any(TransactionCallback.class)))
                     .willAnswer(inv -> {
                         TransactionCallback<?> callback = inv.getArgument(0);
@@ -1025,12 +1016,8 @@ class AuthServiceImplTest {
             // given
             var request = createFinancialCertRequest("01012345678", "123456");
             HttpSession session = mock(HttpSession.class);
-            FinancialCertVerifyResponse certResponse = new FinancialCertVerifyResponse(
-                    "CERT-001", "홍길동", "01012345678", "VALID", LocalDateTime.now()
-            );
 
             given(session.getAttribute("registrationProcessId")).willReturn(99L);
-            given(financialCertService.verify(request)).willReturn(certResponse);
             given(transactionTemplate.execute(any(TransactionCallback.class)))
                     .willAnswer(inv -> {
                         TransactionCallback<?> callback = inv.getArgument(0);
@@ -1052,16 +1039,12 @@ class AuthServiceImplTest {
             // given
             var request = createFinancialCertRequest("01012345678", "123456");
             HttpSession session = mock(HttpSession.class);
-            FinancialCertVerifyResponse certResponse = new FinancialCertVerifyResponse(
-                    "CERT-001", "홍길동", "01012345678", "VALID", LocalDateTime.now()
-            );
 
             RegistrationProcess process = createRegistrationProcess(
                     1L, RegistrationStep.KYC_VERIFIED, LocalDateTime.now().minusMinutes(5)
             );
 
             given(session.getAttribute("registrationProcessId")).willReturn(1L);
-            given(financialCertService.verify(request)).willReturn(certResponse);
             given(transactionTemplate.execute(any(TransactionCallback.class)))
                     .willAnswer(inv -> {
                         TransactionCallback<?> callback = inv.getArgument(0);
@@ -1076,11 +1059,10 @@ class AuthServiceImplTest {
             }).when(transactionTemplate).executeWithoutResult(any());
 
             // when
-            FinancialCertVerifyResponse response = authService.verifyFinancialCertificate(request, session);
+            authService.verifyFinancialCertificate(request, session);
 
             // then
-            assertThat(response).isNotNull();
-            assertThat(response.certNumber()).isEqualTo("CERT-001");
+            verify(financialCertService).verify(request);
             verify(registrationProcessRepository).save(process);
         }
 
@@ -1091,9 +1073,6 @@ class AuthServiceImplTest {
             // given
             var request = createFinancialCertRequest("01012345678", "123456");
             HttpSession session = mock(HttpSession.class);
-            FinancialCertVerifyResponse certResponse = new FinancialCertVerifyResponse(
-                    "CERT-001", "홍길동", "01012345678", "VALID", LocalDateTime.now()
-            );
 
             // step이 EXPIRED — PIN_VERIFIED도 KYC_VERIFIED도 아님
             RegistrationProcess expiredStepProcess = createRegistrationProcess(
@@ -1101,7 +1080,6 @@ class AuthServiceImplTest {
             );
 
             given(session.getAttribute("registrationProcessId")).willReturn(1L);
-            given(financialCertService.verify(request)).willReturn(certResponse);
             given(transactionTemplate.execute(any(TransactionCallback.class)))
                     .willAnswer(inv -> {
                         TransactionCallback<?> callback = inv.getArgument(0);
@@ -1215,9 +1193,9 @@ class AuthServiceImplTest {
     private RegistrationProcess createRegistrationProcess(Long id, RegistrationStep step,
                                                            LocalDateTime updatedAt) {
         RegistrationProcess process = RegistrationProcess.createForStep1(
-                "1234567890", "테스트상호", "홍길동", "2020-01-01", "한식", "음식점업", "서울시"
+                "1234567890", "테스트상호", "홍길동", LocalDate.parse("2020-01-01"), "한식", "음식점업", "서울시"
         );
-        ReflectionTestUtils.setField(process, "id", id);
+        ReflectionTestUtils.setField(process, "registrationProcessId", id);
         ReflectionTestUtils.setField(process, "step", step);
         // BaseEntity의 updatedAt 설정
         setBaseEntityField(process, "updatedAt", updatedAt);
@@ -1233,7 +1211,7 @@ class AuthServiceImplTest {
         RegistrationProcess process = RegistrationProcess.createForStep1(
                 "1234567890", "테스트상호", "홍길동", null, "한식", "음식점업", "서울시"
         );
-        ReflectionTestUtils.setField(process, "id", id);
+        ReflectionTestUtils.setField(process, "registrationProcessId", id);
         ReflectionTestUtils.setField(process, "step", step);
         setBaseEntityField(process, "updatedAt", updatedAt);
         return process;
