@@ -19,6 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
+
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -126,7 +128,7 @@ public class LoanDecisionProcessor {
                 policy.getInterestRate(),
                 application.getRequestedTerm(),
                 application.getRepaymentMethod(),
-                null,
+                "시스템 자동 심사 승인",
                 null
         );
         loanDecisionRepository.save(decision);
