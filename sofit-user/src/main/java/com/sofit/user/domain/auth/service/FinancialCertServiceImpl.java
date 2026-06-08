@@ -31,9 +31,6 @@ public class FinancialCertServiceImpl implements FinancialCertService {
 
         if (!mockResponse.isSuccess()) {
             String code = mockResponse.code();
-            if ("AUTH4002".equals(code)) {
-                throw new BaseException(AuthErrorCode.INVALID_INPUT_FORMAT);
-            }
             throw new BaseException(AuthErrorCode.CERT_NOT_FOUND);
         }
 
