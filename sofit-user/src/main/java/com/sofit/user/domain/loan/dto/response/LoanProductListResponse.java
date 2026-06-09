@@ -3,6 +3,7 @@ package com.sofit.user.domain.loan.dto.response;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -18,5 +19,6 @@ public class LoanProductListResponse {
         private String productName;
         private String title;
         private Long maxLimit;
+        private BigDecimal minRate;
     }
 }

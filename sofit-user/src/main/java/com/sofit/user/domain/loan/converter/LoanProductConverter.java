@@ -20,6 +20,7 @@ public class LoanProductConverter {
                         .productName(product.getProductName())
                         .title(product.getTitle())
                         .maxLimit(product.getMaxLimit())
+                        .minRate(product.getMinRate())
                         .build())
                 .toList();
 
