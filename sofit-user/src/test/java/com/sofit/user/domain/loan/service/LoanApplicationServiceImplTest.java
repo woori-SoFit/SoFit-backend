@@ -3,14 +3,19 @@ package com.sofit.user.domain.loan.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import com.sofit.common.entity.loan.enums.*;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,11 +27,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanProduct;
-import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.entity.loan.enums.IncomeType;
-import com.sofit.common.entity.loan.enums.LoanPurpose;
-import com.sofit.common.entity.loan.enums.ProductStatus;
-import com.sofit.common.entity.loan.enums.RepaymentMethod;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.repository.loan.LoanApplicationRepository;
 import com.sofit.common.repository.loan.LoanProductRepository;
@@ -35,12 +35,13 @@ import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationCreateRequest;
 import com.sofit.user.domain.loan.dto.request.LoanApplicationSubmitRequest;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
+import com.sofit.user.domain.loan.dto.response.DraftListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
-import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
-import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
+import com.sofit.user.domain.notification.event.LoanSubmittedEvent;
 
 @ExtendWith(MockitoExtension.class)
+@DisplayName("LoanApplicationServiceImpl 단위 테스트")
 class LoanApplicationServiceImplTest {
 
     @InjectMocks
@@ -62,329 +63,473 @@ class LoanApplicationServiceImplTest {
     private ApplicationEventPublisher eventPublisher;
 
     private static final Long USER_ID = 1L;
-    private static final Long PRODUCT_ID = 1L;
+    private static final Long PRODUCT_ID = 10L;
     private static final Long APPLICATION_ID = 100L;
 
-    // === createApplication ===
+    @Nested
+    @DisplayName("createApplication")
+    class CreateApplicationTest {
 
-    @Test
-    @DisplayName("createApplication - 정상적으로 DRAFT 신청을 생성한다")
-    void createApplication_success() {
-        // given
-        User user = createUser(USER_ID);
-        LoanProduct product = createActiveProduct(PRODUCT_ID);
-        LoanApplicationCreateRequest request = createCreateRequest();
+        @Test
+        @DisplayName("정상 생성 시 DRAFT 상태의 응답을 반환한다")
+        void shouldCreateDraftSuccessfully() {
+            // given
+            User user = createUser(USER_ID);
+            LoanProduct product = createProduct(PRODUCT_ID, ProductStatus.ACTIVE);
+            LoanApplicationCreateRequest request = createCreateRequest();
 
-        given(userRepository.findById(USER_ID)).willReturn(Optional.of(user));
-        given(loanProductRepository.findById(PRODUCT_ID)).willReturn(Optional.of(product));
-        given(loanApplicationRepository.existsByUser_UserIdAndProduct_ProductIdAndStatusNotIn(
-                eq(USER_ID), eq(PRODUCT_ID), any(List.class))).willReturn(false);
-        given(loanApplicationRepository.save(any(LoanApplication.class)))
-                .willAnswer(invocation -> {
-                    LoanApplication app = invocation.getArgument(0);
-                    ReflectionTestUtils.setField(app, "applicationId", APPLICATION_ID);
-                    return app;
-                });
+            given(userRepository.findById(USER_ID)).willReturn(Optional.of(user));
+            given(loanProductRepository.findById(PRODUCT_ID)).willReturn(Optional.of(product));
+            given(loanApplicationRepository.existsByUser_UserIdAndProduct_ProductIdAndStatusNotIn(
+                    eq(USER_ID), eq(PRODUCT_ID), anyList())).willReturn(false);
+            given(loanApplicationRepository.save(any(LoanApplication.class)))
+                    .willAnswer(inv -> {
+                        LoanApplication app = inv.getArgument(0);
+                        ReflectionTestUtils.setField(app, "applicationId", APPLICATION_ID);
+                        return app;
+                    });
 
-        // when
-        LoanApplicationCreateResponse response = loanApplicationService.createApplication(USER_ID, PRODUCT_ID, request);
+            // when
+            LoanApplicationCreateResponse response = loanApplicationService.createApplication(USER_ID, PRODUCT_ID, request);
 
-        // then
-        assertThat(response.applicationId()).isEqualTo(APPLICATION_ID);
-        verify(loanApplicationRepository).save(any(LoanApplication.class));
+            // then
+            assertThat(response).isNotNull();
+            assertThat(response.applicationId()).isEqualTo(APPLICATION_ID);
+        }
+
+        @Test
+        @DisplayName("사용자가 존재하지 않으면 USER_NOT_FOUND 예외를 던진다")
+        void shouldThrowWhenUserNotFound() {
+            // given
+            given(userRepository.findById(USER_ID)).willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> loanApplicationService.createApplication(USER_ID, PRODUCT_ID, createCreateRequest()))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(AuthErrorCode.USER_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("상품이 존재하지 않으면 PRODUCT_NOT_FOUND 예외를 던진다")
+        void shouldThrowWhenProductNotFound() {
+            // given
+            User user = createUser(USER_ID);
+            given(userRepository.findById(USER_ID)).willReturn(Optional.of(user));
+            given(loanProductRepository.findById(PRODUCT_ID)).willReturn(Optional.empty());
+
+            // when & then
+            assertThatThrownBy(() -> loanApplicationService.createApplication(USER_ID, PRODUCT_ID, createCreateRequest()))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanErrorCode.PRODUCT_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("상품이 ACTIVE가 아니면 PRODUCT_NOT_ACTIVE 예외를 던진다")
+        void shouldThrowWhenProductNotActive() {
+            // given
+            User user = createUser(USER_ID);
+            LoanProduct product = createProduct(PRODUCT_ID, ProductStatus.INACTIVE);
+            given(userRepository.findById(USER_ID)).willReturn(Optional.of(user));
+            given(loanProductRepository.findById(PRODUCT_ID)).willReturn(Optional.of(product));
+
+            // when & then
+            assertThatThrownBy(() -> loanApplicationService.createApplication(USER_ID, PRODUCT_ID, createCreateRequest()))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanErrorCode.PRODUCT_NOT_ACTIVE);
+        }
+
+        @Test
+        @DisplayName("동일 상품 중복 신청 시 DUPLICATE_APPLICATION 예외를 던진다")
+        void shouldThrowWhenDuplicateApplication() {
+            // given
+            User user = createUser(USER_ID);
+            LoanProduct product = createProduct(PRODUCT_ID, ProductStatus.ACTIVE);
+            given(userRepository.findById(USER_ID)).willReturn(Optional.of(user));
+            given(loanProductRepository.findById(PRODUCT_ID)).willReturn(Optional.of(product));
+            given(loanApplicationRepository.existsByUser_UserIdAndProduct_ProductIdAndStatusNotIn(
+                    eq(USER_ID), eq(PRODUCT_ID), anyList())).willReturn(true);
+
+            // when & then
+            assertThatThrownBy(() -> loanApplicationService.createApplication(USER_ID, PRODUCT_ID, createCreateRequest()))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanErrorCode.DUPLICATE_APPLICATION);
+        }
     }
 
-    @Test
-    @DisplayName("createApplication - 사용자 미존재 시 USER_NOT_FOUND 예외")
-    void createApplication_throwsException_whenUserNotFound() {
-        // given
-        LoanApplicationCreateRequest request = createCreateRequest();
-        given(userRepository.findById(USER_ID)).willReturn(Optional.empty());
+    @Nested
+    @DisplayName("checkDraft")
+    class CheckDraftTest {
 
-        // when & then
-        assertThatThrownBy(() -> loanApplicationService.createApplication(USER_ID, PRODUCT_ID, request))
-                .isInstanceOf(BaseException.class)
-                .satisfies(exception -> {
-                    BaseException e = (BaseException) exception;
-                    assertThat(e.getErrorCode()).isEqualTo(AuthErrorCode.USER_NOT_FOUND);
-                });
+        @Test
+        @DisplayName("DRAFT가 존재하면 hasDraft=true 응답을 반환한다")
+        void shouldReturnTrueWhenDraftExists() {
+            // given
+            LoanApplication draft = createDraftApplication();
+            given(loanApplicationRepository.findByUser_UserIdAndProduct_ProductIdAndStatus(
+                    USER_ID, PRODUCT_ID, ApplicationStatus.DRAFT))
+                    .willReturn(Optional.of(draft));
+
+            // when
+            DraftCheckResponse response = loanApplicationService.checkDraft(USER_ID, PRODUCT_ID);
+
+            // then
+            assertThat(response.hasDraft()).isTrue();
+        }
+
+        @Test
+        @DisplayName("DRAFT가 없으면 hasDraft=false 응답을 반환한다")
+        void shouldReturnFalseWhenNoDraft() {
+            // given
+            given(loanApplicationRepository.findByUser_UserIdAndProduct_ProductIdAndStatus(
+                    USER_ID, PRODUCT_ID, ApplicationStatus.DRAFT))
+                    .willReturn(Optional.empty());
+
+            // when
+            DraftCheckResponse response = loanApplicationService.checkDraft(USER_ID, PRODUCT_ID);
+
+            // then
+            assertThat(response.hasDraft()).isFalse();
+        }
     }
 
-    @Test
-    @DisplayName("createApplication - 상품 미존재 시 PRODUCT_NOT_FOUND 예외")
-    void createApplication_throwsException_whenProductNotFound() {
-        // given
-        User user = createUser(USER_ID);
-        LoanApplicationCreateRequest request = createCreateRequest();
+    @Nested
+    @DisplayName("findDrafts")
+    class FindDraftsTest {
 
-        given(userRepository.findById(USER_ID)).willReturn(Optional.of(user));
-        given(loanProductRepository.findById(PRODUCT_ID)).willReturn(Optional.empty());
+        @Test
+        @DisplayName("DRAFT 목록이 비어있으면 빈 리스트를 반환한다")
+        void shouldReturnEmptyListWhenNoDrafts() {
+            // given
+            given(loanApplicationRepository.findDraftsByUserIdWithProduct(USER_ID, ApplicationStatus.DRAFT))
+                    .willReturn(Collections.emptyList());
 
-        // when & then
-        assertThatThrownBy(() -> loanApplicationService.createApplication(USER_ID, PRODUCT_ID, request))
-                .isInstanceOf(BaseException.class)
-                .satisfies(exception -> {
-                    BaseException e = (BaseException) exception;
-                    assertThat(e.getErrorCode()).isEqualTo(LoanErrorCode.PRODUCT_NOT_FOUND);
-                });
+            // when
+            DraftListResponse response = loanApplicationService.findDrafts(USER_ID);
+
+            // then
+            assertThat(response.drafts()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("DRAFT 목록이 존재하면 상품명과 resumeStep을 포함한 리스트를 반환한다")
+        void shouldReturnDraftListWithProductNames() {
+            // given
+            LoanApplication draft1 = createDraftApplication();
+            LoanApplication draft2 = createDraftApplicationWithStep(201L, LastCompletedStep.BIZ_INFO_DONE);
+
+            given(loanApplicationRepository.findDraftsByUserIdWithProduct(USER_ID, ApplicationStatus.DRAFT))
+                    .willReturn(List.of(draft1, draft2));
+
+            // when
+            DraftListResponse response = loanApplicationService.findDrafts(USER_ID);
+
+            // then
+            assertThat(response.drafts()).hasSize(2);
+            assertThat(response.drafts().get(0).productName()).isEqualTo("소상공인 대출");
+        }
     }
 
-    @Test
-    @DisplayName("createApplication - 비활성 상품이면 PRODUCT_NOT_ACTIVE 예외")
-    void createApplication_throwsException_whenProductNotActive() {
-        // given
-        User user = createUser(USER_ID);
-        LoanProduct product = createInactiveProduct(PRODUCT_ID);
-        LoanApplicationCreateRequest request = createCreateRequest();
+    @Nested
+    @DisplayName("getResumeData")
+    class GetResumeDataTest {
 
-        given(userRepository.findById(USER_ID)).willReturn(Optional.of(user));
-        given(loanProductRepository.findById(PRODUCT_ID)).willReturn(Optional.of(product));
+        @Test
+        @DisplayName("존재하지 않는 신청이면 APPLICATION_NOT_FOUND 예외를 던진다")
+        void shouldThrowWhenApplicationNotFound() {
+            // given
+            given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
+                    .willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> loanApplicationService.createApplication(USER_ID, PRODUCT_ID, request))
-                .isInstanceOf(BaseException.class)
-                .satisfies(exception -> {
-                    BaseException e = (BaseException) exception;
-                    assertThat(e.getErrorCode()).isEqualTo(LoanErrorCode.PRODUCT_NOT_ACTIVE);
-                });
+            // when & then
+            assertThatThrownBy(() -> loanApplicationService.getResumeData(USER_ID, APPLICATION_ID))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanErrorCode.APPLICATION_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("DRAFT가 아닌 상태이면 APPLICATION_NOT_FOUND 예외를 던진다")
+        void shouldThrowWhenNotDraftStatus() {
+            // given
+            LoanApplication application = createApplicationWithStatus(ApplicationStatus.SUBMITTED);
+            given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
+                    .willReturn(Optional.of(application));
+
+            // when & then
+            assertThatThrownBy(() -> loanApplicationService.getResumeData(USER_ID, APPLICATION_ID))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanErrorCode.APPLICATION_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("DRAFT 상태이면 이어가기 데이터를 정상 반환한다")
+        void shouldReturnResumeDataWhenDraft() {
+            // given
+            LoanApplication draft = createDraftApplication();
+            given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
+                    .willReturn(Optional.of(draft));
+
+            // when
+            var response = loanApplicationService.getResumeData(USER_ID, APPLICATION_ID);
+
+            // then
+            assertThat(response.applicationId()).isEqualTo(APPLICATION_ID);
+            assertThat(response.resumeStep()).isNotNull();
+        }
     }
 
-    @Test
-    @DisplayName("createApplication - 중복 신청 시 DUPLICATE_APPLICATION 예외")
-    void createApplication_throwsException_whenDuplicateApplication() {
-        // given
-        User user = createUser(USER_ID);
-        LoanProduct product = createActiveProduct(PRODUCT_ID);
-        LoanApplicationCreateRequest request = createCreateRequest();
+    @Nested
+    @DisplayName("submitApplication")
+    class SubmitApplicationTest {
 
-        given(userRepository.findById(USER_ID)).willReturn(Optional.of(user));
-        given(loanProductRepository.findById(PRODUCT_ID)).willReturn(Optional.of(product));
-        given(loanApplicationRepository.existsByUser_UserIdAndProduct_ProductIdAndStatusNotIn(
-                eq(USER_ID), eq(PRODUCT_ID), any(List.class))).willReturn(true);
+        @Test
+        @DisplayName("존재하지 않는 신청이면 APPLICATION_NOT_FOUND 예외를 던진다")
+        void shouldThrowWhenApplicationNotFound() {
+            // given
+            given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
+                    .willReturn(Optional.empty());
 
-        // when & then
-        assertThatThrownBy(() -> loanApplicationService.createApplication(USER_ID, PRODUCT_ID, request))
-                .isInstanceOf(BaseException.class)
-                .satisfies(exception -> {
-                    BaseException e = (BaseException) exception;
-                    assertThat(e.getErrorCode()).isEqualTo(LoanErrorCode.DUPLICATE_APPLICATION);
-                });
+            // when & then
+            assertThatThrownBy(() -> loanApplicationService.submitApplication(USER_ID, APPLICATION_ID, createSubmitRequest()))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanErrorCode.APPLICATION_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("DRAFT가 아닌 상태이면 APPLICATION_NOT_DRAFT 예외를 던진다")
+        void shouldThrowWhenNotDraftStatus() {
+            // given
+            LoanApplication application = createApplicationWithStatus(ApplicationStatus.SUBMITTED);
+            given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
+                    .willReturn(Optional.of(application));
+
+            // when & then
+            assertThatThrownBy(() -> loanApplicationService.submitApplication(USER_ID, APPLICATION_ID, createSubmitRequest()))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanErrorCode.APPLICATION_NOT_DRAFT);
+        }
+
+        @Test
+        @DisplayName("정상 제출 시 SUBMITTED 상태로 변경되고 응답을 반환한다")
+        void shouldSubmitSuccessfully() {
+            // given
+            LoanApplication draft = createDraftApplication();
+            given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
+                    .willReturn(Optional.of(draft));
+            given(bankerAssignmentService.assignBanker()).willReturn(50L);
+
+            LoanApplicationSubmitRequest request = createSubmitRequest();
+
+            // when
+            var response = loanApplicationService.submitApplication(USER_ID, APPLICATION_ID, request);
+
+            // then
+            assertThat(response).isNotNull();
+            assertThat(response.applicationId()).isEqualTo(APPLICATION_ID);
+            assertThat(response.requestedAmount()).isEqualTo(50000000L);
+            assertThat(draft.getStatus()).isEqualTo(ApplicationStatus.SUBMITTED);
+            assertThat(draft.getAssignedBankerId()).isEqualTo(50L);
+            verify(eventPublisher).publishEvent(any(LoanSubmittedEvent.class));
+        }
     }
 
-    // === checkDraft ===
+    @Nested
+    @DisplayName("cancelDraftApplication")
+    class CancelDraftApplicationTest {
 
-    @Test
-    @DisplayName("checkDraft - DRAFT 존재 시 hasDraft=true 반환")
-    void checkDraft_returnsDraft_whenExists() {
-        // given
-        LoanApplication application = createDraftApplication(APPLICATION_ID, USER_ID, PRODUCT_ID);
-        given(loanApplicationRepository.findByUser_UserIdAndProduct_ProductIdAndStatus(
-                USER_ID, PRODUCT_ID, ApplicationStatus.DRAFT))
-                .willReturn(Optional.of(application));
+        @Test
+        @DisplayName("존재하지 않는 신청이면 APPLICATION_NOT_FOUND 예외를 던진다")
+        void shouldThrowWhenApplicationNotFound() {
+            // given
+            given(loanApplicationRepository.findById(APPLICATION_ID)).willReturn(Optional.empty());
 
-        // when
-        DraftCheckResponse response = loanApplicationService.checkDraft(USER_ID, PRODUCT_ID);
+            // when & then
+            assertThatThrownBy(() -> loanApplicationService.cancelDraftApplication(USER_ID, APPLICATION_ID))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanErrorCode.APPLICATION_NOT_FOUND);
+        }
 
-        // then
-        assertThat(response.hasDraft()).isTrue();
-        assertThat(response.applicationId()).isEqualTo(APPLICATION_ID);
+        @Test
+        @DisplayName("본인 소유가 아니면 APPLICATION_NOT_OWNED 예외를 던진다")
+        void shouldThrowWhenNotOwned() {
+            // given
+            LoanApplication application = createApplicationWithOwner(2L); // 다른 사용자 소유
+            given(loanApplicationRepository.findById(APPLICATION_ID)).willReturn(Optional.of(application));
+
+            // when & then
+            assertThatThrownBy(() -> loanApplicationService.cancelDraftApplication(USER_ID, APPLICATION_ID))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanErrorCode.APPLICATION_NOT_OWNED);
+        }
+
+        @Test
+        @DisplayName("DRAFT가 아닌 상태이면 APPLICATION_NOT_DRAFT 예외를 던진다")
+        void shouldThrowWhenNotDraftStatus() {
+            // given
+            LoanApplication application = createApplicationWithOwnerAndStatus(USER_ID, ApplicationStatus.SUBMITTED);
+            given(loanApplicationRepository.findById(APPLICATION_ID)).willReturn(Optional.of(application));
+
+            // when & then
+            assertThatThrownBy(() -> loanApplicationService.cancelDraftApplication(USER_ID, APPLICATION_ID))
+                    .isInstanceOf(BaseException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(LoanErrorCode.APPLICATION_NOT_DRAFT);
+        }
+
+        @Test
+        @DisplayName("정상 취소 시 CANCELLED 상태로 변경된다")
+        void shouldCancelSuccessfully() {
+            // given
+            LoanApplication application = createApplicationWithOwnerAndStatus(USER_ID, ApplicationStatus.DRAFT);
+            given(loanApplicationRepository.findById(APPLICATION_ID)).willReturn(Optional.of(application));
+
+            // when
+            loanApplicationService.cancelDraftApplication(USER_ID, APPLICATION_ID);
+
+            // then
+            assertThat(application.getStatus()).isEqualTo(ApplicationStatus.CANCELLED);
+        }
     }
 
-    @Test
-    @DisplayName("checkDraft - DRAFT 미존재 시 hasDraft=false 반환")
-    void checkDraft_returnsNoDraft_whenNotExists() {
-        // given
-        given(loanApplicationRepository.findByUser_UserIdAndProduct_ProductIdAndStatus(
-                USER_ID, PRODUCT_ID, ApplicationStatus.DRAFT))
-                .willReturn(Optional.empty());
-
-        // when
-        DraftCheckResponse response = loanApplicationService.checkDraft(USER_ID, PRODUCT_ID);
-
-        // then
-        assertThat(response.hasDraft()).isFalse();
-        assertThat(response.applicationId()).isNull();
-    }
-
-    // === getResumeData ===
-
-    @Test
-    @DisplayName("getResumeData - DRAFT 상태 신청의 이어가기 데이터를 반환한다")
-    void getResumeData_returnsResumeData() {
-        // given
-        LoanApplication application = createDraftApplication(APPLICATION_ID, USER_ID, PRODUCT_ID);
-        given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
-                .willReturn(Optional.of(application));
-
-        // when
-        LoanApplicationResumeResponse response = loanApplicationService.getResumeData(USER_ID, APPLICATION_ID);
-
-        // then
-        assertThat(response.applicationId()).isEqualTo(APPLICATION_ID);
-        assertThat(response.resumeStep()).isEqualTo("CONSENT");
-    }
-
-    @Test
-    @DisplayName("getResumeData - 신청 미존재 시 APPLICATION_NOT_FOUND 예외")
-    void getResumeData_throwsException_whenNotFound() {
-        // given
-        given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
-                .willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> loanApplicationService.getResumeData(USER_ID, APPLICATION_ID))
-                .isInstanceOf(BaseException.class)
-                .satisfies(exception -> {
-                    BaseException e = (BaseException) exception;
-                    assertThat(e.getErrorCode()).isEqualTo(LoanErrorCode.APPLICATION_NOT_FOUND);
-                });
-    }
-
-    @Test
-    @DisplayName("getResumeData - DRAFT가 아닌 상태면 APPLICATION_NOT_FOUND 예외")
-    void getResumeData_throwsException_whenNotDraft() {
-        // given
-        LoanApplication application = createDraftApplication(APPLICATION_ID, USER_ID, PRODUCT_ID);
-        ReflectionTestUtils.setField(application, "status", ApplicationStatus.SUBMITTED);
-
-        given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
-                .willReturn(Optional.of(application));
-
-        // when & then
-        assertThatThrownBy(() -> loanApplicationService.getResumeData(USER_ID, APPLICATION_ID))
-                .isInstanceOf(BaseException.class)
-                .satisfies(exception -> {
-                    BaseException e = (BaseException) exception;
-                    assertThat(e.getErrorCode()).isEqualTo(LoanErrorCode.APPLICATION_NOT_FOUND);
-                });
-    }
-
-    // === submitApplication ===
-
-    @Test
-    @DisplayName("submitApplication - 정상적으로 제출 처리한다")
-    void submitApplication_success() {
-        // given
-        LoanApplication application = createDraftApplication(APPLICATION_ID, USER_ID, PRODUCT_ID);
-        LoanApplicationSubmitRequest request = createSubmitRequest();
-
-        given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
-                .willReturn(Optional.of(application));
-        given(bankerAssignmentService.assignBanker()).willReturn(10L);
-
-        // when
-        LoanApplicationSubmitResponse response = loanApplicationService.submitApplication(USER_ID, APPLICATION_ID, request);
-
-        // then
-        assertThat(response.applicationId()).isEqualTo(APPLICATION_ID);
-        assertThat(application.getStatus()).isEqualTo(ApplicationStatus.SUBMITTED);
-        assertThat(application.getAssignedBankerId()).isEqualTo(10L);
-    }
-
-    @Test
-    @DisplayName("submitApplication - 신청 미존재 시 APPLICATION_NOT_FOUND 예외")
-    void submitApplication_throwsException_whenNotFound() {
-        // given
-        LoanApplicationSubmitRequest request = createSubmitRequest();
-        given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
-                .willReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> loanApplicationService.submitApplication(USER_ID, APPLICATION_ID, request))
-                .isInstanceOf(BaseException.class)
-                .satisfies(exception -> {
-                    BaseException e = (BaseException) exception;
-                    assertThat(e.getErrorCode()).isEqualTo(LoanErrorCode.APPLICATION_NOT_FOUND);
-                });
-    }
-
-    @Test
-    @DisplayName("submitApplication - DRAFT가 아닌 상태면 APPLICATION_NOT_DRAFT 예외")
-    void submitApplication_throwsException_whenNotDraft() {
-        // given
-        LoanApplication application = createDraftApplication(APPLICATION_ID, USER_ID, PRODUCT_ID);
-        ReflectionTestUtils.setField(application, "status", ApplicationStatus.SUBMITTED);
-        LoanApplicationSubmitRequest request = createSubmitRequest();
-
-        given(loanApplicationRepository.findByApplicationIdAndUser_UserId(APPLICATION_ID, USER_ID))
-                .willReturn(Optional.of(application));
-
-        // when & then
-        assertThatThrownBy(() -> loanApplicationService.submitApplication(USER_ID, APPLICATION_ID, request))
-                .isInstanceOf(BaseException.class)
-                .satisfies(exception -> {
-                    BaseException e = (BaseException) exception;
-                    assertThat(e.getErrorCode()).isEqualTo(LoanErrorCode.APPLICATION_NOT_DRAFT);
-                });
-    }
-
-    // --- 헬퍼 메서드 ---
+    // ===== Helper Methods =====
 
     private User createUser(Long userId) {
-        User user = User.createUser("testuser", "hashedpw", "홍길동", "01012345678", "9901011");
+        User user = User.createUser("testuser", "hashedPw", "홍길동", "01012345678", "9001011");
         ReflectionTestUtils.setField(user, "userId", userId);
         return user;
     }
 
-    private LoanProduct createActiveProduct(Long productId) {
-        LoanProduct product;
+    private LoanProduct createProduct(Long productId, ProductStatus status) {
         try {
-            var constructor = LoanProduct.class.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            product = constructor.newInstance();
+            LoanProduct product = newInstance(LoanProduct.class);
+            setField(product, "productId", productId);
+            setField(product, "productName", "소상공인 대출");
+            setField(product, "status", status);
+            return product;
         } catch (Exception e) {
-            throw new RuntimeException("LoanProduct 인스턴스 생성 실패", e);
+            throw new RuntimeException("테스트 데이터 생성 실패", e);
         }
-        ReflectionTestUtils.setField(product, "productId", productId);
-        ReflectionTestUtils.setField(product, "productName", "소상공인 성장 대출");
-        ReflectionTestUtils.setField(product, "status", ProductStatus.ACTIVE);
-        return product;
-    }
-
-    private LoanProduct createInactiveProduct(Long productId) {
-        LoanProduct product;
-        try {
-            var constructor = LoanProduct.class.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            product = constructor.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("LoanProduct 인스턴스 생성 실패", e);
-        }
-        ReflectionTestUtils.setField(product, "productId", productId);
-        ReflectionTestUtils.setField(product, "productName", "비활성 상품");
-        ReflectionTestUtils.setField(product, "status", ProductStatus.INACTIVE);
-        return product;
-    }
-
-    private LoanApplication createDraftApplication(Long applicationId, Long userId, Long productId) {
-        User user = createUser(userId);
-        LoanProduct product = createActiveProduct(productId);
-        LoanApplication application = LoanApplication.createDraft(
-                user, product,
-                "3000~5000만원",
-                "0~850점",
-                IncomeType.SALARY,
-                "0~1억원"
-        );
-        ReflectionTestUtils.setField(application, "applicationId", applicationId);
-        return application;
     }
 
     private LoanApplicationCreateRequest createCreateRequest() {
         LoanApplicationCreateRequest request = new LoanApplicationCreateRequest();
-        ReflectionTestUtils.setField(request, "annualIncome", "AMT_30_50M");
-        ReflectionTestUtils.setField(request, "creditScore", "CS_0_850");
-        ReflectionTestUtils.setField(request, "incomeType", IncomeType.SALARY);
-        ReflectionTestUtils.setField(request, "existingLoanAmt", "LOAN_0_100M");
+        ReflectionTestUtils.setField(request, "annualIncome", "50000000");
+        ReflectionTestUtils.setField(request, "creditScore", "750");
+        ReflectionTestUtils.setField(request, "incomeType", com.sofit.common.entity.loan.enums.IncomeType.SALARY);
+        ReflectionTestUtils.setField(request, "existingLoanAmt", "10000000");
         return request;
     }
 
     private LoanApplicationSubmitRequest createSubmitRequest() {
         LoanApplicationSubmitRequest request = new LoanApplicationSubmitRequest();
-        ReflectionTestUtils.setField(request, "requestedAmount", 30_000_000L);
+        ReflectionTestUtils.setField(request, "requestedAmount", 50000000L);
         ReflectionTestUtils.setField(request, "requestedTerm", 36);
         ReflectionTestUtils.setField(request, "repaymentMethod", RepaymentMethod.EQUAL_PAYMENT);
         ReflectionTestUtils.setField(request, "purpose", LoanPurpose.WORKING_CAPITAL);
         return request;
+    }
+
+    private LoanApplication createDraftApplication() {
+        try {
+            User user = createUser(USER_ID);
+            LoanProduct product = createProduct(PRODUCT_ID, ProductStatus.ACTIVE);
+
+            LoanApplication application = newInstance(LoanApplication.class);
+            setField(application, "applicationId", APPLICATION_ID);
+            setField(application, "user", user);
+            setField(application, "product", product);
+            setField(application, "status", ApplicationStatus.DRAFT);
+            setField(application, "lastCompletedStep", LastCompletedStep.CONSENT_DONE);
+            return application;
+        } catch (Exception e) {
+            throw new RuntimeException("테스트 데이터 생성 실패", e);
+        }
+    }
+
+    private LoanApplication createApplicationWithStatus(ApplicationStatus status) {
+        try {
+            LoanApplication application = newInstance(LoanApplication.class);
+            setField(application, "applicationId", APPLICATION_ID);
+            setField(application, "status", status);
+            return application;
+        } catch (Exception e) {
+            throw new RuntimeException("테스트 데이터 생성 실패", e);
+        }
+    }
+
+    private LoanApplication createApplicationWithOwner(Long ownerId) {
+        try {
+            User owner = createUser(ownerId);
+            LoanApplication application = newInstance(LoanApplication.class);
+            setField(application, "applicationId", APPLICATION_ID);
+            setField(application, "user", owner);
+            setField(application, "status", ApplicationStatus.DRAFT);
+            return application;
+        } catch (Exception e) {
+            throw new RuntimeException("테스트 데이터 생성 실패", e);
+        }
+    }
+
+    private LoanApplication createApplicationWithOwnerAndStatus(Long ownerId, ApplicationStatus status) {
+        try {
+            User owner = createUser(ownerId);
+            LoanApplication application = newInstance(LoanApplication.class);
+            setField(application, "applicationId", APPLICATION_ID);
+            setField(application, "user", owner);
+            setField(application, "status", status);
+            return application;
+        } catch (Exception e) {
+            throw new RuntimeException("테스트 데이터 생성 실패", e);
+        }
+    }
+
+    private LoanApplication createDraftApplicationWithStep(Long appId, LastCompletedStep step) {
+        try {
+            User user = createUser(USER_ID);
+            LoanProduct product = createProduct(PRODUCT_ID, ProductStatus.ACTIVE);
+
+            LoanApplication application = newInstance(LoanApplication.class);
+            setField(application, "applicationId", appId);
+            setField(application, "user", user);
+            setField(application, "product", product);
+            setField(application, "status", ApplicationStatus.DRAFT);
+            setField(application, "lastCompletedStep", step);
+            return application;
+        } catch (Exception e) {
+            throw new RuntimeException("테스트 데이터 생성 실패", e);
+        }
+    }
+
+    private <T> T newInstance(Class<T> clazz) throws Exception {
+        var constructor = clazz.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        return constructor.newInstance();
+    }
+
+    private void setField(Object target, String fieldName, Object value) throws Exception {
+        Field field = findField(target.getClass(), fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
+    }
+
+    private Field findField(Class<?> clazz, String fieldName) {
+        Class<?> current = clazz;
+        while (current != null) {
+            try {
+                return current.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                current = current.getSuperclass();
+            }
+        }
+        throw new RuntimeException("필드를 찾을 수 없습니다: " + fieldName);
     }
 }

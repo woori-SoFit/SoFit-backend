@@ -44,6 +44,7 @@ import com.sofit.user.domain.loan.dto.response.AccountVerificationConfirmRespons
 import com.sofit.user.domain.loan.dto.response.AccountVerificationResponse;
 import com.sofit.user.domain.loan.dto.response.LoanExecutionResultResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
+import com.sofit.user.domain.notification.event.LoanExecutedEvent;
 
 @ExtendWith(MockitoExtension.class)
 class LoanExecutionServiceImplTest {
@@ -344,6 +345,72 @@ class LoanExecutionServiceImplTest {
                 .isInstanceOf(BaseException.class)
                 .extracting("errorCode")
                 .isEqualTo(LoanErrorCode.LOAN_DECISION_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("확인 단계에서 신청 건이 없으면 APPLICATION_NOT_FOUND 예외를 던진다")
+    void confirmAccountVerification_applicationNotFound_throws() {
+        // given
+        AccountVerificationConfirmRequest request = createConfirmRequest("213");
+        given(redisTemplate.opsForHash()).willReturn(hashOperations);
+        given(hashOperations.entries(anyString())).willReturn(Map.of(
+                "authCode", "SOFIT213",
+                "accountNumber", ACCOUNT_NUMBER
+        ));
+        given(loanExecutionRepository.findByApplicationId(APPLICATION_ID)).willReturn(Optional.empty());
+        given(loanApplicationRepository.findById(APPLICATION_ID)).willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> loanExecutionService.confirmAccountVerification(USER_ID, APPLICATION_ID, request))
+                .isInstanceOf(BaseException.class)
+                .extracting("errorCode")
+                .isEqualTo(LoanErrorCode.APPLICATION_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("확인 단계에서 APPROVED 상태가 아니면 APPLICATION_NOT_APPROVED 예외를 던진다")
+    void confirmAccountVerification_notApproved_throws() {
+        // given
+        LoanApplication application = createApplication(USER_ID, ApplicationStatus.SUBMITTED);
+        AccountVerificationConfirmRequest request = createConfirmRequest("213");
+        given(redisTemplate.opsForHash()).willReturn(hashOperations);
+        given(hashOperations.entries(anyString())).willReturn(Map.of(
+                "authCode", "SOFIT213",
+                "accountNumber", ACCOUNT_NUMBER
+        ));
+        given(loanExecutionRepository.findByApplicationId(APPLICATION_ID)).willReturn(Optional.empty());
+        given(loanApplicationRepository.findById(APPLICATION_ID)).willReturn(Optional.of(application));
+
+        // when & then
+        assertThatThrownBy(() -> loanExecutionService.confirmAccountVerification(USER_ID, APPLICATION_ID, request))
+                .isInstanceOf(BaseException.class)
+                .extracting("errorCode")
+                .isEqualTo(LoanErrorCode.APPLICATION_NOT_APPROVED);
+    }
+
+    @Test
+    @DisplayName("계좌 인증 확인 성공 시 대출 실행 완료 알림 이벤트를 발행한다")
+    void confirmAccountVerification_success_publishesEvent() {
+        // given
+        LoanApplication application = createApplication(USER_ID, ApplicationStatus.APPROVED);
+        LoanDecision decision = createDecision();
+        AccountVerificationConfirmRequest request = createConfirmRequest("213");
+        given(redisTemplate.opsForHash()).willReturn(hashOperations);
+        given(hashOperations.entries(anyString())).willReturn(Map.of(
+                "authCode", "SOFIT213",
+                "accountNumber", ACCOUNT_NUMBER
+        ));
+        given(loanExecutionRepository.findByApplicationId(APPLICATION_ID)).willReturn(Optional.empty());
+        given(loanApplicationRepository.findById(APPLICATION_ID)).willReturn(Optional.of(application));
+        given(loanDecisionRepository.findByApplication_ApplicationIdAndStatus(APPLICATION_ID, DecisionStatus.MANAGER_APPROVED))
+                .willReturn(Optional.of(decision));
+
+        // when
+        loanExecutionService.confirmAccountVerification(USER_ID, APPLICATION_ID, request);
+
+        // then
+        verify(eventPublisher).publishEvent(any(LoanExecutedEvent.class));
+        assertThat(application.getStatus()).isEqualTo(ApplicationStatus.EXECUTED);
     }
 
     // ===== helpers =====
