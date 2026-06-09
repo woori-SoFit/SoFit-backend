@@ -20,6 +20,7 @@ import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.notification.event.LoanSubmittedEvent;
+import com.sofit.common.audit.AuditLog;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
      */
     @Override
     @Transactional
+    @AuditLog(action = "LOAN_APPLICATION_CREATE", target = "대출 신청 생성")
     public LoanApplicationCreateResponse createApplication(Long userId, Long productId,
                                                            LoanApplicationCreateRequest request) {
         // 1. 사용자 조회
@@ -132,6 +134,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
      */
     @Override
     @Transactional
+    @AuditLog(action = "LOAN_APPLICATION_SUBMIT", target = "대출 신청 제출")
     public LoanApplicationSubmitResponse submitApplication(Long userId, Long applicationId,
                                                            LoanApplicationSubmitRequest request) {
         // 1. 본인 소유 확인
@@ -173,6 +176,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
      */
     @Override
     @Transactional
+    @AuditLog(action = "LOAN_APPLICATION_CANCEL", target = "대출 신청 취소")
     public void cancelDraftApplication(Long userId, Long applicationId) {
         // 1. 존재 여부 검증
         LoanApplication application = loanApplicationRepository.findById(applicationId)

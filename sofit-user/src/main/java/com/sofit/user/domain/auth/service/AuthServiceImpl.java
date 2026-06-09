@@ -31,6 +31,7 @@ import com.sofit.user.domain.auth.dto.response.CheckLoginIdResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
+import com.sofit.common.audit.AuditLog;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -147,6 +148,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @AuditLog(action = "FINANCIAL_CERT_VERIFY", target = "금융인증서 인증")
     public void verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
         // 1. 인증은 FinancialCertService에 위임
         financialCertService.verify(request);
@@ -197,6 +199,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @AuditLog(action = "SIGNUP", target = "회원가입 완료")
     public SignupCompleteResponse completeSignup(SignupCompleteRequest request, HttpSession session) {
         // 1. 세션에서 registrationProcessId 조회
         Long processId = (Long) session.getAttribute(REGISTRATIONPROCESSID);
@@ -330,6 +333,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @AuditLog(action = "LOGIN", target = "사용자 로그인")
     public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         // 1. loginId로 사용자 조회 (미존재 시 동일 에러)
         User user = userRepository.findByLoginId(request.getLoginId())
@@ -370,6 +374,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @AuditLog(action = "LOGOUT", target = "사용자 로그아웃")
     public void logout(HttpServletRequest request) {
         // 1. 세션 무효화 (Redis에서 삭제) — 먼저 수행하여 해당 세션으로의 추가 요청 차단
         HttpSession session = request.getSession(false);

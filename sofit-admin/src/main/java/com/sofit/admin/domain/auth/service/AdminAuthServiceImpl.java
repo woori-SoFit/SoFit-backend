@@ -9,6 +9,7 @@ import com.sofit.admin.domain.auth.service.LoginAttemptService;
 import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.admin.global.util.SessionUtil;
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.audit.AuditLog;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserRole;
 import com.sofit.common.entity.user.enums.UserStatus;
@@ -40,6 +41,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     @Override
+    @AuditLog(action = "LOGIN", target = "관리자 로그인")
     public AdminLoginResponse login(AdminLoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         String loginId = request.getLoginId();
         String ipAddress = getClientIp(httpRequest);
@@ -122,6 +124,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     }
 
     @Override
+    @AuditLog(action = "LOGOUT", target = "관리자 로그아웃")
     public void logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         SessionUtil.invalidateSession(httpRequest, httpResponse);
     }

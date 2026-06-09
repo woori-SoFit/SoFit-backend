@@ -8,6 +8,7 @@ import com.sofit.user.domain.user.converter.UserConverter;
 import com.sofit.user.domain.user.dto.response.UserProfileResponse;
 import com.sofit.user.domain.user.event.UserWithdrawnEvent;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
+import com.sofit.common.audit.AuditLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @AuditLog(action = "WITHDRAW", target = "회원 탈퇴")
     public void withdraw(Long userId) {
         // 1. 사용자 조회
         User user = userRepository.findById(userId)

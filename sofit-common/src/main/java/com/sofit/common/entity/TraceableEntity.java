@@ -9,12 +9,12 @@ import org.slf4j.MDC;
 /**
  * 서버 경계(DB)에서 추적 흔적을 남기는 엔티티 베이스.
  *
- * <p>user / admin / batch 는 서로 호출 관계가 없고 DB만 공유한다. 따라서 서버 간 traceId 전파가
+ * <p>admin / batch 는 user 와 직접 호출 관계가 없고 DB만 공유한다. 따라서 서버 간 traceId 전파가
  * 불가능하다. 대신 공유 테이블에 <b>어떤 요청에서(trace_id)</b> INSERT 했는지를 남겨,
  * 행(row)이 추적 접점이 되게 한다.</p>
  *
- * <p>※ source_system(작성 서버)은 {@code loan_decision.status}(SYSTEM_*/TELLER_*/MANAGER_*)가
- * 이미 동일 정보를 담고 있어 중복 — {@code trace_id} 단일 컬럼으로 충분.</p>
+ * <p>※ user → FastAPI 동기 호출은 HTTP 헤더(X-Trace-Id)로 traceId 를 전파한다.
+ * FastAPI 클라이언트 작성 시 {@code MDC.get("traceId")} 를 헤더에 실을 것.</p>
  *
  * <p>활용: {@code loan_decision} 이상 징후 발견 시 →
  * {@code trace_id}(로그 JSON의 traceId 와 동일) 로 해당 서버 로그를 grep = "사실상의 분산 추적".</p>
