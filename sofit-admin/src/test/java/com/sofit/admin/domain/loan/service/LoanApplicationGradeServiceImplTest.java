@@ -125,8 +125,8 @@ class LoanApplicationGradeServiceImplTest {
         }
 
         @Test
-        @DisplayName("ShapExplanation이 존재하지 않으면 NOT_FOUND 예외를 던진다")
-        void shouldThrowNotFoundWhenShapExplanationNotExists() {
+        @DisplayName("SGradeReport가 존재하지 않으면 NOT_FOUND 예외를 던진다")
+        void shouldThrowNotFoundWhenSGradeReportNotExists() {
             // given
             Scb scb = mock(Scb.class);
             given(scb.getSGrade()).willReturn("S3");

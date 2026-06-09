@@ -232,6 +232,69 @@ class LoanDecisionProcessorTest {
         verify(loanDecisionRepository).save(any(LoanDecision.class));
     }
 
+    @Test
+    @DisplayName("S등급 가산점 규칙이 없으면 가산점 0으로 처리한다")
+    void processDecision_noScoringRule_usesZeroAddition() {
+        // given: S등급 존재하지만 가산점 규칙 없음 → 가산점 0
+        Integer cbScore = 700;
+        Integer scbScore = cbScore + 0; // 700 (가산점 0)
+
+        when(sGradeReportRepository.findLatestCompletedByUserId(10L)).thenReturn(Optional.of(sGradeReport));
+        when(sScoringRuleRepository.findByGrade("S3")).thenReturn(Optional.empty()); // 규칙 없음
+        when(loanRatePolicyRepository.findByProductIdAndScbGrade(1L, scbScore)).thenReturn(Optional.of(ratePolicy));
+
+        // when
+        loanDecisionProcessor.processDecision(application, cbScore);
+
+        // then
+        verify(scbRepository).save(any());
+        verify(application).updateStatus(ApplicationStatus.SYSTEM_APPROVED);
+        verify(loanDecisionRepository).save(any(LoanDecision.class));
+    }
+
+    @Test
+    @DisplayName("요청 금액이 한도와 동일하면 요청 금액 그대로 승인한다")
+    void processDecision_approvedWhenRequestedEqualsMaxLimit() {
+        // given: 요청 금액 70,000,000 == max_limit 70,000,000
+        LoanApplication exactApp = mockApplication(102L, product, 70_000_000L, 12, RepaymentMethod.EQUAL_PAYMENT);
+        Integer cbScore = 700;
+        Integer scbScore = cbScore + 60; // 760
+
+        when(sGradeReportRepository.findLatestCompletedByUserId(10L)).thenReturn(Optional.of(sGradeReport));
+        when(sScoringRuleRepository.findByGrade("S3")).thenReturn(Optional.of(sScoringRule));
+        when(loanRatePolicyRepository.findByProductIdAndScbGrade(1L, scbScore)).thenReturn(Optional.of(ratePolicy));
+
+        // when
+        loanDecisionProcessor.processDecision(exactApp, cbScore);
+
+        // then
+        ArgumentCaptor<LoanDecision> captor = ArgumentCaptor.forClass(LoanDecision.class);
+        verify(loanDecisionRepository).save(captor.capture());
+        LoanDecision savedDecision = captor.getValue();
+
+        assertThat(savedDecision.getApprovedAmount()).isEqualTo(70_000_000L); // 요청금액 == 한도이므로 그대로
+    }
+
+    @Test
+    @DisplayName("전체 흐름 - CB 조회 성공 후 거절까지")
+    void processApplication_fullFlowRejected() {
+        // given
+        Integer cbScore = 400;
+        Integer scbScore = cbScore + 60; // 460
+
+        when(cbScoreClient.getCbScore("홍길동", "9001011")).thenReturn(cbScore);
+        when(sGradeReportRepository.findLatestCompletedByUserId(10L)).thenReturn(Optional.of(sGradeReport));
+        when(sScoringRuleRepository.findByGrade("S3")).thenReturn(Optional.of(sScoringRule));
+        when(loanRatePolicyRepository.findByProductIdAndScbGrade(1L, scbScore)).thenReturn(Optional.empty());
+
+        // when
+        loanDecisionProcessor.processApplication(application);
+
+        // then
+        verify(application).updateStatus(ApplicationStatus.SYSTEM_REJECTED);
+        verify(loanDecisionRepository).save(any(LoanDecision.class));
+    }
+
     // === 테스트 헬퍼 메서드 ===
 
     private LoanApplication mockApplication(Long applicationId, LoanProduct product,

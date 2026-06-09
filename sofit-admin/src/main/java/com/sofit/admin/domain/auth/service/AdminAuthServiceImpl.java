@@ -5,7 +5,7 @@ import com.sofit.admin.domain.auth.dto.request.AdminLoginRequest;
 import com.sofit.admin.domain.auth.dto.response.AdminLoginResponse;
 import com.sofit.admin.domain.auth.dto.response.AdminMeResponse;
 import com.sofit.admin.domain.auth.exception.AdminAuthErrorCode;
-import com.sofit.admin.global.config.LoginAttemptService;
+import com.sofit.admin.domain.auth.service.LoginAttemptService;
 import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.admin.global.util.SessionUtil;
 import com.sofit.common.apiPayload.BaseException;

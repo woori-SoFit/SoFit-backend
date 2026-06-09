@@ -44,32 +44,37 @@ subprojects {
             html.required = true
             csv.required = false
         }
-        // afterEvaluate {
-        //     classDirectories.setFrom(files(classDirectories.files.collect {
-        //         fileTree(dir: it, exclude: [
-        //             '**/dto/**',
-        //             '**/enums/**',
-        //             '**/filter/**',
-        //             '**/*Application.class',
-        //             '**/config/**'
-        //             '**/*Request.class',
-        //             '**/*Response.class',
-        //             '**/*ErrorCode.class',
-        //             '**/*SuccessCode.class',
-        //             '**/BaseException.class',
-        //             '**/ApiResponse.class',
-        //             '**/SecurityConfig.class',
-        //             '**/JpaConfig.class',
-        //             '**/JacksonConfig.class',
-        //             '**/RedisConfig.class',
-        //             '**/SwaggerConfig.class',
-        //             '**/CorsConfig.class',
-        //             '**/*ExceptionHandler.class',
-        //             '**/CustomAccessDeniedHandler.class',
-        //             '**/CustomAuthenticationEntryPoint.class',
-        //         ])
-        //     }))
-        // }
+        afterEvaluate {
+            classDirectories.setFrom(files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                    // DTO, Enum, Entity — 로직 없는 데이터 클래스
+                    '**/dto/**',
+                    '**/enums/**',
+                    '**/entity/**',
+
+                    // 설정 클래스
+                    '**/config/**',
+                    '**/filter/**',
+
+                    // Application 진입점
+                    '**/*Application.class',
+
+                    // 공통 응답/예외 포맷
+                    '**/apiPayload/**',
+
+                    // ExceptionHandler, Security 핸들러
+                    '**/*ExceptionHandler.class',
+                    '**/CustomAccessDeniedHandler.class',
+                    '**/CustomAuthenticationEntryPoint.class',
+
+                    // Swagger Docs 인터페이스
+                    '**/*Docs.class',
+
+                    // AOP 로그 수집
+                    '**/aop/**',
+                ])
+            }))
+        }
     }
 
     // 커버리지 최소 기준 (필요 시 활성화)

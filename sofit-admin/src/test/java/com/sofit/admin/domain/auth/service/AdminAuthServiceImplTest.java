@@ -25,7 +25,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.sofit.admin.domain.auth.dto.request.AdminLoginRequest;
 import com.sofit.admin.domain.auth.dto.response.AdminLoginResponse;
 import com.sofit.admin.domain.auth.exception.AdminAuthErrorCode;
-import com.sofit.admin.global.config.LoginAttemptService;
+import com.sofit.admin.domain.auth.service.LoginAttemptService;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserRole;
