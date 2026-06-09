@@ -94,6 +94,7 @@ public class LoanApplicationConverter {
                     String resumeStep = LastCompletedStep.getResumeStep(step);
                     return new DraftItemResponse(
                             app.getApplicationId(),
+                            app.getProduct().getProductId(),
                             app.getProduct().getProductName(),
                             lastStep,
                             resumeStep
