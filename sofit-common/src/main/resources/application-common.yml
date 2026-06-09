@@ -56,12 +56,14 @@ spring:
     activate:
       on-profile: local
   datasource:
-    url: jdbc:mysql://localhost:13306/sofit_test_v2?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    # SSH 터널: localhost:13306 / 직접 접속: 172.21.33.238:3306
+    url: jdbc:mysql://172.21.33.238:3306/sofit_logging_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
   data:
     redis:
       host: localhost
       port: 16379
-# 로컬은 audit_writer 계정이 없을 수 있으므로 기본 비활성화 (필요 시 AUDIT_ENABLED=true)
+# 로깅 테스트용 DB(sofit_logging_test)에는 audit_writer 계정이 세팅되어 있음
+# 감사 로그 테스트 시: AUDIT_ENABLED=true, AUDIT_DB_PASSWORD=1234
 audit:
   enabled: ${AUDIT_ENABLED:false}
 
