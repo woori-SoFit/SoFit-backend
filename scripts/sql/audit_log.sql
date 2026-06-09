@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
     access_method VARCHAR(20)  NULL                    COMMENT '어떻게 (WEB/BATCH)',
     client_ip     VARCHAR(45)  NULL                    COMMENT '접근 IP (IPv6 포함)',
     result        VARCHAR(20)  NOT NULL                COMMENT 'SUCCESS / FAILURE (실패도 기록)',
-    request_id    VARCHAR(64)  NULL                    COMMENT '추적 ID (traceId)',
+    trace_id      VARCHAR(64)  NULL                    COMMENT '추적 ID (traceId)',
     -- 무결성 컬럼 (다음 이터레이션에서 채움 — 지금은 NULL 허용으로 선반영)
     hmac          VARCHAR(64)  NULL                    COMMENT 'HMAC 서명 (변조 탐지)',
     prev_hash     VARCHAR(64)  NULL                    COMMENT '직전 레코드 해시 (해시 체인)',

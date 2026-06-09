@@ -21,7 +21,7 @@ public class AuditLogWriter {
     private static final String INSERT_SQL = """
             INSERT INTO audit_log
                 (event_time, actor, actor_role, action, target,
-                 source_system, access_method, client_ip, result, request_id)
+                 source_system, access_method, client_ip, result, trace_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
@@ -31,6 +31,6 @@ public class AuditLogWriter {
     public void write(AuditEvent e) {
         auditJdbcTemplate.update(INSERT_SQL,
                 e.eventTime(), e.actor(), e.actorRole(), e.action(), e.target(),
-                e.sourceSystem(), e.accessMethod(), e.clientIp(), e.result(), e.requestId());
+                e.sourceSystem(), e.accessMethod(), e.clientIp(), e.result(), e.traceId());
     }
 }

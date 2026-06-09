@@ -16,6 +16,6 @@ public record AuditEvent(
         String accessMethod,       // 어떻게 (WEB / BATCH)
         String clientIp,           // 접근 IP
         String result,             // SUCCESS / FAILURE (실패도 반드시 기록)
-        String requestId           // 추적 ID (traceId)
+        String traceId             // 추적 ID (MDC traceId 와 동일)
 ) {
 }

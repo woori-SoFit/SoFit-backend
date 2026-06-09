@@ -55,7 +55,7 @@ public class AuditLogAspect {
     private AuditEvent buildEvent(AuditLog auditLog, String result) {
         String sourceSystem = orDefault(MDC.get("sourceSystem"), "UNKNOWN");
         String accessMethod = orDefault(MDC.get("accessMethod"), "BATCH");
-        String requestId = MDC.get("traceId");
+        String traceId = MDC.get("traceId");
         String clientIp = MDC.get("clientIp");
 
         String actor = sourceSystem;   // 비로그인/배치 기본값
@@ -74,7 +74,7 @@ public class AuditLogAspect {
 
         return new AuditEvent(
                 LocalDateTime.now(), actor, actorRole, auditLog.action(), target,
-                sourceSystem, accessMethod, clientIp, result, requestId);
+                sourceSystem, accessMethod, clientIp, result, traceId);
     }
 
     private static String orDefault(String v, String def) {
