@@ -59,4 +59,27 @@ public class SGradeReport extends BaseEntity {
 
     @Column(name = "admin_advice", columnDefinition = "TEXT")
     private String adminAdvice;
+
+    /**
+     * AI 서버 응답으로부터 SGradeReport를 생성한다.
+     */
+    public static SGradeReport create(Long sGradeId, User user, Long featureId,
+                                       String sGradeValue, String targetGradeValue,
+                                       List<String> strengthKeywords, List<String> improvementKeywords,
+                                       Map<String, Double> strengthDetails, Map<String, Double> improvementDetails,
+                                       String userAdvice, String adminAdvice) {
+        SGradeReport report = new SGradeReport();
+        report.sGradeId = sGradeId;
+        report.user = user;
+        report.featureId = featureId;
+        report.sGrade = SGrade.valueOf(sGradeValue);
+        report.targetGrade = targetGradeValue != null ? SGrade.valueOf(targetGradeValue) : null;
+        report.strengthKeywords = strengthKeywords;
+        report.improvementKeywords = improvementKeywords;
+        report.strengthDetails = strengthDetails;
+        report.improvementDetails = improvementDetails;
+        report.userAdvice = userAdvice;
+        report.adminAdvice = adminAdvice;
+        return report;
+    }
 }

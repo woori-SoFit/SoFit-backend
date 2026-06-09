@@ -17,6 +17,7 @@ import com.sofit.common.repository.auth.RegistrationProcessRepository;
 import com.sofit.common.repository.sGrade.SGradeHistoryRepository;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.auth.client.ExternalMockClient;
+import com.sofit.user.domain.sgrade.service.SGradeService;
 import com.sofit.user.domain.terms.exception.TermErrorCode;
 import com.sofit.user.domain.auth.converter.AuthConverter;
 import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
@@ -63,6 +64,7 @@ public class AuthServiceImpl implements AuthService {
     private final TermRepository termRepository;
     private final ConsentHistoryRepository consentHistoryRepository;
     private final SGradeHistoryRepository sGradeHistoryRepository;
+    private final SGradeService sGradeService;
     private final PasswordEncoder passwordEncoder;
     private final HttpSessionSecurityContextRepository securityContextRepository;
     private final TransactionTemplate transactionTemplate;
@@ -291,7 +293,7 @@ public class AuthServiceImpl implements AuthService {
                     .toList();
             consentHistoryRepository.saveAll(consentHistories);
 
-            // S등급 산출 요청 레코드 생성 (Python 배치 대상으로 등록)
+            // S등급 산출 요청 레코드 생성
             SGradeHistory sGradeHistory = SGradeHistory.createRequested(newUser);
             sGradeHistoryRepository.save(sGradeHistory);
 
@@ -300,6 +302,14 @@ public class AuthServiceImpl implements AuthService {
 
             return newUser;
         });
+
+        // 비동기로 S등급 산출 요청 (회원가입 응답에 영향 없음)
+        SGradeHistory savedHistory = sGradeHistoryRepository.findByUser_UserIdAndStatus(
+                user.getUserId(), com.sofit.common.entity.sGrade.enums.SGradeStatus.REQUESTED
+        ).stream().findFirst().orElse(null);
+        if (savedHistory != null) {
+            sGradeService.predictAsync(user.getUserId(), savedHistory.getSGradeId());
+        }
 
         // 세션에서 registrationProcessId 제거
         session.removeAttribute(REGISTRATIONPROCESSID);
