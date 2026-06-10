@@ -114,9 +114,6 @@ class LoanExecutionServiceImplTest {
         // given
         given(loanExecutionRepository.findAllByUserId(USER_ID))
                 .willReturn(List.of());
-        given(loanDecisionRepository.findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(
-                List.of(), List.of(DecisionStatus.MANAGER_APPROVED)))
-                .willReturn(List.of());
 
         // when
         LoanExecutionListResponse response = loanExecutionService.findExecutionList(USER_ID);

@@ -74,6 +74,10 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
     public LoanExecutionListResponse findExecutionList(Long userId) {
         List<LoanExecution> executions = loanExecutionRepository.findAllByUserId(userId);
 
+        if (executions.isEmpty()) {
+            return new LoanExecutionListResponse(List.of());
+        }
+
         List<Long> applicationIds = executions.stream()
                 .map(e -> e.getApplication().getApplicationId())
                 .toList();
