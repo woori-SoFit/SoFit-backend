@@ -2,22 +2,18 @@ package com.sofit.common.entity.mybiz;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
+import com.sofit.common.entity.BaseEntity;
 import com.sofit.common.entity.mybiz.enums.InsurancePaymentStatus;
 import com.sofit.common.entity.mybiz.enums.VatFilingStatus;
-import com.sofit.common.entity.user.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,16 +23,12 @@ import lombok.NoArgsConstructor;
 @Table(name = "my_biz_data")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class MyBizData {
+public class MyBizData extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "biz_data_id")
     private Long bizDataId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 
     @Column(name = "business_number", nullable = false, length = 20)
     private String businessNumber;
@@ -177,9 +169,4 @@ public class MyBizData {
 
     @Column(name = "is_near_subway")
     private Boolean isNearSubway;
-
-    // --- 메타 ---
-
-    @Column(name = "generated_at")
-    private LocalDateTime generatedAt;
 }

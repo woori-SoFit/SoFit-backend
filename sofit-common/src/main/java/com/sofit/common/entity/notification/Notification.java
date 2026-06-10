@@ -47,9 +47,11 @@ public class Notification extends BaseEntity {
     @Column(name = "message", nullable = false, columnDefinition = "TEXT")
     private String message;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id", nullable = false)
-    private LoanApplication application;
+    @Column(name = "reference_id")
+    private Long referenceId;
+
+    @Column(name = "reference_label", length = 100)
+    private String referenceLabel;
 
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
@@ -58,12 +60,13 @@ public class Notification extends BaseEntity {
     private LocalDateTime readAt;
 
     @Builder
-    public Notification(User user, NotificationType type, LoanApplication application) {
+    public Notification(User user, NotificationType type, Long referenceId, String referenceLabel) {
         this.user = user;
         this.type = type;
         this.title = type.getTitle();
         this.message = type.getMessage();
-        this.application = application;
+        this.referenceId = referenceId;
+        this.referenceLabel = referenceLabel;
         this.isRead = false;
     }
 

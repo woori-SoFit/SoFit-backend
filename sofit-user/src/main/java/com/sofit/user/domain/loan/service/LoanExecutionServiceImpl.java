@@ -3,6 +3,7 @@ package com.sofit.user.domain.loan.service;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -15,15 +16,17 @@ import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanExecution;
 import com.sofit.common.entity.loan.LoanDecision;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.LoanDecisionRepository;
-import com.sofit.common.repository.LoanExecutionRepository;
+import com.sofit.common.entity.loan.enums.DecisionStatus;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.loan.LoanDecisionRepository;
+import com.sofit.common.repository.loan.LoanExecutionRepository;
 import com.sofit.user.domain.loan.client.CodefClient;
 import com.sofit.user.domain.loan.converter.LoanExecutionConverter;
 import com.sofit.user.domain.loan.dto.request.AccountVerificationConfirmRequest;
 import com.sofit.user.domain.loan.dto.request.AccountVerificationRequest;
 import com.sofit.user.domain.loan.dto.response.AccountVerificationConfirmResponse;
 import com.sofit.user.domain.loan.dto.response.AccountVerificationResponse;
+import com.sofit.user.domain.loan.dto.response.LoanExecutionListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanExecutionResultResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.loan.util.AccountMaskingUtil;
@@ -61,10 +64,29 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
                 .orElseThrow(() -> new BaseException(LoanErrorCode.EXECUTION_NOT_FOUND));
 
         LoanDecision decision = loanDecisionRepository
-                .findTopByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId)
+                .findByApplication_ApplicationIdAndStatus(applicationId, DecisionStatus.MANAGER_APPROVED)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         return LoanExecutionConverter.toResponse(execution, decision);
+    }
+
+    @Override
+    public LoanExecutionListResponse findExecutionList(Long userId) {
+        List<LoanExecution> executions = loanExecutionRepository.findAllByUserId(userId);
+
+        if (executions.isEmpty()) {
+            return new LoanExecutionListResponse(List.of());
+        }
+
+        List<Long> applicationIds = executions.stream()
+                .map(e -> e.getApplication().getApplicationId())
+                .toList();
+
+        List<LoanDecision> decisions = loanDecisionRepository
+                .findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(
+                        applicationIds, List.of(DecisionStatus.MANAGER_APPROVED));
+
+        return LoanExecutionConverter.toListResponse(executions, decisions);
     }
 
     @Override
@@ -149,7 +171,7 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
             throw new BaseException(LoanErrorCode.APPLICATION_NOT_APPROVED);
         }
 
-        LoanDecision decision = loanDecisionRepository.findTopByApplication_ApplicationIdOrderByCreatedAtDesc(applicationId)
+        LoanDecision decision = loanDecisionRepository.findByApplication_ApplicationIdAndStatus(applicationId, DecisionStatus.MANAGER_APPROVED)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         LoanExecution execution = new LoanExecution(

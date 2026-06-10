@@ -15,8 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 /**
- * [임시] 배치 수동 트리거용 컨트롤러.
- * crontab → Spring 서버 알림 로직이 구현되면 제거 예정.
+ * 대출 심사 배치 수동 트리거용 컨트롤러.
+ * loanDecisionJob은 @Scheduled로 매일 자동 실행되지만,
+ * 관리자가 수동으로 트리거할 수 있는 엔드포인트도 제공한다.
  */
 @Slf4j
 @RestController

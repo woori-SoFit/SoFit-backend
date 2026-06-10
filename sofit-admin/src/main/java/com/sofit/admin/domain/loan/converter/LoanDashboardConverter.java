@@ -17,7 +17,8 @@ public class LoanDashboardConverter {
     public static LoanDashboardResponse toLoanDashboardResponse(
             Page<LoanApplication> page,
             Map<Long, String> businessNameMap,
-            Map<Long, String> bankerNameMap) {
+            Map<Long, String> bankerNameMap,
+            Map<Long, Long> approvedAmountMap) {
 
         return new LoanDashboardResponse(
                 page.getTotalElements(),
@@ -28,7 +29,8 @@ public class LoanDashboardConverter {
                         .map(app -> toLoanApplicationItemResponse(
                                 app,
                                 businessNameMap.get(app.getUser().getUserId()),
-                                bankerNameMap.get(app.getAssignedBankerId())
+                                bankerNameMap.get(app.getAssignedBankerId()),
+                                approvedAmountMap.get(app.getApplicationId())
                         ))
                         .toList()
         );
@@ -37,7 +39,8 @@ public class LoanDashboardConverter {
     public static LoanApplicationItemResponse toLoanApplicationItemResponse(
             LoanApplication app,
             String businessName,
-            String assigneeName) {
+            String assigneeName,
+            Long approvedAmount) {
 
         return new LoanApplicationItemResponse(
                 app.getApplicationId(),
@@ -47,7 +50,9 @@ public class LoanDashboardConverter {
                 app.getProduct().getProductName(),
                 app.getStatus(),
                 app.getAssignedBankerId(),
-                assigneeName
+                assigneeName,
+                app.getRequestedAmount(),
+                approvedAmount
         );
     }
 

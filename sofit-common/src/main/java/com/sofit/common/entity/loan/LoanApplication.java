@@ -1,10 +1,7 @@
 package com.sofit.common.entity.loan;
 
 import com.sofit.common.entity.BaseEntity;
-import com.sofit.common.entity.loan.enums.AnnualIncome;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
-import com.sofit.common.entity.loan.enums.CreditScoreRange;
-import com.sofit.common.entity.loan.enums.ExistingLoanAmount;
 import com.sofit.common.entity.loan.enums.IncomeType;
 import com.sofit.common.entity.loan.enums.LastCompletedStep;
 import com.sofit.common.entity.loan.enums.LoanPurpose;
@@ -37,33 +34,27 @@ public class LoanApplication extends BaseEntity {
     @Column(name = "biz_data_id")
     private Long bizDataId;
 
-    @Column(name = "s_evaluation_id")
-    private Long sEvaluationId;
+    @Column(name = "s_grade_id")
+    private Long sGradeId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "user_input_annual_income")
-    private AnnualIncome userInputAnnualIncome;
+    private String userInputAnnualIncome;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "user_input_credit_score")
-    private CreditScoreRange userInputCreditScore;
+    private String userInputCreditScore;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "user_input_income_type")
     private IncomeType userInputIncomeType;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "user_input_existing_loan_amt")
-    private ExistingLoanAmount userInputExistingLoanAmt;
+    private String userInputExistingLoanAmt;
 
     @Column(name = "requested_amount")
     private Long requestedAmount;
 
     @Column(name = "requested_term")
     private Integer requestedTerm;
-
-    @Column(name = "cb_credit_score")
-    private Integer cbCreditScore;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "purpose")
@@ -90,10 +81,10 @@ public class LoanApplication extends BaseEntity {
     // === 비즈니스 메서드 ===
 
     public static LoanApplication createDraft(User user, LoanProduct product,
-                                              AnnualIncome annualIncome,
-                                              CreditScoreRange creditScore,
+                                              String annualIncome,
+                                              String creditScore,
                                               IncomeType incomeType,
-                                              ExistingLoanAmount existingLoanAmt) {
+                                              String existingLoanAmt) {
         LoanApplication application = new LoanApplication();
         application.user = user;
         application.product = product;
@@ -129,5 +120,9 @@ public class LoanApplication extends BaseEntity {
 
     public void updateBizDataId(Long bizDataId) {
         this.bizDataId = bizDataId;
+    }
+
+    public void updateSGradeId(Long sGradeId) {
+        this.sGradeId = sGradeId;
     }
 }

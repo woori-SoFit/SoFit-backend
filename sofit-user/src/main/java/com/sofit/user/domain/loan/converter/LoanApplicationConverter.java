@@ -3,9 +3,13 @@ package com.sofit.user.domain.loan.converter;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.LastCompletedStep;
 import com.sofit.user.domain.loan.dto.response.DraftCheckResponse;
+import com.sofit.user.domain.loan.dto.response.DraftItemResponse;
+import com.sofit.user.domain.loan.dto.response.DraftListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationCreateResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationResumeResponse;
 import com.sofit.user.domain.loan.dto.response.LoanApplicationSubmitResponse;
+
+import java.util.List;
 
 /**
  * LoanApplication 엔티티 ↔ 대출 신청 관련 DTO 변환 클래스
@@ -45,13 +49,13 @@ public class LoanApplicationConverter {
 
         LoanApplicationResumeResponse.SavedData savedData = new LoanApplicationResumeResponse.SavedData(
                 application.getUserInputAnnualIncome() != null
-                        ? application.getUserInputAnnualIncome().name() : null,
+                        ? application.getUserInputAnnualIncome() : null,
                 application.getUserInputCreditScore() != null
-                        ? application.getUserInputCreditScore().name() : null,
+                        ? application.getUserInputCreditScore(): null,
                 application.getUserInputIncomeType() != null
                         ? application.getUserInputIncomeType().getCode() : null,
                 application.getUserInputExistingLoanAmt() != null
-                        ? application.getUserInputExistingLoanAmt().name() : null,
+                        ? application.getUserInputExistingLoanAmt(): null,
                 step != null && step.ordinal() >= LastCompletedStep.CONSENT_DONE.ordinal()
         );
 
@@ -76,5 +80,27 @@ public class LoanApplicationConverter {
                 application.getPurpose().name(),
                 application.getRequestedTerm()
         );
+    }
+
+    /**
+     * 사용자의 전체 DRAFT 목록 응답 변환
+     * List<Entity> → DraftListResponse
+     */
+    public static DraftListResponse toDraftListResponse(List<LoanApplication> applications) {
+        List<DraftItemResponse> items = applications.stream()
+                .map(app -> {
+                    LastCompletedStep step = app.getLastCompletedStep();
+                    String lastStep = step != null ? step.name() : null;
+                    String resumeStep = LastCompletedStep.getResumeStep(step);
+                    return new DraftItemResponse(
+                            app.getApplicationId(),
+                            app.getProduct().getProductId(),
+                            app.getProduct().getProductName(),
+                            lastStep,
+                            resumeStep
+                    );
+                })
+                .toList();
+        return new DraftListResponse(items);
     }
 }

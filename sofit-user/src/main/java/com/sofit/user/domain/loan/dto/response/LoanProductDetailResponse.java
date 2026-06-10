@@ -17,9 +17,10 @@ public class LoanProductDetailResponse {
     private Long minLimit;
     private Long maxLimit;
     private Integer maxTerm;
-    private String targetDescription;
+    private String targetSummary;
     private FilterConditions filterConditions;
     private InterestRate interestRate;
+    private ProductDescription productDescription;
 
     @Getter
     @Builder
@@ -35,5 +36,18 @@ public class LoanProductDetailResponse {
     public static class InterestRate {
         private BigDecimal minRate;
         private BigDecimal maxRate;
+    }
+
+    @Getter
+    @Builder
+    public static class ProductDescription {
+        private String targetDetail;
+        private String limitDescription;
+        private String termDescription;
+        private String rateDescription;
+        private String preferentialRateDescription;
+        private String repaymentDescription;
+        private String collateralDescription;
+        private String feeDescription;
     }
 }

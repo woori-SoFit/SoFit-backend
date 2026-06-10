@@ -20,6 +20,7 @@ public class LoanProductConverter {
                         .productName(product.getProductName())
                         .title(product.getTitle())
                         .maxLimit(product.getMaxLimit())
+                        .minRate(product.getMinRate())
                         .build())
                 .toList();
 
@@ -37,7 +38,7 @@ public class LoanProductConverter {
                 .minLimit(product.getMinLimit())
                 .maxLimit(product.getMaxLimit())
                 .maxTerm(product.getMaxTerm())
-                .targetDescription(product.getTargetDescription())
+                .targetSummary(product.getTargetSummary())
                 .filterConditions(LoanProductDetailResponse.FilterConditions.builder()
                         .annualIncomeLimit(product.getAnnualIncomeLimit())
                         .creditScoreLimit(product.getCreditScoreLimit())
@@ -47,6 +48,16 @@ public class LoanProductConverter {
                 .interestRate(LoanProductDetailResponse.InterestRate.builder()
                         .minRate(product.getMinRate())
                         .maxRate(product.getMaxRate())
+                        .build())
+                .productDescription(LoanProductDetailResponse.ProductDescription.builder()
+                        .targetDetail(product.getTargetDetail())
+                        .limitDescription(product.getLimitDescription())
+                        .termDescription(product.getTermDescription())
+                        .rateDescription(product.getRateDescription())
+                        .preferentialRateDescription(product.getPreferentialRateDescription())
+                        .repaymentDescription(product.getRepaymentDescription())
+                        .collateralDescription(product.getCollateralDescription())
+                        .feeDescription(product.getFeeDescription())
                         .build())
                 .build();
     }

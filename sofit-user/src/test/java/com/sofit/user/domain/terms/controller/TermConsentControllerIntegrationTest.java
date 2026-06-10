@@ -9,6 +9,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,9 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -43,6 +48,18 @@ class TermConsentControllerIntegrationTest {
     private SessionValidationFilter sessionValidationFilter;
 
     private static final Long USER_ID = 1L;
+
+    @BeforeEach
+    void setUpSecurityContext() {
+        var authentication = new UsernamePasswordAuthenticationToken(
+                USER_ID, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     @DisplayName("정상 요청 시 200 + TERM2001 응답을 반환한다")
@@ -74,7 +91,6 @@ class TermConsentControllerIntegrationTest {
 
         // when & then
         mockMvc.perform(post("/api/terms/consents")
-                        .sessionAttr("userId", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk())
@@ -102,7 +118,6 @@ class TermConsentControllerIntegrationTest {
                 """;
 
         mockMvc.perform(post("/api/terms/consents")
-                        .sessionAttr("userId", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest())
@@ -121,7 +136,6 @@ class TermConsentControllerIntegrationTest {
                 """;
 
         mockMvc.perform(post("/api/terms/consents")
-                        .sessionAttr("userId", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest())
@@ -145,7 +159,6 @@ class TermConsentControllerIntegrationTest {
                 """;
 
         mockMvc.perform(post("/api/terms/consents")
-                        .sessionAttr("userId", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isNotFound())
@@ -170,7 +183,6 @@ class TermConsentControllerIntegrationTest {
                 """;
 
         mockMvc.perform(post("/api/terms/consents")
-                        .sessionAttr("userId", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest())
@@ -195,7 +207,6 @@ class TermConsentControllerIntegrationTest {
                 """;
 
         mockMvc.perform(post("/api/terms/consents")
-                        .sessionAttr("userId", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest())
@@ -220,7 +231,6 @@ class TermConsentControllerIntegrationTest {
                 """;
 
         mockMvc.perform(post("/api/terms/consents")
-                        .sessionAttr("userId", USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isBadRequest())

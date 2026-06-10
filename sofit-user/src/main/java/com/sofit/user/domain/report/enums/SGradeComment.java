@@ -1,6 +1,6 @@
 package com.sofit.user.domain.report.enums;
 
-import com.sofit.common.entity.report.enums.SGrade;
+import com.sofit.common.entity.sGrade.enums.SGrade;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

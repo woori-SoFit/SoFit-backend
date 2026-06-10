@@ -38,7 +38,4 @@ dependencies {
 
 	// WireMock (외부 API Mock)
 	testImplementation 'org.wiremock:wiremock-standalone:3.10.0'
-	// jqwik (Property-Based Testing)
-	testImplementation 'net.jqwik:jqwik:1.9.2'
-	testImplementation 'net.jqwik:jqwik:1.9.2'
 }

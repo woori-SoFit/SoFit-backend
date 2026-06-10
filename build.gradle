@@ -16,6 +16,7 @@ allprojects {
 subprojects {
     apply plugin: 'java'
     apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'jacoco'
 
     java {
         toolchain {
@@ -29,5 +30,61 @@ subprojects {
 
     tasks.named('test') {
         useJUnitPlatform()
+        finalizedBy jacocoTestReport
     }
+
+    jacoco {
+        toolVersion = '0.8.12'  // 한 번만
+    }
+
+    jacocoTestReport {
+        dependsOn test
+        reports {
+            xml.required = true   // SonarQube 쓰면 true, 안 쓰면 false
+            html.required = true
+            csv.required = false
+        }
+        afterEvaluate {
+            classDirectories.setFrom(files(classDirectories.files.collect {
+                fileTree(dir: it, exclude: [
+                    // DTO, Enum, Entity — 로직 없는 데이터 클래스
+                    '**/dto/**',
+                    '**/enums/**',
+                    '**/entity/**',
+
+                    // 설정 클래스
+                    '**/config/**',
+                    '**/filter/**',
+
+                    // Application 진입점
+                    '**/*Application.class',
+
+                    // 공통 응답/예외 포맷
+                    '**/apiPayload/**',
+
+                    // ExceptionHandler, Security 핸들러
+                    '**/*ExceptionHandler.class',
+                    '**/CustomAccessDeniedHandler.class',
+                    '**/CustomAuthenticationEntryPoint.class',
+
+                    // Swagger Docs 인터페이스
+                    '**/*Docs.class',
+
+                    // AOP 로그 수집
+                    '**/aop/**',
+                ])
+            }))
+        }
+    }
+
+    // 커버리지 최소 기준 (필요 시 활성화)
+    // jacocoTestCoverageVerification {
+    //     violationRules {
+    //         rule {
+    //             limit {
+    //                 minimum = 0.70
+    //             }
+    //         }
+    //     }
+    // }
 }

@@ -2,8 +2,8 @@ package com.sofit.admin.domain.dev.service;
 
 import com.sofit.admin.domain.dev.converter.DevBatchConverter;
 import com.sofit.admin.domain.dev.dto.response.BatchHistoryListResponse;
-import com.sofit.admin.domain.dev.entity.BatchExecutionHistory;
-import com.sofit.admin.domain.dev.repository.BatchExecutionHistoryRepository;
+import com.sofit.common.entity.sGrade.BatchExecutionHistory;
+import com.sofit.common.repository.sGrade.BatchExecutionHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

@@ -27,9 +27,9 @@ import com.sofit.common.entity.term.ConsentHistory;
 import com.sofit.common.entity.term.Term;
 import com.sofit.common.entity.term.enums.TermType;
 import com.sofit.common.entity.user.User;
-import com.sofit.common.repository.ConsentHistoryRepository;
-import com.sofit.common.repository.LoanApplicationRepository;
-import com.sofit.common.repository.TermRepository;
+import com.sofit.common.repository.term.ConsentHistoryRepository;
+import com.sofit.common.repository.loan.LoanApplicationRepository;
+import com.sofit.common.repository.term.TermRepository;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
@@ -332,7 +332,7 @@ class TermServiceImplTest {
     }
 
     private ConsentHistory createConsentHistory(Long consentId, Long userId, Long termId,
-                                                 Long applicationId, Boolean isConsented) {
+                                                Long applicationId, Boolean isConsented) {
         User user = createUser(userId);
         Term term = createTerm(termId, TermType.PERSONAL_INFO, true);
         LoanApplication application = applicationId != null ? createApplication(applicationId) : null;
@@ -348,7 +348,7 @@ class TermServiceImplTest {
     }
 
     private ConsentCreateRequest createRequest(TermType termType, Long applicationId,
-                                                List<ConsentCreateRequest.ConsentItem> consents) {
+                                               List<ConsentCreateRequest.ConsentItem> consents) {
         ConsentCreateRequest request = new ConsentCreateRequest();
         ReflectionTestUtils.setField(request, "termType", termType);
         ReflectionTestUtils.setField(request, "applicationId", applicationId);

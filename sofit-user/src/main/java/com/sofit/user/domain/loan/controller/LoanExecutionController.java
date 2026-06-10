@@ -5,6 +5,7 @@ import com.sofit.user.domain.loan.dto.request.AccountVerificationConfirmRequest;
 import com.sofit.user.domain.loan.dto.request.AccountVerificationRequest;
 import com.sofit.user.domain.loan.dto.response.AccountVerificationConfirmResponse;
 import com.sofit.user.domain.loan.dto.response.AccountVerificationResponse;
+import com.sofit.user.domain.loan.dto.response.LoanExecutionListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanExecutionResultResponse;
 import com.sofit.user.domain.loan.exception.LoanSuccessCode;
 import com.sofit.user.domain.loan.service.LoanExecutionService;
@@ -15,17 +16,23 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/loan-applications")
 @RequiredArgsConstructor
 public class LoanExecutionController implements LoanExecutionControllerDocs {
 
     private final LoanExecutionService loanExecutionService;
 
-    @GetMapping("/{applicationId}/execution")
+    @GetMapping("/api/loan-executions")
+    @Override
+    public ApiResponse<LoanExecutionListResponse> getExecutionList() {
+        Long userId = SecurityUtil.getCurrentUserId();
+        LoanExecutionListResponse response = loanExecutionService.findExecutionList(userId);
+        return ApiResponse.onSuccess(LoanSuccessCode.LOAN_EXECUTION_LIST_OK, response);
+    }
+
+    @GetMapping("/api/loan-applications/{applicationId}/execution")
     @Override
     public ApiResponse<LoanExecutionResultResponse> getExecutionResult(
             @PathVariable Long applicationId) {
@@ -35,7 +42,7 @@ public class LoanExecutionController implements LoanExecutionControllerDocs {
         return ApiResponse.onSuccess(LoanSuccessCode.LOAN_EXECUTION_RESULT_OK, response);
     }
 
-    @PostMapping("/{applicationId}/account-verification")
+    @PostMapping("/api/loan-applications/{applicationId}/account-verification")
     @Override
     public ApiResponse<AccountVerificationResponse> requestAccountVerification(
             @PathVariable Long applicationId,
@@ -46,7 +53,7 @@ public class LoanExecutionController implements LoanExecutionControllerDocs {
         return ApiResponse.onSuccess(LoanSuccessCode.ACCOUNT_VERIFICATION_OK, response);
     }
 
-    @PostMapping("/{applicationId}/account-verification/confirm")
+    @PostMapping("/api/loan-applications/{applicationId}/account-verification/confirm")
     @Override
     public ApiResponse<AccountVerificationConfirmResponse> confirmAccountVerification(
             @PathVariable Long applicationId,
