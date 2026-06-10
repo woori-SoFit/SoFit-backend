@@ -12,6 +12,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +43,7 @@ import com.sofit.user.domain.loan.dto.request.AccountVerificationConfirmRequest;
 import com.sofit.user.domain.loan.dto.request.AccountVerificationRequest;
 import com.sofit.user.domain.loan.dto.response.AccountVerificationConfirmResponse;
 import com.sofit.user.domain.loan.dto.response.AccountVerificationResponse;
+import com.sofit.user.domain.loan.dto.response.LoanExecutionListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanExecutionResultResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.notification.event.LoanExecutedEvent;
@@ -80,6 +82,45 @@ class LoanExecutionServiceImplTest {
     private static final Long OTHER_USER_ID = 2L;
     private static final Long APPLICATION_ID = 100L;
     private static final String ACCOUNT_NUMBER = "1234567890";
+
+    // ===== findExecutionList =====
+
+    @Test
+    @DisplayName("대출 실행 완료 목록 조회 성공 시 목록을 반환한다")
+    void findExecutionList_success() {
+        // given
+        LoanApplication application = createApplication(USER_ID, ApplicationStatus.EXECUTED);
+        LoanExecution execution = new LoanExecution(application, 9_000_000L, ACCOUNT_NUMBER);
+        LoanDecision decision = createDecisionWithApplication(application);
+
+        given(loanExecutionRepository.findAllByUserId(USER_ID))
+                .willReturn(List.of(execution));
+        given(loanDecisionRepository.findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(
+                List.of(APPLICATION_ID), List.of(DecisionStatus.MANAGER_APPROVED)))
+                .willReturn(List.of(decision));
+
+        // when
+        LoanExecutionListResponse response = loanExecutionService.findExecutionList(USER_ID);
+
+        // then
+        assertThat(response.executions()).hasSize(1);
+        assertThat(response.executions().get(0).applicationId()).isEqualTo(APPLICATION_ID);
+        assertThat(response.executions().get(0).executedAmount()).isEqualTo(9_000_000L);
+    }
+
+    @Test
+    @DisplayName("대출 실행 완료 건이 없으면 빈 목록을 반환한다")
+    void findExecutionList_empty() {
+        // given
+        given(loanExecutionRepository.findAllByUserId(USER_ID))
+                .willReturn(List.of());
+
+        // when
+        LoanExecutionListResponse response = loanExecutionService.findExecutionList(USER_ID);
+
+        // then
+        assertThat(response.executions()).isEmpty();
+    }
 
     // ===== findExecutionResult =====
 
@@ -441,6 +482,20 @@ class LoanExecutionServiceImplTest {
             setField(decision, "approvedAmount", 9_000_000L);
             setField(decision, "approvedRate", new java.math.BigDecimal("5.50"));
             setField(decision, "approvedTerm", 12);
+            return decision;
+        } catch (Exception e) {
+            throw new RuntimeException("테스트 데이터 생성 실패", e);
+        }
+    }
+
+    private LoanDecision createDecisionWithApplication(LoanApplication application) {
+        try {
+            LoanDecision decision = newInstance(LoanDecision.class);
+            setField(decision, "application", application);
+            setField(decision, "approvedAmount", 9_000_000L);
+            setField(decision, "approvedRate", new java.math.BigDecimal("5.50"));
+            setField(decision, "approvedTerm", 12);
+            setField(decision, "status", DecisionStatus.MANAGER_APPROVED);
             return decision;
         } catch (Exception e) {
             throw new RuntimeException("테스트 데이터 생성 실패", e);
