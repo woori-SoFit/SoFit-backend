@@ -1,10 +1,12 @@
 package com.sofit.user.domain.loan.service;
 
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.loan.enums.LastCompletedStep;
 import com.sofit.common.entity.mybiz.MyBizData;
+import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.loan.LoanApplicationRepository;
 import com.sofit.common.repository.mybiz.MyBizDataRepository;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
@@ -28,6 +30,7 @@ public class LoanStepServiceImpl implements LoanStepService {
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final MyBizDataRepository myBizDataRepository;
+    private final BusinessProfileRepository businessProfileRepository;
     private final TermService termService;
     private final BusinessService businessService;
 
@@ -69,17 +72,22 @@ public class LoanStepServiceImpl implements LoanStepService {
     public void processMybizData(Long userId, Long applicationId) {
         LoanApplication application = validateAndGetApplication(userId, applicationId, LastCompletedStep.DATA_COLLECTED);
 
-        // 1. my_biz_data에서 해당 userId의 최신 biz_data_id 조회
-        MyBizData latestBizData = myBizDataRepository.findFirstByUser_UserIdOrderByReferenceMonthDesc(userId)
+        // 1. userId → businessNumber 조회
+        BusinessProfile profile = businessProfileRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new BaseException(LoanErrorCode.MYBIZ_DATA_NOT_FOUND));
+        String businessNumber = profile.getBusinessNumber();
+
+        // 2. businessNumber로 최신 biz_data_id 조회
+        MyBizData latestBizData = myBizDataRepository.findFirstByBusinessNumberOrderByReferenceMonthDesc(businessNumber)
                 .orElseThrow(() -> new BaseException(LoanErrorCode.MYBIZ_DATA_NOT_FOUND));
 
-        // 2. loan_application.biz_data_id 업데이트
+        // 3. loan_application.biz_data_id 업데이트
         application.updateBizDataId(latestBizData.getBizDataId());
 
-        // 3. business_profile 연동 여부 업데이트
+        // 4. business_profile 연동 여부 업데이트
         businessService.connectMybiz(userId);
 
-        // 4. lastCompletedStep = MYBIZ_CONNECTED
+        // 5. lastCompletedStep = MYBIZ_CONNECTED
         application.updateLastCompletedStep(LastCompletedStep.MYBIZ_CONNECTED);
     }
 

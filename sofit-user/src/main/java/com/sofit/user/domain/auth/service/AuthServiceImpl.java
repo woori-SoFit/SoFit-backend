@@ -17,6 +17,7 @@ import com.sofit.common.repository.auth.RegistrationProcessRepository;
 import com.sofit.common.repository.sGrade.SGradeHistoryRepository;
 import com.sofit.common.repository.user.UserRepository;
 import com.sofit.user.domain.auth.client.ExternalMockClient;
+import com.sofit.user.domain.sgrade.service.SGradeService;
 import com.sofit.user.domain.terms.exception.TermErrorCode;
 import com.sofit.user.domain.auth.converter.AuthConverter;
 import com.sofit.user.domain.auth.dto.request.BusinessVerificationRequest;
@@ -63,11 +64,15 @@ public class AuthServiceImpl implements AuthService {
     private final TermRepository termRepository;
     private final ConsentHistoryRepository consentHistoryRepository;
     private final SGradeHistoryRepository sGradeHistoryRepository;
+    private final SGradeService sGradeService;
     private final PasswordEncoder passwordEncoder;
     private final HttpSessionSecurityContextRepository securityContextRepository;
     private final TransactionTemplate transactionTemplate;
 
     private final String REGISTRATIONPROCESSID = "registrationProcessId";
+
+    private record SignupResult(User user, Long sGradeId) {
+    }
 
     @Override
     public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session) {
@@ -250,7 +255,7 @@ public class AuthServiceImpl implements AuthService {
         java.util.Map<Long, Term> termMap = terms.stream()
                 .collect(java.util.stream.Collectors.toMap(Term::getTermId, t -> t));
 
-        User user = transactionTemplate.execute(status -> {
+        SignupResult signupResult = transactionTemplate.execute(status -> {
             // loginId 중복 체크
             if (userRepository.existsByLoginId(request.getLoginId())) {
                 throw new BaseException(AuthErrorCode.LOGIN_ID_DUPLICATED);
@@ -291,20 +296,25 @@ public class AuthServiceImpl implements AuthService {
                     .toList();
             consentHistoryRepository.saveAll(consentHistories);
 
-            // S등급 산출 요청 레코드 생성 (Python 배치 대상으로 등록)
+            // S등급 산출 요청 레코드 생성
             SGradeHistory sGradeHistory = SGradeHistory.createRequested(newUser);
             sGradeHistoryRepository.save(sGradeHistory);
 
             // RegistrationProcess 삭제 (가입 완료)
             registrationProcessRepository.delete(process);
 
-            return newUser;
+            return new SignupResult(newUser, sGradeHistory.getSGradeId());
         });
+
+        // 비동기로 S등급 산출 요청 (회원가입 응답에 영향 없음)
+        if (signupResult.sGradeId() != null) {
+            sGradeService.predictAsync(signupResult.user().getUserId(), signupResult.sGradeId());
+        }
 
         // 세션에서 registrationProcessId 제거
         session.removeAttribute(REGISTRATIONPROCESSID);
 
-        return AuthConverter.toSignupCompleteResponse(user);
+        return AuthConverter.toSignupCompleteResponse(signupResult.user());
     }
 
     @Override

@@ -32,3 +32,9 @@ codef:
   client-secret: ${CODEF_CLIENT_SECRET:}
   base-url: ${CODEF_BASE_URL:https://development.codef.io}
   oauth-url: ${CODEF_OAUTH_URL:https://oauth.codef.io/oauth/token}
+
+# AI Server
+sofit:
+  ai:
+    server:
+      url: ${AI_SERVER_URL:http://localhost:8000}

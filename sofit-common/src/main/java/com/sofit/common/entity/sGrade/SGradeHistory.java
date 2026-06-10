@@ -62,4 +62,20 @@ public class SGradeHistory {
         this.status = SGradeStatus.REQUESTED;
         this.requestedAt = LocalDateTime.now();
     }
+
+    /**
+     * S등급 산출 완료 시 상태를 COMPLETED로 변경한다.
+     */
+    public void markCompleted(Long featureId) {
+        this.status = SGradeStatus.COMPLETED;
+        this.featureId = featureId;
+        this.evaluatedAt = LocalDateTime.now();
+    }
+
+    /**
+     * S등급 산출 실패 시 상태를 FAILED로 변경한다.
+     */
+    public void markFailed() {
+        this.status = SGradeStatus.FAILED;
+    }
 }
