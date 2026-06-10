@@ -1,15 +1,14 @@
 package com.sofit.user.domain.mybiz.converter;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.sofit.common.entity.mybiz.MyBizData;
 import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse;
-import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse.CashFlowTrendResponse;
-import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse.IndustryCompareResponse;
-import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse.RatingTrendResponse;
+import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse.PaymentFlowTrendResponse;
 import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse.RevenueTrendResponse;
 
 public class MyBizConverter {
@@ -21,31 +20,14 @@ public class MyBizConverter {
 
     public static MyBizDashboardResponse toMyBizDashboardResponse(
             MyBizData baseData,
-            List<MyBizData> fiveMonthTrendData,
-            List<MyBizData> cashFlowTrendData,
+            List<MyBizData> sixMonthTrendData,
             List<LocalDate> availableMonths,
-            BigDecimal salesRankChange,
-            BigDecimal profitRankChange,
-            BigDecimal stabilityRankChange) {
+            BigDecimal monthlyRevenueGrowthRate) {
 
         String referenceMonth = baseData.getReferenceMonth().format(YEAR_MONTH_FORMATTER);
 
-        // 전월 데이터 없으면 증감률 null (0은 "변화 없음", null은 "비교 불가" — 프론트 UI 구분)
-        BigDecimal revenueGrowthRate = baseData.getPrevMonthRevenue() == null
-                ? null
-                : baseData.getMonthlyRevenueGrowthRate();
-
-        IndustryCompareResponse industryCompare = new IndustryCompareResponse(
-                baseData.getIndustryName(),
-                baseData.getIndustrySalesRank(),
-                baseData.getIndustryProfitRank(),
-                baseData.getIndustryStabilityRank(),
-                salesRankChange,
-                profitRankChange,
-                stabilityRankChange
-        );
-
-        List<RevenueTrendResponse> revenueTrend = fiveMonthTrendData.stream()
+        // revenueTrend: monthlyRevenue가 non-null인 것만 매핑
+        List<RevenueTrendResponse> revenueTrend = sixMonthTrendData.stream()
                 .filter(data -> data.getMonthlyRevenue() != null)
                 .map(data -> new RevenueTrendResponse(
                         data.getReferenceMonth().format(YEAR_MONTH_FORMATTER),
@@ -53,20 +35,13 @@ public class MyBizConverter {
                 ))
                 .toList();
 
-        List<CashFlowTrendResponse> cashFlowTrend = cashFlowTrendData.stream()
-                .filter(data -> data.getMonthlyInflow() != null && data.getMonthlyOutflow() != null)
-                .map(data -> new CashFlowTrendResponse(
+        // paymentFlowTrend: monthlyRevenue, monthlyOutflow, estimatedProfit 매핑
+        List<PaymentFlowTrendResponse> paymentFlowTrend = sixMonthTrendData.stream()
+                .map(data -> new PaymentFlowTrendResponse(
                         data.getReferenceMonth().format(YEAR_MONTH_FORMATTER),
-                        data.getMonthlyInflow(),
-                        data.getMonthlyOutflow()
-                ))
-                .toList();
-
-        List<RatingTrendResponse> ratingTrend = fiveMonthTrendData.stream()
-                .filter(data -> data.getReviewRating() != null)
-                .map(data -> new RatingTrendResponse(
-                        data.getReferenceMonth().format(YEAR_MONTH_FORMATTER),
-                        data.getReviewRating()
+                        data.getMonthlyRevenue(),
+                        data.getMonthlyOutflow(),
+                        data.getEstimatedProfit()
                 ))
                 .toList();
 
@@ -80,30 +55,61 @@ public class MyBizConverter {
                 availableMonthStrings,
                 // 1번 탭: 매출
                 baseData.getMonthlyRevenue(),
-                revenueGrowthRate,
-                baseData.getPrevMonthRevenue(),
-                baseData.getMonthlyTransactionCount(),
-                baseData.getAvgTransactionAmount(),
+                baseData.getPosSalesAmount(),
+                baseData.getDeliverySalesAmount(),
+                monthlyRevenueGrowthRate,
+                baseData.getMonthlyPaymentCount(),
+                baseData.getAvgPaymentAmount(),
                 revenueTrend,
-                // 2번 탭: 수익/현금흐름
-                baseData.getCashFlow(),
+                baseData.getAvgRevenueMon(),
+                baseData.getAvgRevenueTue(),
+                baseData.getAvgRevenueWed(),
+                baseData.getAvgRevenueThu(),
+                baseData.getAvgRevenueFri(),
+                baseData.getAvgRevenueSat(),
+                baseData.getAvgRevenueSun(),
+                // 2번 탭: 수익
                 baseData.getEstimatedProfit(),
-                cashFlowTrend,
+                baseData.getMonthlyOutflow(),
+                paymentFlowTrend,
+                baseData.getMonthlyProfitGrowthRate(),
                 // 3번 탭: 고객/온라인
                 baseData.getReviewRating(),
                 baseData.getReviewCount(),
-                baseData.getOnlineReorderRate(),
-                baseData.getDeliveryOrderCount(),
-                baseData.getOnlineReplyRate(),
-                baseData.getOnlineInfoUpdateCount(),
                 baseData.getPositiveReviewRatio(),
+                baseData.getNegativeReviewRatio(),
                 baseData.getDeliveryRating(),
-                baseData.getDeliverySalesAmount(),
                 baseData.getHasOnlineReservation(),
                 baseData.getHasSns(),
-                ratingTrend,
-                // 4번 탭: 업종 비교
-                industryCompare
+                baseData.getOnlineReplyRate(),
+                // 4번 탭: 업종/상권 비교
+                baseData.getIndustryName(),
+                baseData.getIndustrySalesRank(),
+                baseData.getIndustryProfitRank(),
+                baseData.getIndustrySatisfactionRank(),
+                baseData.getDistrictSalesRank(),
+                baseData.getDistrictProfitRank(),
+                baseData.getDistrictSatisfactionRank(),
+                baseData.getMonthlyProfitRate(),
+                baseData.getIndustryAvgRevenue(),
+                baseData.getIndustryAvgProfitRate(),
+                baseData.getIndustryAvgReviewRating(),
+                baseData.getDistrictAvgRevenue(),
+                baseData.getDistrictAvgProfitRate(),
+                baseData.getDistrictAvgReviewRating()
         );
+    }
+
+    /**
+     * 매출 전월대비 증감률 계산.
+     * prevMonthRevenue가 null이거나 0이면 null 반환.
+     */
+    public static BigDecimal calculateMonthlyRevenueGrowthRate(Long monthlyRevenue, Long prevMonthRevenue) {
+        if (prevMonthRevenue == null || prevMonthRevenue == 0 || monthlyRevenue == null) {
+            return null;
+        }
+        return BigDecimal.valueOf(monthlyRevenue - prevMonthRevenue)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(BigDecimal.valueOf(prevMonthRevenue), 2, RoundingMode.HALF_UP);
     }
 }
