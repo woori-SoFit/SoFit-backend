@@ -71,6 +71,9 @@ public class AuthServiceImpl implements AuthService {
 
     private final String REGISTRATIONPROCESSID = "registrationProcessId";
 
+    private record SignupResult(User user, Long sGradeId) {
+    }
+
     @Override
     public BusinessVerificationResponse verifyBusiness(BusinessVerificationRequest request, HttpSession session) {
         // 1. 이미 가입 완료된 사업자 체크 + 기존 프로세스 조회 (트랜잭션)
@@ -252,7 +255,7 @@ public class AuthServiceImpl implements AuthService {
         java.util.Map<Long, Term> termMap = terms.stream()
                 .collect(java.util.stream.Collectors.toMap(Term::getTermId, t -> t));
 
-        User user = transactionTemplate.execute(status -> {
+        SignupResult signupResult = transactionTemplate.execute(status -> {
             // loginId 중복 체크
             if (userRepository.existsByLoginId(request.getLoginId())) {
                 throw new BaseException(AuthErrorCode.LOGIN_ID_DUPLICATED);
@@ -300,21 +303,18 @@ public class AuthServiceImpl implements AuthService {
             // RegistrationProcess 삭제 (가입 완료)
             registrationProcessRepository.delete(process);
 
-            return newUser;
+            return new SignupResult(newUser, sGradeHistory.getSGradeId());
         });
 
         // 비동기로 S등급 산출 요청 (회원가입 응답에 영향 없음)
-        SGradeHistory savedHistory = sGradeHistoryRepository.findByUser_UserIdAndStatus(
-                user.getUserId(), com.sofit.common.entity.sGrade.enums.SGradeStatus.REQUESTED
-        ).stream().findFirst().orElse(null);
-        if (savedHistory != null) {
-            sGradeService.predictAsync(user.getUserId(), savedHistory.getSGradeId());
+        if (signupResult.sGradeId() != null) {
+            sGradeService.predictAsync(signupResult.user().getUserId(), signupResult.sGradeId());
         }
 
         // 세션에서 registrationProcessId 제거
         session.removeAttribute(REGISTRATIONPROCESSID);
 
-        return AuthConverter.toSignupCompleteResponse(user);
+        return AuthConverter.toSignupCompleteResponse(signupResult.user());
     }
 
     @Override
