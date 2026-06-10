@@ -12,6 +12,10 @@ spring:
     hibernate:
       ddl-auto: validate
 
+  mvc:
+    async:
+      request-timeout: -1
+
 server:
   port: 8080
   servlet:
