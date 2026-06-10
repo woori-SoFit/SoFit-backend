@@ -67,7 +67,7 @@ spring:
     activate:
       on-profile: test
   datasource:
-    url: jdbc:mysql://${DB_HOST}:3306/sofit_test_v2?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://${DB_HOST}:3306/sofit_test_v3?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
   jpa:
     hibernate:
       ddl-auto: validate
