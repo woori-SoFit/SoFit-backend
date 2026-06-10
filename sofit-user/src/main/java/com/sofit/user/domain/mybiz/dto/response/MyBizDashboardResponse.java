@@ -10,58 +10,62 @@ public record MyBizDashboardResponse(
 
         // === 1번 탭: 매출 ===
         Long monthlyRevenue,
+        Long posSalesAmount,
+        Long deliverySalesAmount,
         BigDecimal monthlyRevenueGrowthRate,
-        Long prevMonthRevenue,
-        Integer monthlyTransactionCount,
-        BigDecimal avgTransactionAmount,
+        Integer monthlyPaymentCount,
+        BigDecimal avgPaymentAmount,
         List<RevenueTrendResponse> revenueTrend,
+        Long avgRevenueMon,
+        Long avgRevenueTue,
+        Long avgRevenueWed,
+        Long avgRevenueThu,
+        Long avgRevenueFri,
+        Long avgRevenueSat,
+        Long avgRevenueSun,
 
-        // === 2번 탭: 수익/현금흐름 ===
-        Long cashFlow,
+        // === 2번 탭: 수익 ===
         Long estimatedProfit,
-        List<CashFlowTrendResponse> cashFlowTrend,
+        Long monthlyOutflow,
+        List<PaymentFlowTrendResponse> paymentFlowTrend,
+        BigDecimal monthlyProfitGrowthRate,
 
         // === 3번 탭: 고객/온라인 ===
         BigDecimal reviewRating,
         Integer reviewCount,
-        BigDecimal onlineReorderRate,
-        Integer deliveryOrderCount,
-        BigDecimal onlineReplyRate,
-        Integer onlineInfoUpdateCount,
         BigDecimal positiveReviewRatio,
+        BigDecimal negativeReviewRatio,
         BigDecimal deliveryRating,
-        Long deliverySalesAmount,
         Boolean hasOnlineReservation,
         Boolean hasSns,
-        List<RatingTrendResponse> ratingTrend,
+        BigDecimal onlineReplyRate,
 
-        // === 4번 탭: 업종 비교 ===
-        IndustryCompareResponse industryCompare
+        // === 4번 탭: 업종/상권 비교 ===
+        String industryName,
+        BigDecimal industrySalesRank,
+        BigDecimal industryProfitRank,
+        BigDecimal industrySatisfactionRank,
+        BigDecimal districtSalesRank,
+        BigDecimal districtProfitRank,
+        BigDecimal districtSatisfactionRank,
+        BigDecimal monthlyProfitRate,
+        Long industryAvgRevenue,
+        BigDecimal industryAvgProfitRate,
+        BigDecimal industryAvgReviewRating,
+        Long districtAvgRevenue,
+        BigDecimal districtAvgProfitRate,
+        BigDecimal districtAvgReviewRating
 ) {
-
-    public record IndustryCompareResponse(
-            String industryName,
-            BigDecimal industrySalesRank,
-            BigDecimal industryProfitRank,
-            BigDecimal industryStabilityRank,
-            BigDecimal industrySalesRankChange,
-            BigDecimal industryProfitRankChange,
-            BigDecimal industryStabilityRankChange
-    ) {}
 
     public record RevenueTrendResponse(
             String referenceMonth,
             Long monthlyRevenue
     ) {}
 
-    public record CashFlowTrendResponse(
+    public record PaymentFlowTrendResponse(
             String referenceMonth,
-            Long monthlyInflow,
-            Long monthlyOutflow
-    ) {}
-
-    public record RatingTrendResponse(
-            String referenceMonth,
-            BigDecimal reviewRating
+            Long monthlyRevenue,
+            Long monthlyOutflow,
+            Long estimatedProfit
     ) {}
 }
