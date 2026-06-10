@@ -108,7 +108,7 @@ pipeline {
         }
     }
     post {
-        always { sh 'docker image prune -f' }
+        always { sh 'docker image prune -a -f --filter "until=72h' }
         success { echo '배포 성공' }
         failure { echo '배포 실패' }
     }
