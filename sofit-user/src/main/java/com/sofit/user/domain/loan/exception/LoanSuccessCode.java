@@ -32,7 +32,10 @@ public enum LoanSuccessCode implements BaseSuccessCode {
 
     // 계좌 인증 성공 코드
     ACCOUNT_VERIFICATION_OK(HttpStatus.OK, "ACCOUNT2011", "1원 송금 요청에 성공했습니다."),
-    ACCOUNT_VERIFICATION_CONFIRM_OK(HttpStatus.OK, "ACCOUNT2012", "계좌 인증에 성공했습니다.");
+    ACCOUNT_VERIFICATION_CONFIRM_OK(HttpStatus.OK, "ACCOUNT2012", "계좌 인증에 성공했습니다."),
+
+    // 대출 실행 목록 조회
+    LOAN_EXECUTION_LIST_OK(HttpStatus.OK, "LOAN2019", "대출 실행 완료 목록 조회에 성공했습니다.");
     
     
 

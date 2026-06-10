@@ -3,6 +3,7 @@ package com.sofit.user.domain.loan.service;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -25,6 +26,7 @@ import com.sofit.user.domain.loan.dto.request.AccountVerificationConfirmRequest;
 import com.sofit.user.domain.loan.dto.request.AccountVerificationRequest;
 import com.sofit.user.domain.loan.dto.response.AccountVerificationConfirmResponse;
 import com.sofit.user.domain.loan.dto.response.AccountVerificationResponse;
+import com.sofit.user.domain.loan.dto.response.LoanExecutionListResponse;
 import com.sofit.user.domain.loan.dto.response.LoanExecutionResultResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.loan.util.AccountMaskingUtil;
@@ -66,6 +68,21 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
                 .orElseThrow(() -> new BaseException(LoanErrorCode.LOAN_DECISION_NOT_FOUND));
 
         return LoanExecutionConverter.toResponse(execution, decision);
+    }
+
+    @Override
+    public LoanExecutionListResponse findExecutionList(Long userId) {
+        List<LoanExecution> executions = loanExecutionRepository.findAllByUserId(userId);
+
+        List<Long> applicationIds = executions.stream()
+                .map(e -> e.getApplication().getApplicationId())
+                .toList();
+
+        List<LoanDecision> decisions = loanDecisionRepository
+                .findByApplication_ApplicationIdInAndStatusInOrderByCreatedAtAsc(
+                        applicationIds, List.of(DecisionStatus.MANAGER_APPROVED));
+
+        return LoanExecutionConverter.toListResponse(executions, decisions);
     }
 
     @Override
