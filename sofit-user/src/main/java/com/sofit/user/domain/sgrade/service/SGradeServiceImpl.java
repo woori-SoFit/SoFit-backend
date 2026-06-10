@@ -1,20 +1,14 @@
 package com.sofit.user.domain.sgrade.service;
 
 import com.sofit.common.entity.mybiz.MyBizData;
-import com.sofit.common.entity.sGrade.SGradeHistory;
-import com.sofit.common.entity.sGrade.SGradeReport;
 import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.mybiz.MyBizDataRepository;
-import com.sofit.common.repository.sGrade.SGradeHistoryRepository;
-import com.sofit.common.repository.sGrade.SGradeReportRepository;
 import com.sofit.user.domain.sgrade.client.SGradeAiClient;
-import com.sofit.user.domain.sgrade.converter.SGradeConverter;
 import com.sofit.user.domain.sgrade.dto.SGradePredictResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -24,8 +18,7 @@ import java.util.Optional;
 public class SGradeServiceImpl implements SGradeService {
 
     private final SGradeAiClient sGradeAiClient;
-    private final SGradeHistoryRepository sGradeHistoryRepository;
-    private final SGradeReportRepository sGradeReportRepository;
+    private final SGradePersistenceService sGradePersistenceService;
     private final BusinessProfileRepository businessProfileRepository;
     private final MyBizDataRepository myBizDataRepository;
 
@@ -41,7 +34,7 @@ public class SGradeServiceImpl implements SGradeService {
         Optional<Long> bizDataIdOpt = resolveBizDataId(userId);
         if (bizDataIdOpt.isEmpty()) {
             log.warn("[SGrade] bizDataId 조회 실패 - userId={}", userId);
-            markFailed(sGradeId);
+            sGradePersistenceService.markFailed(sGradeId);
             return;
         }
         Long bizDataId = bizDataIdOpt.get();
@@ -51,10 +44,10 @@ public class SGradeServiceImpl implements SGradeService {
 
         // 3. 결과 저장
         if (response != null) {
-            saveResult(sGradeId, bizDataId, response);
+            sGradePersistenceService.saveResult(sGradeId, bizDataId, response);
             log.info("[SGrade] S등급 산출 완료 - userId={}, grade={}", userId, response.sGrade());
         } else {
-            markFailed(sGradeId);
+            sGradePersistenceService.markFailed(sGradeId);
             log.warn("[SGrade] S등급 산출 실패 (3회 재시도 초과) - userId={}, sGradeId={}", userId, sGradeId);
         }
     }
@@ -79,31 +72,6 @@ public class SGradeServiceImpl implements SGradeService {
             }
         }
         return null;
-    }
-
-    @Transactional
-    protected void saveResult(Long sGradeId, Long bizDataId, SGradePredictResponse response) {
-        // s_grade_history 업데이트
-        SGradeHistory history = sGradeHistoryRepository.findById(sGradeId).orElse(null);
-        if (history == null) {
-            log.error("[SGrade] SGradeHistory 조회 실패 - sGradeId={}", sGradeId);
-            return;
-        }
-        history.markCompleted(bizDataId);
-        sGradeHistoryRepository.save(history);
-
-        // s_grade_report 저장
-        SGradeReport report = SGradeConverter.toSGradeReport(history, response);
-        sGradeReportRepository.save(report);
-    }
-
-    @Transactional
-    protected void markFailed(Long sGradeId) {
-        SGradeHistory history = sGradeHistoryRepository.findById(sGradeId).orElse(null);
-        if (history != null) {
-            history.markFailed();
-            sGradeHistoryRepository.save(history);
-        }
     }
 
     private void sleep() {
