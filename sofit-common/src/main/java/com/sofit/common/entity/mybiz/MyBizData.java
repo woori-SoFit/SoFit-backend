@@ -48,19 +48,28 @@ public class MyBizData extends BaseEntity {
     @Column(name = "business_age_months")
     private Integer businessAgeMonths;
 
-    @Column(name = "annual_income")
-    private Long annualIncome;
-
     // --- 매출 ---
 
     @Column(name = "monthly_revenue")
     private Long monthlyRevenue;
 
+    @Column(name = "monthly_outflow")
+    private Long monthlyOutflow;
+
+    @Column(name = "estimated_profit")
+    private Long estimatedProfit;
+
     @Column(name = "prev_month_revenue")
     private Long prevMonthRevenue;
 
-    @Column(name = "monthly_revenue_growth_rate", precision = 5, scale = 2)
-    private BigDecimal monthlyRevenueGrowthRate;
+    @Column(name = "monthly_profit_rate", precision = 5, scale = 2)
+    private BigDecimal monthlyProfitRate;
+
+    @Column(name = "monthly_profit_growth_rate", precision = 5, scale = 2)
+    private BigDecimal monthlyProfitGrowthRate;
+
+    @Column(name = "annual_income")
+    private Long annualIncome;
 
     @Column(name = "pos_sales_amount")
     private Long posSalesAmount;
@@ -88,39 +97,20 @@ public class MyBizData extends BaseEntity {
 
     // --- 거래 ---
 
-    @Column(name = "monthly_transaction_amount", precision = 15, scale = 2)
-    private BigDecimal monthlyTransactionAmount;
+    @Column(name = "monthly_payment_amount", precision = 15, scale = 2)
+    private BigDecimal monthlyPaymentAmount;
 
-    @Column(name = "monthly_transaction_count")
-    private Integer monthlyTransactionCount;
+    @Column(name = "monthly_payment_count")
+    private Integer monthlyPaymentCount;
 
-    @Column(name = "avg_transaction_amount", precision = 15, scale = 2)
-    private BigDecimal avgTransactionAmount;
+    @Column(name = "avg_payment_amount", precision = 15, scale = 2)
+    private BigDecimal avgPaymentAmount;
 
     @Column(name = "days_since_last_transaction")
     private Integer daysSinceLastTransaction;
 
     @Column(name = "max_inactive_days")
     private Integer maxInactiveDays;
-
-    // --- 계좌 입출금 ---
-
-    @Column(name = "monthly_inflow")
-    private Long monthlyInflow;
-
-    @Column(name = "monthly_outflow")
-    private Long monthlyOutflow;
-
-    @Column(name = "account_balance")
-    private Long accountBalance;
-
-    // --- 수익 ---
-
-    @Column(name = "estimated_profit")
-    private Long estimatedProfit;
-
-    @Column(name = "cash_flow")
-    private Long cashFlow;
 
     // --- 배달/온라인 ---
 
@@ -164,8 +154,8 @@ public class MyBizData extends BaseEntity {
     @Column(name = "industry_profit_rank", precision = 5, scale = 2)
     private BigDecimal industryProfitRank;
 
-    @Column(name = "industry_stability_rank", precision = 5, scale = 2)
-    private BigDecimal industryStabilityRank;
+    @Column(name = "industry_satisfaction_rank", precision = 5, scale = 2)
+    private BigDecimal industrySatisfactionRank;
 
     @Column(name = "district_sales_rank", precision = 5, scale = 2)
     private BigDecimal districtSalesRank;
@@ -173,8 +163,28 @@ public class MyBizData extends BaseEntity {
     @Column(name = "district_profit_rank", precision = 5, scale = 2)
     private BigDecimal districtProfitRank;
 
-    @Column(name = "district_stability_rank", precision = 5, scale = 2)
-    private BigDecimal districtStabilityRank;
+    @Column(name = "district_satisfaction_rank", precision = 5, scale = 2)
+    private BigDecimal districtSatisfactionRank;
+
+    // --- 업종/상권 평균 ---
+
+    @Column(name = "industry_avg_revenue")
+    private Long industryAvgRevenue;
+
+    @Column(name = "industry_avg_profit_rate", precision = 5, scale = 2)
+    private BigDecimal industryAvgProfitRate;
+
+    @Column(name = "industry_avg_review_rating", precision = 3, scale = 1)
+    private BigDecimal industryAvgReviewRating;
+
+    @Column(name = "district_avg_revenue")
+    private Long districtAvgRevenue;
+
+    @Column(name = "district_avg_profit_rate", precision = 5, scale = 2)
+    private BigDecimal districtAvgProfitRate;
+
+    @Column(name = "district_avg_review_rating", precision = 3, scale = 1)
+    private BigDecimal districtAvgReviewRating;
 
     // --- 세금/보험 ---
 
