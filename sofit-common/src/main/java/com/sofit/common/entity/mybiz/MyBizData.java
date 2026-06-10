@@ -62,6 +62,30 @@ public class MyBizData extends BaseEntity {
     @Column(name = "monthly_revenue_growth_rate", precision = 5, scale = 2)
     private BigDecimal monthlyRevenueGrowthRate;
 
+    @Column(name = "pos_sales_amount")
+    private Long posSalesAmount;
+
+    @Column(name = "avg_revenue_mon")
+    private Long avgRevenueMon;
+
+    @Column(name = "avg_revenue_tue")
+    private Long avgRevenueTue;
+
+    @Column(name = "avg_revenue_wed")
+    private Long avgRevenueWed;
+
+    @Column(name = "avg_revenue_thu")
+    private Long avgRevenueThu;
+
+    @Column(name = "avg_revenue_fri")
+    private Long avgRevenueFri;
+
+    @Column(name = "avg_revenue_sat")
+    private Long avgRevenueSat;
+
+    @Column(name = "avg_revenue_sun")
+    private Long avgRevenueSun;
+
     // --- 거래 ---
 
     @Column(name = "monthly_transaction_amount", precision = 15, scale = 2)
@@ -129,6 +153,9 @@ public class MyBizData extends BaseEntity {
     @Column(name = "positive_review_ratio", precision = 5, scale = 2)
     private BigDecimal positiveReviewRatio;
 
+    @Column(name = "negative_review_ratio", precision = 5, scale = 2)
+    private BigDecimal negativeReviewRatio;
+
     // --- 업종 순위 ---
 
     @Column(name = "industry_sales_rank", precision = 5, scale = 2)
@@ -139,6 +166,15 @@ public class MyBizData extends BaseEntity {
 
     @Column(name = "industry_stability_rank", precision = 5, scale = 2)
     private BigDecimal industryStabilityRank;
+
+    @Column(name = "district_sales_rank", precision = 5, scale = 2)
+    private BigDecimal districtSalesRank;
+
+    @Column(name = "district_profit_rank", precision = 5, scale = 2)
+    private BigDecimal districtProfitRank;
+
+    @Column(name = "district_stability_rank", precision = 5, scale = 2)
+    private BigDecimal districtStabilityRank;
 
     // --- 세금/보험 ---
 
