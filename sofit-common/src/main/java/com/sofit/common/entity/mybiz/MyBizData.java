@@ -14,13 +14,17 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "my_biz_data")
+@Table(name = "my_biz_data", indexes = {
+        @Index(name = "idx_mybizdata_biznum_refmonth",
+                columnList = "business_number, reference_month")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MyBizData extends BaseEntity {
@@ -201,6 +205,20 @@ public class MyBizData extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "insurance_payment_status", length = 10)
     private InsurancePaymentStatus insurancePaymentStatus;
+
+    // --- 대출/DSR ---
+
+    @Column(name = "existing_loan_count")
+    private Integer existingLoanCount;
+
+    @Column(name = "annual_repayment")
+    private Long annualRepayment;
+
+    @Column(name = "monthly_repayment")
+    private Long monthlyRepayment;
+
+    @Column(name = "total_loan_balance")
+    private Long totalLoanBalance;
 
     // --- 인력/사업장 ---
 

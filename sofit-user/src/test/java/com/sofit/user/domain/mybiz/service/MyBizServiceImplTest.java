@@ -20,10 +20,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.apiPayload.code.GeneralErrorCode;
+import com.sofit.common.entity.auth.BusinessProfile;
 import com.sofit.common.entity.mybiz.MyBizData;
+import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.mybiz.MyBizDataRepository;
 import com.sofit.user.domain.mybiz.dto.response.MyBizDashboardResponse;
 import com.sofit.user.domain.mybiz.exception.MyBizErrorCode;
+import com.sofit.user.domain.user.exception.BusinessErrorCode;
 
 @ExtendWith(MockitoExtension.class)
 class MyBizServiceImplTest {
@@ -34,7 +37,11 @@ class MyBizServiceImplTest {
     @Mock
     private MyBizDataRepository myBizDataRepository;
 
+    @Mock
+    private BusinessProfileRepository businessProfileRepository;
+
     private static final Long USER_ID = 1L;
+    private static final String BUSINESS_NUMBER = "1234567890";
 
     @Test
     @DisplayName("month=null → 최신 데이터 반환")
@@ -43,14 +50,15 @@ class MyBizServiceImplTest {
         LocalDate referenceMonth = LocalDate.of(2024, 5, 1);
         MyBizData baseData = createMyBizData(referenceMonth);
 
-        given(myBizDataRepository.findFirstByUser_UserIdOrderByReferenceMonthDesc(USER_ID))
+        given(businessProfileRepository.findByUser_UserId(USER_ID))
+                .willReturn(Optional.of(createBusinessProfile()));
+        given(myBizDataRepository.findFirstByBusinessNumberOrderByReferenceMonthDesc(BUSINESS_NUMBER))
                 .willReturn(Optional.of(baseData));
-        given(myBizDataRepository.findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
-                USER_ID, referenceMonth.minusMonths(4), referenceMonth))
+        given(myBizDataRepository.findByBusinessNumberAndReferenceMonthBetweenOrderByReferenceMonthAsc(
+                BUSINESS_NUMBER, referenceMonth.minusMonths(5), referenceMonth))
                 .willReturn(List.of(baseData));
-        given(myBizDataRepository.findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
-                USER_ID, referenceMonth.minusMonths(2), referenceMonth))
-                .willReturn(List.of(baseData));
+        given(myBizDataRepository.findReferenceMonthsByBusinessNumber(BUSINESS_NUMBER))
+                .willReturn(List.of(referenceMonth));
 
         // when
         MyBizDashboardResponse response = myBizService.findDashboard(USER_ID, null);
@@ -58,7 +66,7 @@ class MyBizServiceImplTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.referenceMonth()).isEqualTo("2024-05");
-        verify(myBizDataRepository).findFirstByUser_UserIdOrderByReferenceMonthDesc(USER_ID);
+        verify(myBizDataRepository).findFirstByBusinessNumberOrderByReferenceMonthDesc(BUSINESS_NUMBER);
     }
 
     @Test
@@ -68,14 +76,15 @@ class MyBizServiceImplTest {
         LocalDate referenceMonth = LocalDate.of(2024, 5, 1);
         MyBizData baseData = createMyBizData(referenceMonth);
 
-        given(myBizDataRepository.findByUser_UserIdAndReferenceMonth(USER_ID, referenceMonth))
+        given(businessProfileRepository.findByUser_UserId(USER_ID))
+                .willReturn(Optional.of(createBusinessProfile()));
+        given(myBizDataRepository.findByBusinessNumberAndReferenceMonth(BUSINESS_NUMBER, referenceMonth))
                 .willReturn(Optional.of(baseData));
-        given(myBizDataRepository.findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
-                USER_ID, referenceMonth.minusMonths(4), referenceMonth))
+        given(myBizDataRepository.findByBusinessNumberAndReferenceMonthBetweenOrderByReferenceMonthAsc(
+                BUSINESS_NUMBER, referenceMonth.minusMonths(5), referenceMonth))
                 .willReturn(List.of(baseData));
-        given(myBizDataRepository.findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
-                USER_ID, referenceMonth.minusMonths(2), referenceMonth))
-                .willReturn(List.of(baseData));
+        given(myBizDataRepository.findReferenceMonthsByBusinessNumber(BUSINESS_NUMBER))
+                .willReturn(List.of(referenceMonth));
 
         // when
         MyBizDashboardResponse response = myBizService.findDashboard(USER_ID, "2024-05");
@@ -83,7 +92,7 @@ class MyBizServiceImplTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.referenceMonth()).isEqualTo("2024-05");
-        verify(myBizDataRepository).findByUser_UserIdAndReferenceMonth(USER_ID, referenceMonth);
+        verify(myBizDataRepository).findByBusinessNumberAndReferenceMonth(BUSINESS_NUMBER, referenceMonth);
     }
 
     @Test
@@ -93,14 +102,15 @@ class MyBizServiceImplTest {
         LocalDate referenceMonth = LocalDate.of(2024, 5, 1);
         MyBizData baseData = createMyBizData(referenceMonth);
 
-        given(myBizDataRepository.findFirstByUser_UserIdOrderByReferenceMonthDesc(USER_ID))
+        given(businessProfileRepository.findByUser_UserId(USER_ID))
+                .willReturn(Optional.of(createBusinessProfile()));
+        given(myBizDataRepository.findFirstByBusinessNumberOrderByReferenceMonthDesc(BUSINESS_NUMBER))
                 .willReturn(Optional.of(baseData));
-        given(myBizDataRepository.findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
-                USER_ID, referenceMonth.minusMonths(4), referenceMonth))
+        given(myBizDataRepository.findByBusinessNumberAndReferenceMonthBetweenOrderByReferenceMonthAsc(
+                BUSINESS_NUMBER, referenceMonth.minusMonths(5), referenceMonth))
                 .willReturn(List.of(baseData));
-        given(myBizDataRepository.findByUser_UserIdAndReferenceMonthBetweenOrderByReferenceMonthAsc(
-                USER_ID, referenceMonth.minusMonths(2), referenceMonth))
-                .willReturn(List.of(baseData));
+        given(myBizDataRepository.findReferenceMonthsByBusinessNumber(BUSINESS_NUMBER))
+                .willReturn(List.of(referenceMonth));
 
         // when
         MyBizDashboardResponse response = myBizService.findDashboard(USER_ID, "");
@@ -108,14 +118,16 @@ class MyBizServiceImplTest {
         // then
         assertThat(response).isNotNull();
         assertThat(response.referenceMonth()).isEqualTo("2024-05");
-        verify(myBizDataRepository).findFirstByUser_UserIdOrderByReferenceMonthDesc(USER_ID);
+        verify(myBizDataRepository).findFirstByBusinessNumberOrderByReferenceMonthDesc(BUSINESS_NUMBER);
     }
 
     @Test
     @DisplayName("데이터 미존재 → MY_BIZ_DATA_NOT_FOUND 예외")
     void findDashboard_withNoData_throwsMyBizDataNotFoundException() {
         // given
-        given(myBizDataRepository.findFirstByUser_UserIdOrderByReferenceMonthDesc(USER_ID))
+        given(businessProfileRepository.findByUser_UserId(USER_ID))
+                .willReturn(Optional.of(createBusinessProfile()));
+        given(myBizDataRepository.findFirstByBusinessNumberOrderByReferenceMonthDesc(BUSINESS_NUMBER))
                 .willReturn(Optional.empty());
 
         // when & then
@@ -130,12 +142,32 @@ class MyBizServiceImplTest {
     @Test
     @DisplayName("잘못된 month 형식 → BAD_REQUEST 예외")
     void findDashboard_withInvalidMonthFormat_throwsBadRequest() {
+        // given
+        given(businessProfileRepository.findByUser_UserId(USER_ID))
+                .willReturn(Optional.of(createBusinessProfile()));
+
         // when & then
         assertThatThrownBy(() -> myBizService.findDashboard(USER_ID, "invalid"))
                 .isInstanceOf(BaseException.class)
                 .satisfies(exception -> {
                     BaseException baseException = (BaseException) exception;
                     assertThat(baseException.getErrorCode()).isEqualTo(GeneralErrorCode.BAD_REQUEST);
+                });
+    }
+
+    @Test
+    @DisplayName("사업자 프로필 미존재 → BUSINESS_PROFILE_NOT_FOUND 예외")
+    void findDashboard_withNoBusinessProfile_throwsBusinessProfileNotFoundException() {
+        // given
+        given(businessProfileRepository.findByUser_UserId(USER_ID))
+                .willReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> myBizService.findDashboard(USER_ID, null))
+                .isInstanceOf(BaseException.class)
+                .satisfies(exception -> {
+                    BaseException baseException = (BaseException) exception;
+                    assertThat(baseException.getErrorCode()).isEqualTo(BusinessErrorCode.BUSINESS_PROFILE_NOT_FOUND);
                 });
     }
 
@@ -150,26 +182,36 @@ class MyBizServiceImplTest {
             MyBizData data = constructor.newInstance();
 
             setField(data, "bizDataId", 1L);
+            setField(data, "businessNumber", BUSINESS_NUMBER);
             setField(data, "referenceMonth", referenceMonth);
             setField(data, "monthlyRevenue", 10_000_000L);
             setField(data, "prevMonthRevenue", 9_000_000L);
-            setField(data, "monthlyRevenueGrowthRate", new BigDecimal("11.11"));
-            setField(data, "monthlyInflow", 12_000_000L);
-            setField(data, "monthlyOutflow", 8_000_000L);
+            setField(data, "monthlyProfitGrowthRate", new BigDecimal("11.11"));
             setField(data, "estimatedProfit", 2_000_000L);
-            setField(data, "cashFlow", 4_000_000L);
+            setField(data, "monthlyOutflow", 8_000_000L);
             setField(data, "deliveryOrderCount", 150);
             setField(data, "onlineReorderRate", new BigDecimal("35.50"));
             setField(data, "reviewRating", new BigDecimal("4.5"));
             setField(data, "reviewCount", 120);
             setField(data, "industrySalesRank", new BigDecimal("25.00"));
             setField(data, "industryProfitRank", new BigDecimal("30.00"));
-            setField(data, "industryStabilityRank", new BigDecimal("20.00"));
-            setField(data, "businessNumber", "1234567890");
+            setField(data, "industrySatisfactionRank", new BigDecimal("20.00"));
 
             return data;
         } catch (Exception e) {
             throw new RuntimeException("테스트 데이터 생성 실패", e);
+        }
+    }
+
+    private BusinessProfile createBusinessProfile() {
+        try {
+            var constructor = BusinessProfile.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            BusinessProfile profile = constructor.newInstance();
+            setField(profile, "businessNumber", BUSINESS_NUMBER);
+            return profile;
+        } catch (Exception e) {
+            throw new RuntimeException("테스트 BusinessProfile 생성 실패", e);
         }
     }
 
