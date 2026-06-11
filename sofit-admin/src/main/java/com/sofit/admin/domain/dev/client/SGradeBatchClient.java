@@ -52,7 +52,7 @@ public class SGradeBatchClient {
             // 4xx: AI 서버가 요청을 거부 (잘못된 파라미터, 이미 실행 중 등)
             log.error("[SGradeBatchClient] AI 서버 배치 트리거 4xx 에러: status={}, body={}",
                     e.getStatusCode().value(), e.getResponseBodyAsString());
-            throw new BaseException(DevBatchErrorCode.AI_SERVER_BAD_REQUEST);
+            throw new BaseException(DevBatchErrorCode.AI_SERVER_REJECTED);
         } catch (HttpServerErrorException e) {
             // 5xx: AI 서버 내부 오류
             log.error("[SGradeBatchClient] AI 서버 배치 트리거 5xx 에러: status={}, body={}",
@@ -87,7 +87,7 @@ public class SGradeBatchClient {
         } catch (HttpClientErrorException e) {
             log.error("[SGradeBatchClient] AI 서버 상태 조회 4xx 에러: status={}, body={}",
                     e.getStatusCode().value(), e.getResponseBodyAsString());
-            throw new BaseException(DevBatchErrorCode.AI_SERVER_BAD_REQUEST);
+            throw new BaseException(DevBatchErrorCode.AI_SERVER_REJECTED);
         } catch (HttpServerErrorException e) {
             log.error("[SGradeBatchClient] AI 서버 상태 조회 5xx 에러: status={}, body={}",
                     e.getStatusCode().value(), e.getResponseBodyAsString());
