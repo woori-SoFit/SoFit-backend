@@ -158,6 +158,7 @@ public class AuthServiceImpl implements AuthService {
         if (processId != null) {
             processRegistrationStep2(processId);
         }
+        log.info("금융인증서 인증 완료");
     }
 
     /**
@@ -316,6 +317,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 세션에서 registrationProcessId 제거
         session.removeAttribute(REGISTRATIONPROCESSID);
+        log.info("회원가입 완료 userId={}", signupResult.user().getUserId());
 
         return AuthConverter.toSignupCompleteResponse(signupResult.user());
     }
@@ -337,15 +339,20 @@ public class AuthServiceImpl implements AuthService {
     public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         // 1. loginId로 사용자 조회 (미존재 시 동일 에러)
         User user = userRepository.findByLoginId(request.getLoginId())
-                .orElseThrow(() -> new BaseException(AuthErrorCode.LOGIN_FAILED));
+                .orElseThrow(() -> {
+                    log.warn("사용자 로그인 실패 loginId={}", request.getLoginId());
+                    return new BaseException(AuthErrorCode.LOGIN_FAILED);
+                });
 
         // 2. 탈퇴 계정 체크
         if (user.getStatus() == UserStatus.INACTIVE) {
+            log.warn("탈퇴 계정 로그인 시도 userId={}", user.getUserId());
             throw new BaseException(AuthErrorCode.ACCOUNT_WITHDRAWN);
         }
 
         // 3. 비밀번호 검증 (불일치 시 동일 에러 — Timing Attack 방지)
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            log.warn("사용자 로그인 실패 loginId={}", request.getLoginId());
             throw new BaseException(AuthErrorCode.LOGIN_FAILED);
         }
 
@@ -369,6 +376,7 @@ public class AuthServiceImpl implements AuthService {
                 FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME,
                 user.getUserId().toString()
         );
+        log.info("사용자 로그인 userId={}", user.getUserId());
 
         return AuthConverter.toLoginResponse(user);
     }
@@ -384,5 +392,6 @@ public class AuthServiceImpl implements AuthService {
 
         // 2. SecurityContext 클리어 — 현재 스레드의 인증 정보 제거
         SecurityContextHolder.clearContext();
+        log.info("사용자 로그아웃");
     }
 }

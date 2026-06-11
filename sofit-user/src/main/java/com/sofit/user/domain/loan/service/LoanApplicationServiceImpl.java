@@ -24,10 +24,12 @@ import com.sofit.common.audit.AuditLog;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -81,6 +83,7 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
         );
 
         loanApplicationRepository.save(application);
+        log.info("대출 신청 DRAFT 생성 applicationId={} productId={}", application.getApplicationId(), productId);
 
         return LoanApplicationConverter.toCreateResponse(application);
     }
@@ -159,6 +162,8 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
                 request.getPurpose()
         );
 
+        log.info("대출 신청 제출 applicationId={} bankerId={}", applicationId, bankerId);
+
         // 5. 대출 신청 완료 알림 이벤트 발행 (트랜잭션 커밋 후 처리)
         // AFTER_COMMIT 이후 영속 컨텍스트가 닫히므로 엔티티 대신 ID만 전달
         eventPublisher.publishEvent(new LoanSubmittedEvent(
@@ -194,5 +199,6 @@ public class LoanApplicationServiceImpl implements LoanApplicationService {
 
         // 4. 소프트 삭제 (status → CANCELLED)
         application.updateStatus(ApplicationStatus.CANCELLED);
+        log.info("대출 신청 취소 applicationId={}", applicationId);
     }
 }

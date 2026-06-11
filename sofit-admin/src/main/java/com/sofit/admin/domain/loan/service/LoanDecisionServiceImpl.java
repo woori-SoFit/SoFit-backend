@@ -22,9 +22,11 @@ import com.sofit.common.repository.loan.LoanApplicationRepository;
 import com.sofit.common.repository.loan.LoanDecisionRepository;
 import com.sofit.common.repository.notification.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -78,6 +80,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
                 currentUserId
         );
         loanDecisionRepository.save(loanDecision);
+        log.info("대출 승인 applicationId={} decision={}", applicationId, decisionType);
 
         // 7. 역할에 따라 상태 변경 및 알림 분기
         if (currentRole == UserRole.ADMIN_BANK_TELLER) {
@@ -125,6 +128,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
                 currentUserId
         );
         loanDecisionRepository.save(loanDecision);
+        log.info("대출 반려 applicationId={} decision={}", applicationId, decisionType);
 
         // 7. 거절은 행원/지점장 무관하게 최종 → REJECTED, 알림 생성
         application.updateStatus(ApplicationStatus.REJECTED);
