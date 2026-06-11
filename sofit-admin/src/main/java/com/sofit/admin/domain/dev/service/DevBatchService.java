@@ -2,7 +2,6 @@ package com.sofit.admin.domain.dev.service;
 
 import com.sofit.admin.domain.dev.dto.response.BatchHistoryListResponse;
 import com.sofit.admin.domain.dev.dto.response.BatchStatusResponse;
-import com.sofit.admin.domain.dev.dto.response.BatchTriggerResponse;
 
 public interface DevBatchService {
 
@@ -20,9 +19,8 @@ public interface DevBatchService {
      * 이미 배치가 실행 중이면 409 Conflict 예외를 던진다.
      *
      * @param triggeredBy 배치를 트리거한 관리자의 userId
-     * @return 트리거 결과 메시지
      */
-    BatchTriggerResponse triggerSGradeBatch(Long triggeredBy);
+    void triggerSGradeBatch(Long triggeredBy);
 
     /**
      * AI 서버의 S등급 배치 실행 상태를 조회한다.

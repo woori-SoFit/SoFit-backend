@@ -2,7 +2,6 @@ package com.sofit.admin.domain.dev.controller;
 
 import com.sofit.admin.domain.dev.dto.response.BatchHistoryListResponse;
 import com.sofit.admin.domain.dev.dto.response.BatchStatusResponse;
-import com.sofit.admin.domain.dev.dto.response.BatchTriggerResponse;
 import com.sofit.admin.domain.dev.exception.DevBatchSuccessCode;
 import com.sofit.admin.domain.dev.service.DevBatchService;
 import com.sofit.admin.global.util.AdminRoleService;
@@ -45,7 +44,7 @@ public class DevBatchController implements DevBatchControllerDocs {
 
     @PostMapping("/s-grade/trigger")
     @Override
-    public ApiResponse<BatchTriggerResponse> triggerSGradeBatch() {
+    public ApiResponse<Void> triggerSGradeBatch() {
         UserRole role = adminRoleService.getCurrentUserRole();
 
         if (role != UserRole.ADMIN_DEV) {
@@ -53,8 +52,8 @@ public class DevBatchController implements DevBatchControllerDocs {
         }
 
         Long triggeredBy = SecurityUtil.getCurrentUserId();
-        BatchTriggerResponse response = devBatchService.triggerSGradeBatch(triggeredBy);
-        return ApiResponse.onSuccess(DevBatchSuccessCode.BATCH_TRIGGERED, response);
+        devBatchService.triggerSGradeBatch(triggeredBy);
+        return ApiResponse.onSuccess(DevBatchSuccessCode.BATCH_TRIGGERED, null);
     }
 
     @GetMapping("/s-grade/status")

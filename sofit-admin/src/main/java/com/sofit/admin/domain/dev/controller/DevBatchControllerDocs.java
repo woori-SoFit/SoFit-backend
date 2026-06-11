@@ -2,7 +2,6 @@ package com.sofit.admin.domain.dev.controller;
 
 import com.sofit.admin.domain.dev.dto.response.BatchHistoryListResponse;
 import com.sofit.admin.domain.dev.dto.response.BatchStatusResponse;
-import com.sofit.admin.domain.dev.dto.response.BatchTriggerResponse;
 import com.sofit.common.apiPayload.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -31,7 +30,7 @@ public interface DevBatchControllerDocs {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "이미 배치 실행 중"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "503", description = "AI 서버 연결 실패")
     })
-    ApiResponse<BatchTriggerResponse> triggerSGradeBatch();
+    ApiResponse<Void> triggerSGradeBatch();
 
     @Operation(summary = "S등급 배치 실행 상태 조회", description = "AI 서버의 배치 실행 상태를 조회합니다. 권한: ADMIN_DEV")
     @ApiResponses(value = {
