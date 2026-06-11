@@ -135,7 +135,7 @@ class MyBizDataDetailServiceImplTest {
         }
 
         @Test
-        @DisplayName("6개월 추이 데이터가 없으면 빈 리스트를 반환한다")
+        @DisplayName("이전 데이터가 없으면 기준 월 데이터 1개만 반환한다")
         void shouldReturnEmptyTrendWhenNoHistoricalData() {
             // given
             LoanApplication app = mock(LoanApplication.class);
