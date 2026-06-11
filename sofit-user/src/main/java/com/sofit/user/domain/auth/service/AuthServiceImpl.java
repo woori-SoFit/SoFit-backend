@@ -47,6 +47,7 @@ import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import com.sofit.common.logging.LogMaskUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -340,7 +341,7 @@ public class AuthServiceImpl implements AuthService {
         // 1. loginId로 사용자 조회 (미존재 시 동일 에러)
         User user = userRepository.findByLoginId(request.getLoginId())
                 .orElseThrow(() -> {
-                    log.warn("사용자 로그인 실패 loginId={}", request.getLoginId());
+                    log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(request.getLoginId()));
                     return new BaseException(AuthErrorCode.LOGIN_FAILED);
                 });
 
@@ -352,7 +353,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 3. 비밀번호 검증 (불일치 시 동일 에러 — Timing Attack 방지)
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            log.warn("사용자 로그인 실패 loginId={}", request.getLoginId());
+            log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(request.getLoginId()));
             throw new BaseException(AuthErrorCode.LOGIN_FAILED);
         }
 

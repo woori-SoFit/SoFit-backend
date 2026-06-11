@@ -41,7 +41,7 @@ public class TraceIdFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String traceId = request.getHeader(TRACE_HEADER);
         if (traceId == null || traceId.isBlank()) {
-            traceId = UUID.randomUUID().toString().substring(0, 8);
+            traceId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
         }
         MDC.put(TRACE_ID, traceId);
         MDC.put(SOURCE_SYSTEM, sourceSystem);

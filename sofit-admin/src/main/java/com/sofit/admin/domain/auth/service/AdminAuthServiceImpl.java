@@ -8,6 +8,7 @@ import com.sofit.admin.domain.auth.exception.AdminAuthErrorCode;
 import com.sofit.admin.domain.auth.service.LoginAttemptService;
 import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.admin.global.util.SessionUtil;
+import com.sofit.common.logging.LogMaskUtil;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.audit.AuditLog;
 import com.sofit.common.entity.user.User;
@@ -56,28 +57,28 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         // 1. loginId로 User 조회
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> {
-                    log.warn("관리자 로그인 실패 loginId={} ip={}", loginId, ipAddress);
+                    log.warn("관리자 로그인 실패 loginId={} ip={}", LogMaskUtil.maskLoginId(loginId), ipAddress);
                     loginAttemptService.loginFailed(loginId, ipAddress);
                     return new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
                 });
 
         // 2. 비활성 사용자 체크
         if (user.getStatus() == UserStatus.INACTIVE) {
-            log.warn("관리자 로그인 실패 loginId={} ip={}", loginId, ipAddress);
+            log.warn("관리자 로그인 실패 loginId={} ip={}", LogMaskUtil.maskLoginId(loginId), ipAddress);
             loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
         // 3. 일반 사용자(USER) 접근 차단
         if (user.getRole() == UserRole.USER) {
-            log.warn("관리자 페이지 일반 사용자 접근 시도 loginId={} ip={}", loginId, ipAddress);
+            log.warn("관리자 페이지 일반 사용자 접근 시도 loginId={} ip={}", LogMaskUtil.maskLoginId(loginId), ipAddress);
             loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
         // 4. 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            log.warn("관리자 로그인 실패 loginId={} ip={}", loginId, ipAddress);
+            log.warn("관리자 로그인 실패 loginId={} ip={}", LogMaskUtil.maskLoginId(loginId), ipAddress);
             loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
