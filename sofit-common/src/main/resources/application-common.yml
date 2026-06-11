@@ -53,7 +53,7 @@ spring:
       on-profile: local
   datasource:
     # SSH 터널: localhost:13306 / 직접 접속: 172.21.33.238:3306
-    url: jdbc:mysql://172.21.33.238:3306/sofit_logging_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://172.21.33.238:3306/sofit_test_v3?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
   data:
     redis:
       host: localhost
