@@ -29,7 +29,7 @@ public class LoanDecisionScheduler {
     public void runLoanDecisionJob() {
         // 배치는 HTTP 요청이 없어 TraceIdFilter 를 거치지 않으므로 여기서 직접 MDC 주입.
         // 이 배치 실행 동안 발생하는 모든 로그에 traceId, sourceSystem=BATCH 가 붙는다.
-        MDC.put("traceId", UUID.randomUUID().toString().substring(0, 8));
+        MDC.put("traceId", UUID.randomUUID().toString().replace("-", "").substring(0, 16));
         MDC.put("sourceSystem", "BATCH");
         MDC.put("accessMethod", "BATCH");
         try {
