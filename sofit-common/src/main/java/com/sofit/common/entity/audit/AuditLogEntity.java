@@ -1,5 +1,6 @@
-package com.sofit.common.audit;
+package com.sofit.common.entity.audit;
 
+import com.sofit.common.audit.AuditEvent;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

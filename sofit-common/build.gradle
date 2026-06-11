@@ -20,8 +20,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.session:spring-session-data-redis'
 
-	// AOP — 감사 로그 / 횡단 로깅
-	implementation 'org.springframework.boot:spring-boot-starter-aop'
+	// AOP — 감사 로그 / 횡단 로깅 (@Aspect 프록시 지원)
+	implementation 'org.aspectj:aspectjweaver'
 
     // Jackson
     implementation 'com.fasterxml.jackson.core:jackson-databind'

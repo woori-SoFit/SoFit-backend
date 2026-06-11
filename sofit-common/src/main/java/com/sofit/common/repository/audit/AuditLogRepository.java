@@ -1,5 +1,6 @@
-package com.sofit.common.audit;
+package com.sofit.common.repository.audit;
 
+import com.sofit.common.entity.audit.AuditLogEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

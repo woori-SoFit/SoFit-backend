@@ -1,5 +1,7 @@
 package com.sofit.common.audit;
 
+import com.sofit.common.entity.audit.AuditLogEntity;
+import com.sofit.common.repository.audit.AuditLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
