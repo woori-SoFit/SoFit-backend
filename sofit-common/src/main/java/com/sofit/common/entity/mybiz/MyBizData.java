@@ -14,13 +14,17 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "my_biz_data")
+@Table(name = "my_biz_data", indexes = {
+        @Index(name = "idx_mybizdata_biznum_refmonth",
+                columnList = "business_number, reference_month")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MyBizData extends BaseEntity {

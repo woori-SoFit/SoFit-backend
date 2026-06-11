@@ -21,21 +21,21 @@ public class MyBizDataDetailConverter {
 
         // 추이 데이터 변환
         List<RevenueTrendItem> revenueTrend = sixMonthTrendData.stream()
-                .filter(data -> data.getMonthlyRevenue() != null)
+                .filter(data -> data.getReferenceMonth() != null && data.getMonthlyRevenue() != null)
                 .map(data -> new RevenueTrendItem(
                         data.getReferenceMonth().format(YEAR_MONTH_FORMATTER),
                         data.getMonthlyRevenue()))
                 .toList();
 
         List<ProfitTrendItem> profitTrend = sixMonthTrendData.stream()
-                .filter(data -> data.getEstimatedProfit() != null)
+                .filter(data -> data.getReferenceMonth() != null && data.getEstimatedProfit() != null)
                 .map(data -> new ProfitTrendItem(
                         data.getReferenceMonth().format(YEAR_MONTH_FORMATTER),
                         data.getEstimatedProfit()))
                 .toList();
 
         List<IndustryAvgRevenueTrendItem> industryAvgRevenueTrend = sixMonthTrendData.stream()
-                .filter(data -> data.getIndustryAvgRevenue() != null)
+                .filter(data -> data.getReferenceMonth() != null && data.getIndustryAvgRevenue() != null)
                 .map(data -> new IndustryAvgRevenueTrendItem(
                         data.getReferenceMonth().format(YEAR_MONTH_FORMATTER),
                         data.getIndustryAvgRevenue()))
@@ -57,6 +57,8 @@ public class MyBizDataDetailConverter {
                 baseData.getDistrictSatisfactionRank());
 
         return new MyBizDataDetailResponse(
+                baseData.getReferenceMonth() != null
+                        ? baseData.getReferenceMonth().format(YEAR_MONTH_FORMATTER) : null,
                 baseData.getExistingLoanCount(),
                 baseData.getAnnualIncome(),
                 baseData.getAnnualRepayment(),

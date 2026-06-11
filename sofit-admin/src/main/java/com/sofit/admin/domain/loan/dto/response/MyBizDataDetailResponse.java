@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record MyBizDataDetailResponse(
+        // 데이터 기준 시점 (스냅샷 기준월)
+        String dataAsOf,
+
         // 기본 재무/DSR
         Integer existingLoanCount,
         Long annualIncome,

@@ -23,7 +23,7 @@ class MyBizDataDetailConverterTest {
     void shouldConvertToResponse() {
         // given
         MyBizData baseData = createMockMyBizData(
-                LocalDate.of(2026, 5, 1), 2, 130_000_000L, 30_400_000L, 2_530_000L, 15_000_000L,
+                LocalDate.of(2026, 5, 1), 1, 132_000_000L, 30_400_000L, 2_530_000L, 15_000_000L,
                 18, VatFilingStatus.FILED, LocalDate.of(2026, 4, 25), false, InsurancePaymentStatus.PAID,
                 11_500_000L, 3_100_000L, 9_200_000L, 9_800_000L,
                 new BigDecimal("27.00"), new BigDecimal("19.80"), new BigDecimal("21.30"),
@@ -39,8 +39,9 @@ class MyBizDataDetailConverterTest {
         MyBizDataDetailResponse response = MyBizDataDetailConverter.toMyBizDataDetailResponse(baseData, sixMonthTrendData);
 
         // then
-        assertThat(response.existingLoanCount()).isEqualTo(2);
-        assertThat(response.annualIncome()).isEqualTo(130_000_000L);
+        assertThat(response.dataAsOf()).isEqualTo("2026-05");
+        assertThat(response.existingLoanCount()).isEqualTo(1);
+        assertThat(response.annualIncome()).isEqualTo(132_000_000L);
         assertThat(response.annualRepayment()).isEqualTo(30_400_000L);
         assertThat(response.monthlyRepayment()).isEqualTo(2_530_000L);
         assertThat(response.totalLoanBalance()).isEqualTo(15_000_000L);
@@ -102,6 +103,7 @@ class MyBizDataDetailConverterTest {
         MyBizDataDetailResponse response = MyBizDataDetailConverter.toMyBizDataDetailResponse(baseData, List.of());
 
         // then
+        assertThat(response.dataAsOf()).isEqualTo("2026-05");
         assertThat(response.vatFilingStatus()).isNull();
         assertThat(response.vatFilingDate()).isNull();
         assertThat(response.insurancePaymentStatus()).isNull();

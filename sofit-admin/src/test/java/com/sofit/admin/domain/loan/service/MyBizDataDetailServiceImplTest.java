@@ -112,6 +112,7 @@ class MyBizDataDetailServiceImplTest {
             MyBizDataDetailResponse response = myBizDataDetailService.findMyBizDataDetail(1L);
 
             // then
+            assertThat(response.dataAsOf()).isEqualTo("2026-05");
             assertThat(response.existingLoanCount()).isEqualTo(1);
             assertThat(response.annualIncome()).isEqualTo(132_000_000L);
             assertThat(response.annualRepayment()).isEqualTo(30_400_000L);
