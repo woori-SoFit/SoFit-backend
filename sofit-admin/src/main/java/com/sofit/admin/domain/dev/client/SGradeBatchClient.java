@@ -7,8 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 
 /**
  * AI 서버의 S등급 배치 관련 API를 호출하는 클라이언트.
@@ -46,8 +48,19 @@ public class SGradeBatchClient {
                     .toBodilessEntity();
 
             log.info("[SGradeBatchClient] 배치 트리거 성공 (triggered_by={})", triggeredBy);
-        } catch (RestClientException e) {
-            log.error("[SGradeBatchClient] AI 서버 배치 트리거 실패: {}", e.getMessage());
+        } catch (HttpClientErrorException e) {
+            // 4xx: AI 서버가 요청을 거부 (잘못된 파라미터, 이미 실행 중 등)
+            log.error("[SGradeBatchClient] AI 서버 배치 트리거 4xx 에러: status={}, body={}",
+                    e.getStatusCode().value(), e.getResponseBodyAsString());
+            throw new BaseException(DevBatchErrorCode.AI_SERVER_BAD_REQUEST);
+        } catch (HttpServerErrorException e) {
+            // 5xx: AI 서버 내부 오류
+            log.error("[SGradeBatchClient] AI 서버 배치 트리거 5xx 에러: status={}, body={}",
+                    e.getStatusCode().value(), e.getResponseBodyAsString());
+            throw new BaseException(DevBatchErrorCode.AI_SERVER_INTERNAL_ERROR);
+        } catch (ResourceAccessException e) {
+            // 연결 실패 (타임아웃, 네트워크 불가)
+            log.error("[SGradeBatchClient] AI 서버 연결 실패: {}", e.getMessage());
             throw new BaseException(DevBatchErrorCode.AI_SERVER_UNAVAILABLE);
         }
     }
@@ -64,10 +77,23 @@ public class SGradeBatchClient {
                     .retrieve()
                     .body(BatchStatusResponse.class);
 
-            log.debug("[SGradeBatchClient] 배치 상태 조회 성공: status={}", response != null ? response.status() : "null");
+            if (response == null) {
+                log.warn("[SGradeBatchClient] AI 서버 상태 조회 응답이 비어있습니다.");
+                throw new BaseException(DevBatchErrorCode.AI_SERVER_EMPTY_RESPONSE);
+            }
+
+            log.debug("[SGradeBatchClient] 배치 상태 조회 성공: status={}", response.status());
             return response;
-        } catch (RestClientException e) {
-            log.error("[SGradeBatchClient] AI 서버 상태 조회 실패: {}", e.getMessage());
+        } catch (HttpClientErrorException e) {
+            log.error("[SGradeBatchClient] AI 서버 상태 조회 4xx 에러: status={}, body={}",
+                    e.getStatusCode().value(), e.getResponseBodyAsString());
+            throw new BaseException(DevBatchErrorCode.AI_SERVER_BAD_REQUEST);
+        } catch (HttpServerErrorException e) {
+            log.error("[SGradeBatchClient] AI 서버 상태 조회 5xx 에러: status={}, body={}",
+                    e.getStatusCode().value(), e.getResponseBodyAsString());
+            throw new BaseException(DevBatchErrorCode.AI_SERVER_INTERNAL_ERROR);
+        } catch (ResourceAccessException e) {
+            log.error("[SGradeBatchClient] AI 서버 연결 실패: {}", e.getMessage());
             throw new BaseException(DevBatchErrorCode.AI_SERVER_UNAVAILABLE);
         }
     }
