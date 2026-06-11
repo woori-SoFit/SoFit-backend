@@ -202,6 +202,20 @@ public class MyBizData extends BaseEntity {
     @Column(name = "insurance_payment_status", length = 10)
     private InsurancePaymentStatus insurancePaymentStatus;
 
+    // --- 대출/DSR ---
+
+    @Column(name = "existing_loan_count")
+    private Integer existingLoanCount;
+
+    @Column(name = "annual_repayment")
+    private Long annualRepayment;
+
+    @Column(name = "monthly_repayment")
+    private Long monthlyRepayment;
+
+    @Column(name = "total_loan_balance")
+    private Long totalLoanBalance;
+
     // --- 인력/사업장 ---
 
     @Column(name = "employee_count")

@@ -3,11 +3,9 @@ package com.sofit.admin.domain.loan.service;
 import com.sofit.admin.domain.loan.dto.response.MyBizDataDetailResponse;
 import com.sofit.common.apiPayload.BaseException;
 import com.sofit.common.entity.loan.LoanApplication;
-import com.sofit.common.entity.loan.enums.ApplicationStatus;
 import com.sofit.common.entity.mybiz.MyBizData;
 import com.sofit.common.entity.mybiz.enums.InsurancePaymentStatus;
 import com.sofit.common.entity.mybiz.enums.VatFilingStatus;
-import com.sofit.common.entity.user.User;
 import com.sofit.common.repository.loan.LoanApplicationRepository;
 import com.sofit.common.repository.mybiz.MyBizDataRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -19,6 +17,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,77 +94,110 @@ class MyBizDataDetailServiceImplTest {
         @DisplayName("정상 조회 시 MyBizDataDetailResponse를 반환한다")
         void shouldReturnMyBizDataDetailResponse() {
             // given
-            User user = mock(User.class);
-            given(user.getUserId()).willReturn(1L);
-
             LoanApplication app = mock(LoanApplication.class);
             given(app.getBizDataId()).willReturn(100L);
-            given(app.getUser()).willReturn(user);
             given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
 
-            MyBizData myBizData = mock(MyBizData.class);
-            given(myBizData.getAnnualIncome()).willReturn(60_000_000L);
-            given(myBizData.getMonthlyRevenue()).willReturn(5_000_000L);
-            given(myBizData.getMonthlyProfitGrowthRate()).willReturn(new BigDecimal("12.50"));
-            given(myBizData.getBusinessAgeMonths()).willReturn(48);
-            given(myBizData.getVatFilingStatus()).willReturn(VatFilingStatus.FILED);
-            given(myBizData.getTaxOverdue()).willReturn(false);
-            given(myBizData.getInsurancePaymentStatus()).willReturn(InsurancePaymentStatus.PAID);
-            given(myBizData.getIndustrySalesRank()).willReturn(new BigDecimal("25.00"));
-            given(myBizData.getIndustryProfitRank()).willReturn(new BigDecimal("30.00"));
-            given(myBizDataRepository.findById(100L)).willReturn(Optional.of(myBizData));
+            LocalDate baseMonth = LocalDate.of(2026, 5, 1);
+            MyBizData baseData = createMockMyBizData(baseMonth, "1023456789");
+            given(myBizDataRepository.findById(100L)).willReturn(Optional.of(baseData));
 
-            given(loanApplicationRepository.countByUser_UserIdAndStatus(1L, ApplicationStatus.EXECUTED))
-                    .willReturn(2);
+            MyBizData trendData1 = createTrendMockData(LocalDate.of(2025, 12, 1), 9_300_000L, 2_300_000L, 7_700_000L);
+            MyBizData trendData2 = createTrendMockData(LocalDate.of(2026, 1, 1), 10_200_000L, 2_600_000L, 8_000_000L);
+            given(myBizDataRepository.findByBusinessNumberAndReferenceMonthBetweenOrderByReferenceMonthAsc(
+                    "1023456789", baseMonth.minusMonths(5), baseMonth))
+                    .willReturn(List.of(trendData1, trendData2, baseData));
 
             // when
             MyBizDataDetailResponse response = myBizDataDetailService.findMyBizDataDetail(1L);
 
             // then
-            assertThat(response.annualIncome()).isEqualTo(60_000_000L);
-            assertThat(response.existingLoanCount()).isEqualTo(2);
-            assertThat(response.monthlyRevenue()).isEqualTo(5_000_000L);
-            assertThat(response.monthlyProfitGrowthRate()).isEqualTo(new BigDecimal("12.50"));
-            assertThat(response.businessAgeMonths()).isEqualTo(48);
+            assertThat(response.existingLoanCount()).isEqualTo(1);
+            assertThat(response.annualIncome()).isEqualTo(132_000_000L);
+            assertThat(response.annualRepayment()).isEqualTo(30_400_000L);
+            assertThat(response.monthlyRepayment()).isEqualTo(2_530_000L);
+            assertThat(response.totalLoanBalance()).isEqualTo(15_000_000L);
+            assertThat(response.businessAgeMonths()).isEqualTo(18);
             assertThat(response.vatFilingStatus()).isEqualTo("FILED");
+            assertThat(response.vatFilingDate()).isEqualTo("2026-04-25");
             assertThat(response.taxOverdue()).isFalse();
             assertThat(response.insurancePaymentStatus()).isEqualTo("PAID");
-            assertThat(response.industrySalesRank()).isEqualTo(new BigDecimal("25.00"));
-            assertThat(response.industryProfitRank()).isEqualTo(new BigDecimal("30.00"));
+
+            // 추이
+            assertThat(response.revenueTrend()).hasSize(3);
+            assertThat(response.profitTrend()).hasSize(3);
+            assertThat(response.industryAvgRevenueTrend()).hasSize(3);
+
+            // 업종/상권 비교
+            assertThat(response.industryComparison().myRevenue()).isEqualTo(11_500_000L);
+            assertThat(response.industryComparison().industryAvgRevenue()).isEqualTo(9_800_000L);
         }
 
         @Test
-        @DisplayName("보유 대출이 없으면 existingLoanCount는 0이다")
-        void shouldReturnZeroExistingLoanCountWhenNoLoans() {
+        @DisplayName("6개월 추이 데이터가 없으면 빈 리스트를 반환한다")
+        void shouldReturnEmptyTrendWhenNoHistoricalData() {
             // given
-            User user = mock(User.class);
-            given(user.getUserId()).willReturn(1L);
-
             LoanApplication app = mock(LoanApplication.class);
             given(app.getBizDataId()).willReturn(100L);
-            given(app.getUser()).willReturn(user);
             given(loanApplicationRepository.findById(1L)).willReturn(Optional.of(app));
 
-            MyBizData myBizData = mock(MyBizData.class);
-            given(myBizData.getAnnualIncome()).willReturn(60_000_000L);
-            given(myBizData.getMonthlyRevenue()).willReturn(5_000_000L);
-            given(myBizData.getMonthlyProfitGrowthRate()).willReturn(null);
-            given(myBizData.getBusinessAgeMonths()).willReturn(null);
-            given(myBizData.getVatFilingStatus()).willReturn(null);
-            given(myBizData.getTaxOverdue()).willReturn(null);
-            given(myBizData.getInsurancePaymentStatus()).willReturn(null);
-            given(myBizData.getIndustrySalesRank()).willReturn(null);
-            given(myBizData.getIndustryProfitRank()).willReturn(null);
-            given(myBizDataRepository.findById(100L)).willReturn(Optional.of(myBizData));
+            LocalDate baseMonth = LocalDate.of(2026, 5, 1);
+            MyBizData baseData = createMockMyBizData(baseMonth, "1023456789");
+            given(myBizDataRepository.findById(100L)).willReturn(Optional.of(baseData));
 
-            given(loanApplicationRepository.countByUser_UserIdAndStatus(1L, ApplicationStatus.EXECUTED))
-                    .willReturn(0);
+            given(myBizDataRepository.findByBusinessNumberAndReferenceMonthBetweenOrderByReferenceMonthAsc(
+                    "1023456789", baseMonth.minusMonths(5), baseMonth))
+                    .willReturn(List.of(baseData));
 
             // when
             MyBizDataDetailResponse response = myBizDataDetailService.findMyBizDataDetail(1L);
 
             // then
-            assertThat(response.existingLoanCount()).isZero();
+            assertThat(response.revenueTrend()).hasSize(1);
+            assertThat(response.profitTrend()).hasSize(1);
+            assertThat(response.industryAvgRevenueTrend()).hasSize(1);
         }
+    }
+
+    // --- 헬퍼 메서드 ---
+
+    private MyBizData createMockMyBizData(LocalDate referenceMonth, String businessNumber) {
+        MyBizData data = mock(MyBizData.class);
+        given(data.getReferenceMonth()).willReturn(referenceMonth);
+        given(data.getBusinessNumber()).willReturn(businessNumber);
+        given(data.getExistingLoanCount()).willReturn(1);
+        given(data.getAnnualIncome()).willReturn(132_000_000L);
+        given(data.getAnnualRepayment()).willReturn(30_400_000L);
+        given(data.getMonthlyRepayment()).willReturn(2_530_000L);
+        given(data.getTotalLoanBalance()).willReturn(15_000_000L);
+        given(data.getBusinessAgeMonths()).willReturn(18);
+        given(data.getVatFilingStatus()).willReturn(VatFilingStatus.FILED);
+        given(data.getVatFilingDate()).willReturn(LocalDate.of(2026, 4, 25));
+        given(data.getTaxOverdue()).willReturn(false);
+        given(data.getInsurancePaymentStatus()).willReturn(InsurancePaymentStatus.PAID);
+        given(data.getMonthlyRevenue()).willReturn(11_500_000L);
+        given(data.getEstimatedProfit()).willReturn(3_100_000L);
+        given(data.getIndustryAvgRevenue()).willReturn(9_800_000L);
+        given(data.getDistrictAvgRevenue()).willReturn(10_100_000L);
+        given(data.getMonthlyProfitRate()).willReturn(new BigDecimal("26.96"));
+        given(data.getIndustryAvgProfitRate()).willReturn(new BigDecimal("24.00"));
+        given(data.getDistrictAvgProfitRate()).willReturn(new BigDecimal("23.50"));
+        given(data.getIndustrySalesRank()).willReturn(new BigDecimal("32.00"));
+        given(data.getIndustryProfitRank()).willReturn(new BigDecimal("35.50"));
+        given(data.getIndustrySatisfactionRank()).willReturn(new BigDecimal("33.10"));
+        given(data.getDistrictSalesRank()).willReturn(new BigDecimal("28.50"));
+        given(data.getDistrictProfitRank()).willReturn(new BigDecimal("30.20"));
+        given(data.getDistrictSatisfactionRank()).willReturn(new BigDecimal("32.80"));
+        return data;
+    }
+
+    private MyBizData createTrendMockData(LocalDate referenceMonth, Long monthlyRevenue,
+                                           Long estimatedProfit, Long industryAvgRevenue) {
+        MyBizData data = mock(MyBizData.class);
+        given(data.getReferenceMonth()).willReturn(referenceMonth);
+        given(data.getMonthlyRevenue()).willReturn(monthlyRevenue);
+        given(data.getEstimatedProfit()).willReturn(estimatedProfit);
+        given(data.getIndustryAvgRevenue()).willReturn(industryAvgRevenue);
+        return data;
     }
 }
