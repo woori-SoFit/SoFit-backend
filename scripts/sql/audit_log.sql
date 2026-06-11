@@ -7,7 +7,7 @@
 --   테스트:     mysql -h <DB_HOST> -u root -p sofit_test_v3   < audit_log.sql
 -- ============================================================
 
--- 1) 감사 로그 테이블 (JPA 엔티티 아님 → ddl-auto:validate 대상에서 제외됨)
+-- 1) 감사 로그 테이블 (AuditLogEntity 매핑 → ddl-auto:validate 대상, 앱 배포 "전에" 적용 필수)
 CREATE TABLE IF NOT EXISTS audit_log (
     id            BIGINT       NOT NULL AUTO_INCREMENT,
     event_time    DATETIME(6)  NOT NULL                COMMENT '언제 (NTP 동기화)',
