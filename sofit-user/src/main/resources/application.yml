@@ -1,3 +1,6 @@
+sofit:
+  source-system: USER
+
 spring:
   application:
     name: sofit-user

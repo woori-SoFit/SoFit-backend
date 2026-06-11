@@ -1,10 +1,11 @@
-package com.sofit.user.global.filter;
+package com.sofit.common.logging;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,8 @@ import java.util.UUID;
  * - 서버 내부: 모든 로그에 traceId 가 자동으로 붙는다 (logback-spring.xml MDC 포함).
  * - 서버 사이: user ↔ admin 호출 관계가 없으므로 전파 대신 DB 추적 컬럼(trace_id)으로 흔적을 남긴다.
  * - 가장 먼저 실행(HIGHEST_PRECEDENCE)해 이후 모든 필터/요청 로그에 traceId 가 찍히게 한다.
+ *
+ * <p>소속 모듈은 {@code sofit.source-system} 프로퍼티로 구분한다 (USER / ADMIN).</p>
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -28,7 +31,9 @@ public class TraceIdFilter extends OncePerRequestFilter {
     public static final String CLIENT_IP = "clientIp";
     public static final String ACCESS_METHOD = "accessMethod";
     private static final String TRACE_HEADER = "X-Trace-Id";
-    private static final String SYSTEM_NAME = "USER";
+
+    @Value("${sofit.source-system}")
+    private String sourceSystem;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -39,7 +44,7 @@ public class TraceIdFilter extends OncePerRequestFilter {
             traceId = UUID.randomUUID().toString().substring(0, 8);
         }
         MDC.put(TRACE_ID, traceId);
-        MDC.put(SOURCE_SYSTEM, SYSTEM_NAME);
+        MDC.put(SOURCE_SYSTEM, sourceSystem);
         MDC.put(CLIENT_IP, resolveClientIp(request));
         MDC.put(ACCESS_METHOD, "WEB");
         try {
