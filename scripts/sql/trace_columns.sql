@@ -21,6 +21,10 @@ ALTER TABLE loan_decision
 ALTER TABLE loan_application
     ADD COLUMN trace_id VARCHAR(64) NULL COMMENT '작성 요청의 traceId (로그와 동일 값)';
 
+-- loan_execution : user 계좌 인증 확정 시 INSERT
+ALTER TABLE loan_execution
+    ADD COLUMN trace_id VARCHAR(64) NULL COMMENT '작성 요청의 traceId (로그와 동일 값)';
+
 -- (선택) 조회 편의 인덱스 — trace_id 로 교차 추적 시
 -- CREATE INDEX idx_loan_decision_trace_id    ON loan_decision(trace_id);
 -- CREATE INDEX idx_loan_application_trace_id ON loan_application(trace_id);
