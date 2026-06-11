@@ -23,9 +23,7 @@ class MyBizDataDetailConverterTest {
         MyBizData myBizData = mock(MyBizData.class);
         given(myBizData.getAnnualIncome()).willReturn(60_000_000L);
         given(myBizData.getMonthlyRevenue()).willReturn(5_000_000L);
-        given(myBizData.getMonthlyRevenueGrowthRate()).willReturn(new BigDecimal("12.50"));
-        given(myBizData.getCashFlow()).willReturn(3_000_000L);
-        given(myBizData.getAccountBalance()).willReturn(10_000_000L);
+        given(myBizData.getMonthlyProfitGrowthRate()).willReturn(new BigDecimal("12.50"));
         given(myBizData.getBusinessAgeMonths()).willReturn(48);
         given(myBizData.getVatFilingStatus()).willReturn(VatFilingStatus.FILED);
         given(myBizData.getTaxOverdue()).willReturn(false);
@@ -40,9 +38,7 @@ class MyBizDataDetailConverterTest {
         assertThat(response.annualIncome()).isEqualTo(60_000_000L);
         assertThat(response.existingLoanCount()).isEqualTo(2);
         assertThat(response.monthlyRevenue()).isEqualTo(5_000_000L);
-        assertThat(response.monthlyRevenueGrowthRate()).isEqualTo(new BigDecimal("12.50"));
-        assertThat(response.cashFlow()).isEqualTo(3_000_000L);
-        assertThat(response.accountBalance()).isEqualTo(10_000_000L);
+        assertThat(response.monthlyProfitGrowthRate()).isEqualTo(new BigDecimal("12.50"));
         assertThat(response.businessAgeMonths()).isEqualTo(48);
         assertThat(response.vatFilingStatus()).isEqualTo("FILED");
         assertThat(response.taxOverdue()).isFalse();
@@ -58,9 +54,7 @@ class MyBizDataDetailConverterTest {
         MyBizData myBizData = mock(MyBizData.class);
         given(myBizData.getAnnualIncome()).willReturn(null);
         given(myBizData.getMonthlyRevenue()).willReturn(null);
-        given(myBizData.getMonthlyRevenueGrowthRate()).willReturn(null);
-        given(myBizData.getCashFlow()).willReturn(null);
-        given(myBizData.getAccountBalance()).willReturn(null);
+        given(myBizData.getMonthlyProfitGrowthRate()).willReturn(null);
         given(myBizData.getBusinessAgeMonths()).willReturn(null);
         given(myBizData.getVatFilingStatus()).willReturn(null);
         given(myBizData.getTaxOverdue()).willReturn(null);

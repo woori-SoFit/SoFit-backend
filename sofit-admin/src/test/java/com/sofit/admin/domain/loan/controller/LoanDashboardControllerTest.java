@@ -286,7 +286,7 @@ class LoanDashboardControllerTest {
             // given
             MyBizDataDetailResponse response = new MyBizDataDetailResponse(
                     60_000_000L, 2, 5_000_000L, new BigDecimal("12.50"),
-                    3_000_000L, 10_000_000L, 48, "FILED", false, "PAID",
+                    48, "FILED", false, "PAID",
                     new BigDecimal("25.00"), new BigDecimal("30.00"));
             given(myBizDataDetailService.findMyBizDataDetail(10L)).willReturn(response);
 
