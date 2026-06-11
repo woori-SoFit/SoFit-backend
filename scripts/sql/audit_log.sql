@@ -1,11 +1,10 @@
 -- ============================================================
--- SoFit 감사 로그(접근기록) 트랙 — 테이블 + append-only 전용 계정
+-- SoFit 감사 로그(접근기록) 트랙 — 테이블 + append-only 트리거
 -- 전자금융감독규정 접근기록 요건 (누가/언제/무엇을/어떻게/결과)
 --
 -- 적용 방법 (대상 DB에 접속한 상태에서 실행):
 --   운영(dev):  mysql -h <DB_HOST> -u root -p sofit          < audit_log.sql
---   테스트:     mysql -h <DB_HOST> -u root -p sofit_test_v2   < audit_log.sql
---   ※ <AUDIT_WRITER_PASSWORD> 를 실제 비밀번호로 치환 후 실행할 것 (평문 커밋 금지)
+--   테스트:     mysql -h <DB_HOST> -u root -p sofit_test_v3   < audit_log.sql
 -- ============================================================
 
 -- 1) 감사 로그 테이블 (JPA 엔티티 아님 → ddl-auto:validate 대상에서 제외됨)
@@ -28,14 +27,9 @@ CREATE TABLE IF NOT EXISTS audit_log (
     KEY idx_audit_target (target)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='접근기록(감사 로그) — append-only';
 
--- 2) 감사 전용 계정 (직무 분리: 앱 계정 sofit 과 분리)
---    INSERT/SELECT 만 부여 → UPDATE/DELETE 권한이 없어 변조·삭제 불가 (append-only 강제)
-CREATE USER IF NOT EXISTS 'audit_writer'@'%' IDENTIFIED BY '<AUDIT_WRITER_PASSWORD>';
-
--- 현재 접속 DB(sofit / sofit_test_v2)의 audit_log 에만 권한 부여
-GRANT INSERT, SELECT ON audit_log TO 'audit_writer'@'%';
-
--- (선택) 2차 방어선: UPDATE/DELETE 를 트리거로도 거부
+-- 2) append-only 트리거 — UPDATE/DELETE 시도 시 SQLSTATE 45000으로 거부
+--    앱 계정(sofit)을 포함한 모든 계정의 변조·삭제 시도를 DB 레벨에서 차단한다.
+--    ※ root 계정은 트리거를 DROP할 수 있으므로 root 직접 접근은 별도 통제 필요
 DELIMITER //
 CREATE TRIGGER IF NOT EXISTS trg_audit_no_update
 BEFORE UPDATE ON audit_log
@@ -49,8 +43,6 @@ FOR EACH ROW
 //
 DELIMITER ;
 
-FLUSH PRIVILEGES;
-
 -- 검증:
---   SHOW GRANTS FOR 'audit_writer'@'%';   -- GRANT SELECT, INSERT ON ...audit_log 만 나와야 함
---   INSERT 테스트 후 UPDATE 시도 → 45000 에러로 거부되면 정상
+--   INSERT 테스트 후 UPDATE/DELETE 시도 → 45000 에러로 거부되면 정상
+--   SHOW TRIGGERS WHERE `Table` = 'audit_log';

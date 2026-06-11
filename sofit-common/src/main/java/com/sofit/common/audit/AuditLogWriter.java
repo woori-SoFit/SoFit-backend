@@ -1,7 +1,6 @@
 package com.sofit.common.audit;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -9,9 +8,9 @@ import org.springframework.stereotype.Component;
 /**
  * 감사 로그 append-only 기록기.
  *
- * <p>전용 {@code auditJdbcTemplate}(INSERT/SELECT 권한만 가진 audit_writer 계정)으로
- * INSERT 만 수행한다. UPDATE/DELETE API 자체를 노출하지 않으며, 계정 권한으로도 막혀 있어
- * "쓴 주체도 변조 불가"가 권한 레벨에서 강제된다.</p>
+ * <p>메인 {@link JdbcTemplate}(sofit 계정)으로 INSERT만 수행한다.
+ * UPDATE/DELETE는 DB 트리거(trg_audit_no_update / trg_audit_no_delete)가 SQLSTATE 45000으로 거부하여
+ * append-only를 강제한다. (scripts/sql/audit_log.sql 참고)</p>
  */
 @Component
 @RequiredArgsConstructor
@@ -25,11 +24,10 @@ public class AuditLogWriter {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
-    @Qualifier("auditJdbcTemplate")
-    private final JdbcTemplate auditJdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public void write(AuditEvent e) {
-        auditJdbcTemplate.update(INSERT_SQL,
+        jdbcTemplate.update(INSERT_SQL,
                 e.eventTime(), e.actor(), e.actorRole(), e.action(), e.target(),
                 e.sourceSystem(), e.accessMethod(), e.clientIp(), e.result(), e.traceId());
     }
