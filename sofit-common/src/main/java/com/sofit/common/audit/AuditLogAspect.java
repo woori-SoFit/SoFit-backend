@@ -54,7 +54,7 @@ public class AuditLogAspect {
 
     private AuditEvent buildEvent(AuditLog auditLog, String result) {
         String sourceSystem = orDefault(MDC.get("sourceSystem"), "UNKNOWN");
-        String accessMethod = orDefault(MDC.get("accessMethod"), "BATCH");
+        String accessMethod = orDefault(MDC.get("accessMethod"), "UNKNOWN");
         String traceId = MDC.get("traceId");
         String clientIp = MDC.get("clientIp");
 
