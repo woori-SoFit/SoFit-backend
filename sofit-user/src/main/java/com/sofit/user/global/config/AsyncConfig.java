@@ -36,9 +36,9 @@ public class AsyncConfig {
     @Bean(name = "sGradeExecutor")
     public Executor sGradeExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(5);
-        executor.setQueueCapacity(50);
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(150);
         executor.setThreadNamePrefix("sgrade-async-");
         executor.setTaskDecorator(MDC_PROPAGATING_DECORATOR);
         executor.initialize();
