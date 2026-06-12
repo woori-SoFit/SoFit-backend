@@ -31,6 +31,7 @@ import com.sofit.user.domain.auth.dto.response.CheckLoginIdResponse;
 import com.sofit.user.domain.auth.dto.response.LoginResponse;
 import com.sofit.user.domain.auth.dto.response.SignupCompleteResponse;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
+import com.sofit.common.audit.AuditLog;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -46,6 +47,7 @@ import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import com.sofit.common.logging.LogMaskUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -147,6 +149,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @AuditLog(action = "FINANCIAL_CERT_VERIFY", target = "금융인증서 인증")
     public void verifyFinancialCertificate(FinancialCertVerifyRequest request, HttpSession session) {
         // 1. 인증은 FinancialCertService에 위임
         financialCertService.verify(request);
@@ -156,6 +159,7 @@ public class AuthServiceImpl implements AuthService {
         if (processId != null) {
             processRegistrationStep2(processId);
         }
+        log.info("금융인증서 인증 완료");
     }
 
     /**
@@ -197,6 +201,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @AuditLog(action = "SIGNUP", target = "회원가입 완료")
     public SignupCompleteResponse completeSignup(SignupCompleteRequest request, HttpSession session) {
         // 1. 세션에서 registrationProcessId 조회
         Long processId = (Long) session.getAttribute(REGISTRATIONPROCESSID);
@@ -313,6 +318,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 세션에서 registrationProcessId 제거
         session.removeAttribute(REGISTRATIONPROCESSID);
+        log.info("회원가입 완료 userId={}", signupResult.user().getUserId());
 
         return AuthConverter.toSignupCompleteResponse(signupResult.user());
     }
@@ -330,18 +336,24 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @AuditLog(action = "LOGIN", target = "사용자 로그인")
     public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         // 1. loginId로 사용자 조회 (미존재 시 동일 에러)
         User user = userRepository.findByLoginId(request.getLoginId())
-                .orElseThrow(() -> new BaseException(AuthErrorCode.LOGIN_FAILED));
+                .orElseThrow(() -> {
+                    log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(request.getLoginId()));
+                    return new BaseException(AuthErrorCode.LOGIN_FAILED);
+                });
 
         // 2. 탈퇴 계정 체크
         if (user.getStatus() == UserStatus.INACTIVE) {
+            log.warn("탈퇴 계정 로그인 시도 userId={}", user.getUserId());
             throw new BaseException(AuthErrorCode.ACCOUNT_WITHDRAWN);
         }
 
         // 3. 비밀번호 검증 (불일치 시 동일 에러 — Timing Attack 방지)
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(request.getLoginId()));
             throw new BaseException(AuthErrorCode.LOGIN_FAILED);
         }
 
@@ -365,11 +377,13 @@ public class AuthServiceImpl implements AuthService {
                 FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME,
                 user.getUserId().toString()
         );
+        log.info("사용자 로그인 userId={}", user.getUserId());
 
         return AuthConverter.toLoginResponse(user);
     }
 
     @Override
+    @AuditLog(action = "LOGOUT", target = "사용자 로그아웃")
     public void logout(HttpServletRequest request) {
         // 1. 세션 무효화 (Redis에서 삭제) — 먼저 수행하여 해당 세션으로의 추가 요청 차단
         HttpSession session = request.getSession(false);
@@ -379,5 +393,6 @@ public class AuthServiceImpl implements AuthService {
 
         // 2. SecurityContext 클리어 — 현재 스레드의 인증 정보 제거
         SecurityContextHolder.clearContext();
+        log.info("사용자 로그아웃");
     }
 }

@@ -9,6 +9,7 @@ import com.sofit.admin.domain.loan.exception.LoanDecisionErrorCode;
 import com.sofit.admin.global.util.AdminRoleService;
 import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.audit.AuditLog;
 import com.sofit.common.dto.notification.NotificationPushRequest;
 import com.sofit.common.entity.loan.LoanApplication;
 import com.sofit.common.entity.loan.LoanDecision;
@@ -21,9 +22,11 @@ import com.sofit.common.repository.loan.LoanApplicationRepository;
 import com.sofit.common.repository.loan.LoanDecisionRepository;
 import com.sofit.common.repository.notification.NotificationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -36,6 +39,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
     private final AdminRoleService adminRoleService;
 
     @Override
+    @AuditLog(action = "LOAN_APPROVE", target = "대출 승인 심사")
     public LoanDecisionResponse approveLoanApplication(Long applicationId, LoanApproveRequest request) {
         // 1. 대출 신청 건 조회
         LoanApplication application = findApplicationOrThrow(applicationId);
@@ -76,6 +80,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
                 currentUserId
         );
         loanDecisionRepository.save(loanDecision);
+        log.info("대출 승인 applicationId={} decision={}", applicationId, decisionType);
 
         // 7. 역할에 따라 상태 변경 및 알림 분기
         if (currentRole == UserRole.ADMIN_BANK_TELLER) {
@@ -91,6 +96,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
     }
 
     @Override
+    @AuditLog(action = "LOAN_REJECT", target = "대출 반려 심사")
     public LoanDecisionResponse rejectLoanApplication(Long applicationId, LoanRejectRequest request) {
         // 1. 대출 신청 건 조회
         LoanApplication application = findApplicationOrThrow(applicationId);
@@ -122,6 +128,7 @@ public class LoanDecisionServiceImpl implements LoanDecisionService {
                 currentUserId
         );
         loanDecisionRepository.save(loanDecision);
+        log.info("대출 반려 applicationId={} decision={}", applicationId, decisionType);
 
         // 7. 거절은 행원/지점장 무관하게 최종 → REJECTED, 알림 생성
         application.updateStatus(ApplicationStatus.REJECTED);

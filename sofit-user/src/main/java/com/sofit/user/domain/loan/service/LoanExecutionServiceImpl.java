@@ -31,6 +31,7 @@ import com.sofit.user.domain.loan.dto.response.LoanExecutionResultResponse;
 import com.sofit.user.domain.loan.exception.LoanErrorCode;
 import com.sofit.user.domain.loan.util.AccountMaskingUtil;
 import com.sofit.user.domain.notification.event.LoanExecutedEvent;
+import com.sofit.common.audit.AuditLog;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -136,6 +137,7 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
 
     @Override
     @Transactional
+    @AuditLog(action = "LOAN_ACCOUNT_CONFIRM", target = "계좌 인증 확정 및 대출 실행")
     public AccountVerificationConfirmResponse confirmAccountVerification(Long userId, Long applicationId, AccountVerificationConfirmRequest request) {
         String redisKey = VERIFICATION_KEY_PREFIX + applicationId;
 
@@ -183,6 +185,7 @@ public class LoanExecutionServiceImpl implements LoanExecutionService {
 
         // 대출 신청 상태를 EXECUTED로 변경
         application.updateStatus(ApplicationStatus.EXECUTED);
+        log.info("대출 실행 완료 applicationId={} userId={}", applicationId, userId);
 
         // DB 저장 성공 후 Redis 삭제 (재사용 방지)
         redisTemplate.delete(redisKey);

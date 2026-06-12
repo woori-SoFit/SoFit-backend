@@ -18,6 +18,7 @@ import com.sofit.common.repository.loan.LoanApplicationRepository;
 import com.sofit.common.repository.loan.LoanDecisionRepository;
 import com.sofit.common.repository.loan.LoanProductOptionRepository;
 import com.sofit.common.repository.user.UserRepository;
+import com.sofit.common.audit.AuditLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +39,7 @@ public class LoanApplicationReviewServiceImpl implements LoanApplicationReviewSe
     private final UserRepository userRepository;
 
     @Override
+    @AuditLog(action = "LOAN_APPLICATION_VIEW", target = "대출 심사 상세 조회")
     public LoanApplicationReviewResponse findLoanApplicationReview(Long applicationId) {
         // 1. LoanApplication 조회
         LoanApplication application = loanApplicationRepository.findById(applicationId)

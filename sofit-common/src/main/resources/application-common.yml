@@ -38,6 +38,13 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
+# 감사 로그(접근기록) 트랙
+#  - enabled=true 면 AuditLogAspect 활성화 → @AuditLog 메서드 자동 기록
+#  - 메인 datasource(sofit 계정)로 audit_log INSERT
+#  - append-only는 DB 트리거로 강제 (scripts/sql/audit_log.sql)
+audit:
+  enabled: ${AUDIT_ENABLED:true}
+
 ---
 # 로컬 개발용 (local 프로파일)
 spring:
@@ -50,6 +57,9 @@ spring:
     redis:
       host: localhost
       port: 16379
+# 감사 로그 테스트 시: AUDIT_ENABLED=true (sofit 계정으로 바로 INSERT)
+audit:
+  enabled: ${AUDIT_ENABLED:false}
 
 ---
 # dev 서버 배포용 (dev 프로파일)

@@ -1,6 +1,6 @@
 package com.sofit.common.entity.loan;
 
-import com.sofit.common.entity.BaseEntity;
+import com.sofit.common.entity.TraceableEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "loan_execution")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class LoanExecution extends BaseEntity {
+public class LoanExecution extends TraceableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

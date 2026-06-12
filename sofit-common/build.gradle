@@ -20,11 +20,14 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.session:spring-session-data-redis'
 
-	// AOP
-	// implementation 'org.springframework.boot:spring-boot-starter-aop'
+	// AOP — 감사 로그 / 횡단 로깅 (@Aspect 프록시 지원)
+	implementation 'org.aspectj:aspectjweaver'
 
     // Jackson
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // 구조화 로깅 (JSON) — Loki 검색용. logback-spring.xml의 dev/test/prod 프로파일에서 사용
+    implementation 'net.logstash.logback:logstash-logback-encoder:8.1'
 
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'

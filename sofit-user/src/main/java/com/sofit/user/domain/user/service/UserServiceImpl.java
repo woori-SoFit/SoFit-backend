@@ -8,11 +8,14 @@ import com.sofit.user.domain.user.converter.UserConverter;
 import com.sofit.user.domain.user.dto.response.UserProfileResponse;
 import com.sofit.user.domain.user.event.UserWithdrawnEvent;
 import com.sofit.user.domain.auth.exception.AuthErrorCode;
+import com.sofit.common.audit.AuditLog;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -37,6 +40,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @AuditLog(action = "WITHDRAW", target = "회원 탈퇴")
     public void withdraw(Long userId) {
         // 1. 사용자 조회
         User user = userRepository.findById(userId)
@@ -44,6 +48,7 @@ public class UserServiceImpl implements UserService {
 
         // 2. Soft Delete (status=INACTIVE, inactivatedAt 기록)
         user.inactivate();
+        log.info("회원 탈퇴 userId={}", userId);
 
         // 3. DB 커밋 완료 후 세션 삭제를 위한 이벤트 발행
         eventPublisher.publishEvent(new UserWithdrawnEvent(userId));

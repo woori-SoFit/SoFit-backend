@@ -8,7 +8,9 @@ import com.sofit.admin.domain.auth.exception.AdminAuthErrorCode;
 import com.sofit.admin.domain.auth.service.LoginAttemptService;
 import com.sofit.admin.global.util.SecurityUtil;
 import com.sofit.admin.global.util.SessionUtil;
+import com.sofit.common.logging.LogMaskUtil;
 import com.sofit.common.apiPayload.BaseException;
+import com.sofit.common.audit.AuditLog;
 import com.sofit.common.entity.user.User;
 import com.sofit.common.entity.user.enums.UserRole;
 import com.sofit.common.entity.user.enums.UserStatus;
@@ -16,6 +18,7 @@ import com.sofit.common.repository.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminAuthServiceImpl implements AdminAuthService {
@@ -40,6 +44,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     @Override
+    @AuditLog(action = "LOGIN", target = "관리자 로그인")
     public AdminLoginResponse login(AdminLoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         String loginId = request.getLoginId();
         String ipAddress = getClientIp(httpRequest);
@@ -52,24 +57,28 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         // 1. loginId로 User 조회
         User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> {
+                    log.warn("관리자 로그인 실패 loginId={} ip={}", LogMaskUtil.maskLoginId(loginId), ipAddress);
                     loginAttemptService.loginFailed(loginId, ipAddress);
                     return new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
                 });
 
         // 2. 비활성 사용자 체크
         if (user.getStatus() == UserStatus.INACTIVE) {
+            log.warn("관리자 로그인 실패 loginId={} ip={}", LogMaskUtil.maskLoginId(loginId), ipAddress);
             loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
         // 3. 일반 사용자(USER) 접근 차단
         if (user.getRole() == UserRole.USER) {
+            log.warn("관리자 페이지 일반 사용자 접근 시도 loginId={} ip={}", LogMaskUtil.maskLoginId(loginId), ipAddress);
             loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
 
         // 4. 비밀번호 검증
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            log.warn("관리자 로그인 실패 loginId={} ip={}", LogMaskUtil.maskLoginId(loginId), ipAddress);
             loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AdminAuthErrorCode.LOGIN_FAILED);
         }
@@ -98,6 +107,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
         securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
+        log.info("관리자 로그인 role={}", user.getRole());
 
         // 9. 응답 반환
         return AdminAuthConverter.toLoginResponse(user);
@@ -122,8 +132,10 @@ public class AdminAuthServiceImpl implements AdminAuthService {
     }
 
     @Override
+    @AuditLog(action = "LOGOUT", target = "관리자 로그아웃")
     public void logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         SessionUtil.invalidateSession(httpRequest, httpResponse);
+        log.info("관리자 로그아웃");
     }
 
     /**
