@@ -23,6 +23,7 @@ dependencies {
 
 	// Spring Batch
 	implementation 'org.springframework.boot:spring-boot-starter-batch'
+	implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
 
 	// Spring AI (Gemini — SHAP 결과 자연어 변환)
 	// implementation 'org.springframework.ai:spring-ai-vertex-ai-gemini-spring-boot-starter:1.0.0'

@@ -17,7 +17,8 @@ public interface SGradeReportRepository extends JpaRepository<SGradeReport, Long
            "JOIN SGradeHistory h ON h.sGradeId = r.sGradeId " +
            "WHERE r.user.userId = :userId " +
            "AND h.status = com.sofit.common.entity.sGrade.enums.SGradeStatus.COMPLETED " +
-           "ORDER BY h.evaluatedAt DESC")
+           "ORDER BY h.evaluatedAt DESC " +
+           "LIMIT 1")
     Optional<SGradeReport> findLatestCompletedByUserId(@Param("userId") Long userId);
 
     /**
