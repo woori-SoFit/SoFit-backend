@@ -38,3 +38,14 @@ sofit:
   ai:
     server:
       url: ${AI_SERVER_URL:http://localhost:8000}
+
+# Monitoring — Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  metrics:
+    tags:
+      application: sofit-user
+      env: prod
