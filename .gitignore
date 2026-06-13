@@ -45,3 +45,6 @@ out/
 
 ### MAC metadata ###
 *.DS_Store
+
+### k6 ###
+k6/results/

@@ -27,7 +27,7 @@ export const options = {
     scenarios: {
         loan_product_baseline: {
             executor: 'constant-vus',
-            vus: 50,
+            vus: 1000,
             duration: '3m',
         },
     },
