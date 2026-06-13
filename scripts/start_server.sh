@@ -35,11 +35,19 @@ CODEF_OAUTH_URL=$(echo $SECRET | jq -r '.CODEF_OAUTH_URL')
 echo ">>> 이미지 pull: ${IMAGE}"
 docker pull ${IMAGE}
 
+echo ">>> 기존 컨테이너 정리..."
+docker stop sofit-user-api 2>/dev/null || true
+docker rm   sofit-user-api 2>/dev/null || true
+
+mkdir -p /var/log/sofit
+
 echo ">>> 컨테이너 실행..."
 docker run -d \
   --name sofit-user-api \
   --restart unless-stopped \
   -p 8080:8080 \
+  -v /var/log/sofit:/app/logs \
+  -e SPRING_PROFILES_ACTIVE=prod \
   -e DB_HOST="${DB_HOST}" \
   -e DB_USERNAME="${DB_USERNAME}" \
   -e DB_PASSWORD="${DB_PASSWORD}" \
