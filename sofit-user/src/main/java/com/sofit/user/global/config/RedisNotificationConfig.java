@@ -1,15 +1,15 @@
 package com.sofit.user.global.config;
 
+import com.sofit.common.dto.notification.NotificationPushRequest;
 import com.sofit.user.domain.notification.service.RedisNotificationSubscriber;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import com.sofit.common.dto.notification.NotificationPushRequest;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
@@ -29,6 +29,15 @@ public class RedisNotificationConfig {
     @Bean
     public ChannelTopic notificationTopic() {
         return new ChannelTopic(NOTIFICATION_CHANNEL);
+    }
+
+    /**
+     * 알림 직렬화/역직렬화 공용 Serializer Bean
+     * - JacksonJsonRedisSerializer(Class) 생성자 사용 (Jackson 3 내부 ObjectMapper 자동 생성)
+     */
+    @Bean
+    public JacksonJsonRedisSerializer<NotificationPushRequest> notificationSerializer() {
+        return new JacksonJsonRedisSerializer<>(NotificationPushRequest.class);
     }
 
     /**
@@ -58,16 +67,17 @@ public class RedisNotificationConfig {
     /**
      * 알림 발행 전용 RedisTemplate
      * - Key: String (채널명)
-     * - Value: NotificationPushRequest (Jackson JSON 직렬화)
+     * - Value: NotificationPushRequest (JacksonJsonRedisSerializer)
      */
     @Bean
     public RedisTemplate<String, NotificationPushRequest> notificationRedisTemplate(
-            RedisConnectionFactory connectionFactory) {
+            RedisConnectionFactory connectionFactory,
+            JacksonJsonRedisSerializer<NotificationPushRequest> notificationSerializer) {
 
         RedisTemplate<String, NotificationPushRequest> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new Jackson2JsonRedisSerializer<>(NotificationPushRequest.class));
+        template.setValueSerializer(notificationSerializer);
         return template;
     }
 }
