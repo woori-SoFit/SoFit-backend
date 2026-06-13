@@ -30,7 +30,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final LoanApplicationRepository loanApplicationRepository;
-    private final SseEmitterManager sseEmitterManager;
+    private final RedisNotificationPublisher redisNotificationPublisher;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -57,13 +57,14 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
         notificationRepository.save(notification);
 
-        // SSE 푸시
-        sseEmitterManager.send(userId, NotificationPushRequest.from(notification));
+        // Redis Pub/Sub을 통해 모든 인스턴스에 브로드캐스트 (이중화 대응)
+        redisNotificationPublisher.publish(NotificationPushRequest.from(notification));
     }
 
     @Override
     public void push(NotificationPushRequest request) {
-        sseEmitterManager.send(request.getUserId(), request);
+        // admin에서 수신한 푸시도 Redis Pub/Sub 경유 → 모든 인스턴스에 브로드캐스트
+        redisNotificationPublisher.publish(request);
     }
 
     @Override
