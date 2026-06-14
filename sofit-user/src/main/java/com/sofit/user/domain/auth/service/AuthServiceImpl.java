@@ -60,6 +60,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final ExternalMockClient externalMockClient;
     private final FinancialCertService financialCertService;
+    private final LoginAttemptService loginAttemptService;
     private final UserRepository userRepository;
     private final RegistrationProcessRepository registrationProcessRepository;
     private final BusinessProfileRepository businessProfileRepository;
@@ -338,24 +339,38 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @AuditLog(action = "LOGIN", target = "사용자 로그인")
     public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        String loginId = request.getLoginId();
+        String ipAddress = httpRequest.getRemoteAddr();
+
+        // 0. 브루트포스 방어: IP 또는 계정 잠금 시 차단
+        if (loginAttemptService.isBlocked(loginId, ipAddress)) {
+            throw new BaseException(AuthErrorCode.ACCOUNT_LOCKED);
+        }
+
         // 1. loginId로 사용자 조회 (미존재 시 동일 에러)
-        User user = userRepository.findByLoginId(request.getLoginId())
+        User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> {
-                    log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(request.getLoginId()));
+                    log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(loginId));
+                    loginAttemptService.loginFailed(loginId, ipAddress);
                     return new BaseException(AuthErrorCode.LOGIN_FAILED);
                 });
 
         // 2. 탈퇴 계정 체크
         if (user.getStatus() == UserStatus.INACTIVE) {
             log.warn("탈퇴 계정 로그인 시도 userId={}", user.getUserId());
+            loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AuthErrorCode.ACCOUNT_WITHDRAWN);
         }
 
         // 3. 비밀번호 검증 (불일치 시 동일 에러 — Timing Attack 방지)
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(request.getLoginId()));
+            log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(loginId));
+            loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AuthErrorCode.LOGIN_FAILED);
         }
+
+        // 로그인 성공: 실패 카운트 초기화
+        loginAttemptService.loginSucceeded(loginId);
 
         // 4. SecurityContext에 인증 정보 저장
         UsernamePasswordAuthenticationToken authentication =

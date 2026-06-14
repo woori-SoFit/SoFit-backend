@@ -9,12 +9,12 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 
 /**
  * Redis 세션 설정
- * - 유휴 만료: 30분 (maxInactiveIntervalInSeconds = 1800)
+ * - 유휴 만료: 10분 (maxInactiveIntervalInSeconds = 600)
  * - 절대 만료: 12시간 (SessionValidationFilter에서 처리)
  * - FindByIndexNameSessionRepository를 통해 userId로 세션 역조회 가능
  */
 @Configuration
-@EnableRedisIndexedHttpSession(maxInactiveIntervalInSeconds = 1800)
+@EnableRedisIndexedHttpSession(maxInactiveIntervalInSeconds = 600)
 public class RedisSessionConfig {
 
     /**
@@ -33,7 +33,7 @@ public class RedisSessionConfig {
         DefaultCookieSerializer serializer = new DefaultCookieSerializer();
         serializer.setCookieName("SESSION");
         serializer.setUseHttpOnlyCookie(true);
-        serializer.setUseSecureCookie(false); // TODO: 운영 환경에서는 true로 변경
+        serializer.setUseSecureCookie(true);
         serializer.setSameSite("Lax");
         serializer.setCookiePath("/");
         return serializer;
