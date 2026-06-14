@@ -11,12 +11,19 @@ import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.ConcurrentSessionControlAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.session.FindByIndexNameSessionRepository;
+import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,6 +37,7 @@ public class SecurityConfig {
 
     private final SessionValidationFilter sessionValidationFilter;
     private final ObjectMapper objectMapper;
+    private final FindByIndexNameSessionRepository<?> sessionRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -72,6 +80,18 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionFixation().newSession()
+                        .maximumSessions(1)
+                        .sessionRegistry(sessionRegistry())
+                        .maxSessionsPreventsLogin(false)
+                        .expiredSessionStrategy(event -> {
+                            var response = event.getResponse();
+                            response.setStatus(GeneralErrorCode.UNAUTHORIZED.getHttpStatus().value());
+                            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                            response.setCharacterEncoding("UTF-8");
+                            objectMapper.writeValue(response.getOutputStream(),
+                                    ApiResponse.onFailure(GeneralErrorCode.UNAUTHORIZED));
+                        })
                 )
                 // 절대 만료 체크 필터 등록
                 .addFilterBefore(sessionValidationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -118,6 +138,32 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    @SuppressWarnings("unchecked")
+    public SessionRegistry sessionRegistry() {
+        return new SpringSessionBackedSessionRegistry(sessionRepository);
+    }
+
+    /**
+     * 서비스 레이어에서 호출할 SessionAuthenticationStrategy Bean.
+     * 새 로그인 시 기존 세션을 만료시키고 새 로그인을 허용한다.
+     * SessionFixation은 SecurityFilterChain의 sessionManagement에서 처리하므로 여기서는 제외.
+     */
+    @Bean
+    public SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        ConcurrentSessionControlAuthenticationStrategy concurrencyStrategy =
+                new ConcurrentSessionControlAuthenticationStrategy(sessionRegistry());
+        concurrencyStrategy.setMaximumSessions(1);
+        concurrencyStrategy.setExceptionIfMaximumExceeded(false);
+
+        RegisterSessionAuthenticationStrategy registerStrategy =
+                new RegisterSessionAuthenticationStrategy(sessionRegistry());
+
+        return new CompositeSessionAuthenticationStrategy(
+                List.of(concurrencyStrategy, registerStrategy)
+        );
     }
 
     @Bean

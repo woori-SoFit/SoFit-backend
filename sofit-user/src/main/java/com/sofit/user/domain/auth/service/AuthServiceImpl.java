@@ -42,6 +42,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Service;
@@ -70,6 +71,7 @@ public class AuthServiceImpl implements AuthService {
     private final SGradeService sGradeService;
     private final PasswordEncoder passwordEncoder;
     private final HttpSessionSecurityContextRepository securityContextRepository;
+    private final SessionAuthenticationStrategy sessionAuthenticationStrategy;
     private final TransactionTemplate transactionTemplate;
 
     private final String REGISTRATIONPROCESSID = "registrationProcessId";
@@ -382,16 +384,21 @@ public class AuthServiceImpl implements AuthService {
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
 
-        // 5. HttpSessionSecurityContextRepository를 통해 세션에 영속화
-        securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
-
-        // 6. 세션에 절대 만료 체크용 loginTime 저장
-        HttpSession session = httpRequest.getSession();
-        session.setAttribute("loginTime", LocalDateTime.now());
+        // 5. 세션에 principal 인덱스 설정 (동시 세션 조회에 필요)
+        HttpSession session = httpRequest.getSession(true);
         session.setAttribute(
                 FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME,
                 user.getUserId().toString()
         );
+
+        // 6. 동시 세션 제어: 기존 세션 만료 + 새 세션 등록
+        sessionAuthenticationStrategy.onAuthentication(authentication, httpRequest, httpResponse);
+
+        // 7. HttpSessionSecurityContextRepository를 통해 세션에 영속화
+        securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
+
+        // 8. 세션에 절대 만료 체크용 loginTime 저장
+        session.setAttribute("loginTime", LocalDateTime.now());
         log.info("사용자 로그인 userId={}", user.getUserId());
 
         return AuthConverter.toLoginResponse(user);
