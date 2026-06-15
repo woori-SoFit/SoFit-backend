@@ -285,16 +285,24 @@ class LoanDashboardControllerTest {
         void shouldReturn200OnSuccess() throws Exception {
             // given
             MyBizDataDetailResponse response = new MyBizDataDetailResponse(
-                    60_000_000L, 2, 5_000_000L, new BigDecimal("12.50"),
-                    3_000_000L, 10_000_000L, 48, "FILED", false, "PAID",
-                    new BigDecimal("25.00"), new BigDecimal("30.00"));
+                    1, 130_000_000L, 30_400_000L, 2_530_000L, 15_000_000L,
+                    18, "FILED", "2026-04-25", false, "PAID",
+                    List.of(new MyBizDataDetailResponse.RevenueTrendItem("2026-05", 11_500_000L)),
+                    List.of(new MyBizDataDetailResponse.ProfitTrendItem("2026-05", 3_100_000L)),
+                    List.of(new MyBizDataDetailResponse.IndustryAvgRevenueTrendItem("2026-05", 9_200_000L)),
+                    new MyBizDataDetailResponse.IndustryComparisonResponse(
+                            11_500_000L, 9_200_000L, 9_800_000L,
+                            new java.math.BigDecimal("27.00"), new java.math.BigDecimal("19.80"), new java.math.BigDecimal("21.30"),
+                            new java.math.BigDecimal("8.20"), new java.math.BigDecimal("12.50"), new java.math.BigDecimal("15.30"),
+                            new java.math.BigDecimal("6.80"), new java.math.BigDecimal("10.20"), new java.math.BigDecimal("11.70")));
             given(myBizDataDetailService.findMyBizDataDetail(10L)).willReturn(response);
 
             // when & then
             mockMvc.perform(get("/api/admin/loan-applications/10/mybiz-data"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.result.annualIncome").value(60_000_000))
-                    .andExpect(jsonPath("$.result.existingLoanCount").value(2));
+                    .andExpect(jsonPath("$.result.annualIncome").value(130_000_000))
+                    .andExpect(jsonPath("$.result.existingLoanCount").value(1))
+                    .andExpect(jsonPath("$.result.industryComparison.myRevenue").value(11_500_000));
         }
     }
 

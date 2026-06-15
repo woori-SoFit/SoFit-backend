@@ -27,7 +27,7 @@ spring:
   # Spring Session
   session:
     store-type: redis
-    timeout: 1800  # 30분
+    timeout: 300  # 5분
 
 # SpringDoc (Swagger UI) 공통 설정
 springdoc:
@@ -68,7 +68,7 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:mysql://${DB_HOST}:3306/sofit?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://${DB_HOST}:3306/sofit_test_v4?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
 
 ---
 # 테스트 서버용 (test 프로파일)
@@ -77,7 +77,7 @@ spring:
     activate:
       on-profile: test
   datasource:
-    url: jdbc:mysql://${DB_HOST}:3306/sofit_test_v4?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://${DB_HOST}:3306/sofit_k6?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
   jpa:
     hibernate:
       ddl-auto: validate

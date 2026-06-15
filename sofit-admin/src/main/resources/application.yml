@@ -9,6 +9,7 @@ spring:
 
   # JPA (모듈별 override)
   jpa:
+#    defer-datasource-initialization: true
     hibernate:
       ddl-auto: validate
 

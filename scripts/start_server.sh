@@ -31,6 +31,8 @@ CODEF_CLIENT_ID=$(echo $SECRET | jq -r '.CODEF_CLIENT_ID')
 CODEF_CLIENT_SECRET=$(echo $SECRET | jq -r '.CODEF_CLIENT_SECRET')
 CODEF_BASE_URL=$(echo $SECRET | jq -r '.CODEF_BASE_URL')
 CODEF_OAUTH_URL=$(echo $SECRET | jq -r '.CODEF_OAUTH_URL')
+AI_SERVER_URL=$(echo $SECRET | jq -r '.AI_SERVER_URL')
+AUDIT_ENABLED=$(echo $SECRET | jq -r '.AUDIT_ENABLED')
 
 echo ">>> 이미지 pull: ${IMAGE}"
 docker pull ${IMAGE}
@@ -61,6 +63,9 @@ docker run -d \
   -e CODEF_CLIENT_SECRET="${CODEF_CLIENT_SECRET}" \
   -e CODEF_BASE_URL="${CODEF_BASE_URL}" \
   -e CODEF_OAUTH_URL="${CODEF_OAUTH_URL}" \
+  -e AI_SERVER_URL="${AI_SERVER_URL}" \
+  -e AUDIT_ENABLED="${AUDIT_ENABLED}" \
+  -e SPRING_PROFILES_ACTIVE=dev \
   ${IMAGE}
 
 echo ">>> 배포 완료."

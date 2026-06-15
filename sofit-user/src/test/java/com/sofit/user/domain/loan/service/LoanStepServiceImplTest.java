@@ -7,6 +7,8 @@ import static org.mockito.Mockito.verify;
 
 import java.util.Optional;
 
+import com.sofit.common.entity.auth.BusinessProfile;
+import com.sofit.common.repository.auth.BusinessProfileRepository;
 import com.sofit.common.repository.mybiz.MyBizDataRepository;
 import com.sofit.common.entity.mybiz.MyBizData;
 import org.junit.jupiter.api.DisplayName;
@@ -56,6 +58,9 @@ class LoanStepServiceImplTest {
 
     @Mock
     private MyBizDataRepository myBizDataRepository;
+
+    @Mock
+    private BusinessProfileRepository businessProfileRepository;
 
     private static final Long USER_ID = 1L;
     private static final Long OTHER_USER_ID = 999L;
@@ -241,8 +246,11 @@ class LoanStepServiceImplTest {
         LoanApplication application = createApplication(LastCompletedStep.DATA_COLLECTED);
         given(loanApplicationRepository.findById(APPLICATION_ID)).willReturn(Optional.of(application));
 
+        BusinessProfile profile = createBusinessProfile("1234567890");
+        given(businessProfileRepository.findByUser_UserId(USER_ID)).willReturn(Optional.of(profile));
+
         MyBizData myBizData = createMyBizData(100L);
-        given(myBizDataRepository.findFirstByUser_UserIdOrderByReferenceMonthDesc(USER_ID))
+        given(myBizDataRepository.findFirstByBusinessNumberOrderByReferenceMonthDesc("1234567890"))
                 .willReturn(Optional.of(myBizData));
 
         // when
@@ -310,5 +318,18 @@ class LoanStepServiceImplTest {
         }
         ReflectionTestUtils.setField(myBizData, "bizDataId", bizDataId);
         return myBizData;
+    }
+
+    private BusinessProfile createBusinessProfile(String businessNumber) {
+        BusinessProfile profile;
+        try {
+            var constructor = BusinessProfile.class.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            profile = constructor.newInstance();
+        } catch (Exception e) {
+            throw new RuntimeException("BusinessProfile 인스턴스 생성 실패", e);
+        }
+        ReflectionTestUtils.setField(profile, "businessNumber", businessNumber);
+        return profile;
     }
 }
