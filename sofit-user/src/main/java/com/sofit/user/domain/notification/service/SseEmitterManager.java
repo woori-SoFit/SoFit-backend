@@ -2,6 +2,7 @@ package com.sofit.user.domain.notification.service;
 
 import com.sofit.common.dto.notification.NotificationPushRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -80,5 +81,23 @@ public class SseEmitterManager {
             emitters.remove(userId, emitter);
             log.warn("SSE 이벤트 전송 실패 (클라이언트 연결 끊김): userId={}", userId);
         }
+    }
+
+    /**
+     * Heartbeat: 25초마다 SSE comment 전송
+     * - Nginx/ALB의 idle timeout(기본 60초)으로 인한 연결 조기 종료 방지
+     * - 클라이언트에게 이벤트로 전달되지 않는 SSE comment(: heartbeat) 사용
+     * - 전송 실패 시 해당 emitter를 제거하여 죽은 연결 정리
+     */
+    @Scheduled(fixedRate = 25000)
+    public void sendHeartbeat() {
+        emitters.forEach((userId, emitter) -> {
+            try {
+                emitter.send(SseEmitter.event().comment("heartbeat"));
+            } catch (IOException e) {
+                emitters.remove(userId, emitter);
+                log.debug("Heartbeat 전송 실패, emitter 제거: userId={}", userId);
+            }
+        });
     }
 }
