@@ -342,7 +342,7 @@ public class AuthServiceImpl implements AuthService {
     @AuditLog(action = "LOGIN", target = "사용자 로그인")
     public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
         String loginId = request.getLoginId();
-        String ipAddress = httpRequest.getRemoteAddr();
+        String ipAddress = getClientIp(httpRequest);
 
         // 0. 브루트포스 방어: IP 또는 계정 잠금 시 차단
         if (loginAttemptService.isBlocked(loginId, ipAddress)) {
@@ -416,5 +416,18 @@ public class AuthServiceImpl implements AuthService {
         // 2. SecurityContext 클리어 — 현재 스레드의 인증 정보 제거
         SecurityContextHolder.clearContext();
         log.info("사용자 로그아웃");
+    }
+
+    /**
+     * 클라이언트 IP를 추출한다.
+     * 프록시/로드밸런서 뒤에 있을 경우 X-Forwarded-For 헤더를 우선 사용한다.
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+            // 여러 프록시를 거친 경우 첫 번째가 실제 클라이언트 IP
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }
