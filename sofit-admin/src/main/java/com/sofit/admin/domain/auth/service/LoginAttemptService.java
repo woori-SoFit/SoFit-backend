@@ -83,9 +83,7 @@ public class LoginAttemptService {
     }
 
     private void incrementAttempt(String key, Duration ttl) {
-        Long count = redisTemplate.opsForValue().increment(key);
-        if (count != null && count == 1) {
-            redisTemplate.expire(key, ttl);
-        }
+        redisTemplate.opsForValue().increment(key);
+        redisTemplate.expire(key, ttl);
     }
 }
