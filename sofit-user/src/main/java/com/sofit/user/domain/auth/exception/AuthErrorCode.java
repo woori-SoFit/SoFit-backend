@@ -22,6 +22,9 @@ public enum AuthErrorCode implements BaseErrorCode {
     // 401 Unauthorized
     LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH4011", "아이디 또는 비밀번호가 올바르지 않습니다."),
 
+    // 429 Too Many Requests
+    ACCOUNT_LOCKED(HttpStatus.TOO_MANY_REQUESTS, "AUTH4291", "로그인 시도 횟수를 초과했습니다. 잠시 후 다시 시도해 주세요."),
+
     // 403 Forbidden
     ACCOUNT_WITHDRAWN(HttpStatus.FORBIDDEN, "AUTH4031", "탈퇴한 계정입니다."),
 

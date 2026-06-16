@@ -1,4 +1,4 @@
-package com.sofit.admin.domain.auth.service;
+package com.sofit.user.domain.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -20,8 +20,8 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class LoginAttemptService {
 
-    private static final String ACCOUNT_ATTEMPT_PREFIX = "login:attempt:account:";
-    private static final String IP_ATTEMPT_PREFIX = "login:attempt:ip:";
+    private static final String ACCOUNT_ATTEMPT_PREFIX = "user:login:attempt:account:";
+    private static final String IP_ATTEMPT_PREFIX = "user:login:attempt:ip:";
     private static final int MAX_ACCOUNT_ATTEMPTS = 10;  // 계정 기준: 분산 IP 공격 대비 (넉넉하게)
     private static final int MAX_IP_ATTEMPTS = 5;        // IP 기준: 단일 IP 브루트포스 차단
     private static final Duration ACCOUNT_LOCK_DURATION = Duration.ofMinutes(30);

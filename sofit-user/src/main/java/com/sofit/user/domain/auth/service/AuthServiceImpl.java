@@ -42,6 +42,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final ExternalMockClient externalMockClient;
     private final FinancialCertService financialCertService;
+    private final LoginAttemptService loginAttemptService;
     private final UserRepository userRepository;
     private final RegistrationProcessRepository registrationProcessRepository;
     private final BusinessProfileRepository businessProfileRepository;
@@ -69,6 +71,7 @@ public class AuthServiceImpl implements AuthService {
     private final SGradeService sGradeService;
     private final PasswordEncoder passwordEncoder;
     private final HttpSessionSecurityContextRepository securityContextRepository;
+    private final SessionAuthenticationStrategy sessionAuthenticationStrategy;
     private final TransactionTemplate transactionTemplate;
 
     private final String REGISTRATIONPROCESSID = "registrationProcessId";
@@ -338,24 +341,38 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @AuditLog(action = "LOGIN", target = "사용자 로그인")
     public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        String loginId = request.getLoginId();
+        String ipAddress = getClientIp(httpRequest);
+
+        // 0. 브루트포스 방어: IP 또는 계정 잠금 시 차단
+        if (loginAttemptService.isBlocked(loginId, ipAddress)) {
+            throw new BaseException(AuthErrorCode.ACCOUNT_LOCKED);
+        }
+
         // 1. loginId로 사용자 조회 (미존재 시 동일 에러)
-        User user = userRepository.findByLoginId(request.getLoginId())
+        User user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> {
-                    log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(request.getLoginId()));
+                    log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(loginId));
+                    loginAttemptService.loginFailed(loginId, ipAddress);
                     return new BaseException(AuthErrorCode.LOGIN_FAILED);
                 });
 
         // 2. 탈퇴 계정 체크
         if (user.getStatus() == UserStatus.INACTIVE) {
             log.warn("탈퇴 계정 로그인 시도 userId={}", user.getUserId());
+            loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AuthErrorCode.ACCOUNT_WITHDRAWN);
         }
 
         // 3. 비밀번호 검증 (불일치 시 동일 에러 — Timing Attack 방지)
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(request.getLoginId()));
+            log.warn("사용자 로그인 실패 loginId={}", LogMaskUtil.maskLoginId(loginId));
+            loginAttemptService.loginFailed(loginId, ipAddress);
             throw new BaseException(AuthErrorCode.LOGIN_FAILED);
         }
+
+        // 로그인 성공: 실패 카운트 초기화
+        loginAttemptService.loginSucceeded(loginId);
 
         // 4. SecurityContext에 인증 정보 저장
         UsernamePasswordAuthenticationToken authentication =
@@ -367,16 +384,21 @@ public class AuthServiceImpl implements AuthService {
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
 
-        // 5. HttpSessionSecurityContextRepository를 통해 세션에 영속화
-        securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
-
-        // 6. 세션에 절대 만료 체크용 loginTime 저장
-        HttpSession session = httpRequest.getSession();
-        session.setAttribute("loginTime", LocalDateTime.now());
+        // 5. 세션에 principal 인덱스 설정 (동시 세션 조회에 필요)
+        HttpSession session = httpRequest.getSession(true);
         session.setAttribute(
                 FindByIndexNameSessionRepository.PRINCIPAL_NAME_INDEX_NAME,
                 user.getUserId().toString()
         );
+
+        // 6. 동시 세션 제어: 기존 세션 만료 + 새 세션 등록
+        sessionAuthenticationStrategy.onAuthentication(authentication, httpRequest, httpResponse);
+
+        // 7. HttpSessionSecurityContextRepository를 통해 세션에 영속화
+        securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
+
+        // 8. 세션에 절대 만료 체크용 loginTime 저장
+        session.setAttribute("loginTime", LocalDateTime.now());
         log.info("사용자 로그인 userId={}", user.getUserId());
 
         return AuthConverter.toLoginResponse(user);
@@ -394,5 +416,18 @@ public class AuthServiceImpl implements AuthService {
         // 2. SecurityContext 클리어 — 현재 스레드의 인증 정보 제거
         SecurityContextHolder.clearContext();
         log.info("사용자 로그아웃");
+    }
+
+    /**
+     * 클라이언트 IP를 추출한다.
+     * 프록시/로드밸런서 뒤에 있을 경우 X-Forwarded-For 헤더를 우선 사용한다.
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+            // 여러 프록시를 거친 경우 첫 번째가 실제 클라이언트 IP
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }
