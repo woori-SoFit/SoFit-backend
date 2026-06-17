@@ -80,7 +80,7 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                        .sessionFixation().newSession()
+                        .sessionFixation().migrateSession()
                         .maximumSessions(1)
                         .sessionRegistry(sessionRegistry())
                         .maxSessionsPreventsLogin(false)
