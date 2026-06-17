@@ -8,6 +8,11 @@ pipeline {
         ADMIN_SERVER = '172.21.33.249'
     }
     stages {
+        stage('Cleanup') {
+            steps {
+                sh 'docker image prune -a -f --filter until=72h || true'
+            }
+        }
         stage('Checkout') {
             steps { checkout scm }
         }
@@ -108,7 +113,6 @@ pipeline {
         }
     }
     post {
-        always { sh 'docker image prune -a -f --filter until=72h || true' }
         success { echo '배포 성공' }
         failure { echo '배포 실패' }
     }
