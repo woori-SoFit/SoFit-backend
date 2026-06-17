@@ -13,6 +13,9 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Trend, Rate } from 'k6/metrics';
 
+import { htmlReport } from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
+import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
+
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 
 // 엔드포인트별 응답 시간 분리 측정
@@ -27,7 +30,7 @@ export const options = {
     scenarios: {
         loan_product_baseline: {
             executor: 'constant-vus',
-            vus: 1000,
+            vus:400,
             duration: '3m',
         },
     },
@@ -98,4 +101,11 @@ export default function () {
     productDetailErrorRate.add(!detailOk);
 
     sleep(1); // 다음 반복 전 대기
+}
+
+export function handleSummary(data) {
+    return {
+        'k6/results/scenario03_summary.html': htmlReport(data),
+        stdout: textSummary(data, { indent: ' ', enableColors: true }),
+    };
 }
