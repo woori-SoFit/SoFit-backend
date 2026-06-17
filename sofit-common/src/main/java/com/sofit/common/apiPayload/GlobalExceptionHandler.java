@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RestControllerAdvice
@@ -29,6 +30,19 @@ public class GlobalExceptionHandler {
                 .orElse(GeneralErrorCode.BAD_REQUEST.getMessage());
 
         log.warn("[ValidationException] {}", message);
+        return ResponseEntity
+                .status(GeneralErrorCode.BAD_REQUEST.getHttpStatus())
+                .body(ApiResponse.<Void>builder()
+                        .isSuccess(false)
+                        .code(GeneralErrorCode.BAD_REQUEST.getCode())
+                        .message(message)
+                        .build());
+    }
+
+    // 쿼리 파라미터 타입 변환 실패 (ex. enum 미존재 값)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        log.warn("[TypeMismatch] {}", e.getMessage());
         return ResponseEntity
                 .status(GeneralErrorCode.BAD_REQUEST.getHttpStatus())
                 .body(ApiResponse.onFailure(GeneralErrorCode.BAD_REQUEST));

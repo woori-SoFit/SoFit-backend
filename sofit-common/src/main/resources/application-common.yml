@@ -1,0 +1,91 @@
+# ===========================================
+# SoFit 공통 설정 (환경 무관, 모든 모듈 공유)
+# 각 모듈에서 spring.profiles.include: common 으로 포함
+# ===========================================
+
+spring:
+  # JPA 공통 설정
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    show-sql: false
+
+  # Datasource 공통
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  # Redis 세션 공통 설정
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # Spring Session
+  session:
+    store-type: redis
+    timeout: 300  # 5분
+
+# SpringDoc (Swagger UI) 공통 설정
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
+# 감사 로그(접근기록) 트랙
+#  - enabled=true 면 AuditLogAspect 활성화 → @AuditLog 메서드 자동 기록
+#  - 메인 datasource(sofit 계정)로 audit_log INSERT
+#  - append-only는 DB 트리거로 강제 (scripts/sql/audit_log.sql)
+audit:
+  enabled: ${AUDIT_ENABLED:true}
+
+---
+# 로컬 개발용 (local 프로파일)
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:mysql://localhost:13306/sofit_test_v4?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+  data:
+    redis:
+      host: localhost
+      port: 16379
+# 감사 로그 테스트 시: AUDIT_ENABLED=true (sofit 계정으로 바로 INSERT)
+audit:
+  enabled: ${AUDIT_ENABLED:false}
+
+---
+# dev 서버 배포용 (dev 프로파일)
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:3306/sofit_test_v4?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+
+---
+# 테스트 서버용 (test 프로파일)
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:3306/sofit_k6?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+  sql:
+    init:
+      mode: never
+      data-locations:
+        - classpath:sql/data_static.sql
+        - classpath:sql/data_dummy.sql
+      encoding: UTF-8

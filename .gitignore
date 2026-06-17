@@ -4,6 +4,7 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+.jqwik-database
 
 ### STS ###
 .apt_generated
@@ -38,3 +39,9 @@ out/
 
 ### 환경변수 (민감 정보 — 절대 커밋 금지) ###
 .env
+
+### Claude ###
+.claude/
+
+### MAC metadata ###
+*.DS_Store

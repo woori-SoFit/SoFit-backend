@@ -8,11 +8,37 @@ dependencies {
 	// Web
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
+	// Actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	// Validation
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// JPA
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+	// Spring Session + Redis
+	implementation 'org.springframework.session:spring-session-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
 	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+
+	// Property-Based Testing
+	testImplementation 'net.jqwik:jqwik:1.9.2'
+
+	// Embedded Redis (통합 테스트)
+	testImplementation 'com.github.codemonstur:embedded-redis:1.4.3'
+
+	// WireMock (외부 API Mock)
+	testImplementation 'org.wiremock:wiremock-standalone:3.10.0'
 }

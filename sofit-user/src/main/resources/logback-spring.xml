@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SoFit 구조화 로깅 설정 (sofit-user)
+  - local  : 사람이 읽기 좋은 콘솔 패턴 (개발용)
+  - dev/test/prod : JSON (LogstashEncoder) → stdout → Docker json-file → CloudWatch/Promtail
+  - traceId / sourceSystem 은 MDC(TraceIdFilter)에서 주입
+-->
+<configuration>
+    <springProperty scope="context" name="appName" source="spring.application.name"/>
+
+    <!-- 로컬: 사람이 읽기 좋은 콘솔 -->
+    <springProfile name="local">
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} %-5level [%X{traceId:-}] %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <!-- 배포 환경: JSON (Loki/CloudWatch 검색용) -->
+    <springProfile name="dev,test,prod">
+        <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>sourceSystem</includeMdcKeyName>
+                <customFields>{"app":"${appName}"}</customFields>
+            </encoder>
+        </appender>
+
+        <!-- 파일 appender: CloudWatch Agent가 직접 읽어 이중 인코딩 방지 -->
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>/app/logs/app.log</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>/app/logs/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>7</maxHistory>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <includeMdcKeyName>traceId</includeMdcKeyName>
+                <includeMdcKeyName>sourceSystem</includeMdcKeyName>
+                <customFields>{"app":"${appName}"}</customFields>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+    <springProfile name="dev,test,prod">
+        <root level="INFO">
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- 운영 소음 억제 -->
+    <logger name="org.hibernate.SQL" level="WARN"/>
+    <logger name="org.springframework.web" level="INFO"/>
+</configuration>
