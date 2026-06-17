@@ -2,6 +2,7 @@ package com.sofit.user.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.session.data.redis.config.ConfigureRedisAction;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisIndexedHttpSession;
 import org.springframework.session.web.http.CookieSerializer;
@@ -29,11 +30,24 @@ public class RedisSessionConfig {
     }
 
     @Bean
-    public CookieSerializer cookieSerializer() {
+    @Profile("release")
+    public CookieSerializer releaseCookieSerializer() {
         DefaultCookieSerializer serializer = new DefaultCookieSerializer();
         serializer.setCookieName("SESSION");
         serializer.setUseHttpOnlyCookie(true);
         serializer.setUseSecureCookie(true);
+        serializer.setSameSite("Lax");
+        serializer.setCookiePath("/");
+        return serializer;
+    }
+
+    @Bean
+    @Profile({"local", "dev", "test"})
+    public CookieSerializer devCookieSerializer() {
+        DefaultCookieSerializer serializer = new DefaultCookieSerializer();
+        serializer.setCookieName("SESSION");
+        serializer.setUseHttpOnlyCookie(true);
+        serializer.setUseSecureCookie(false);
         serializer.setSameSite("Lax");
         serializer.setCookiePath("/");
         return serializer;

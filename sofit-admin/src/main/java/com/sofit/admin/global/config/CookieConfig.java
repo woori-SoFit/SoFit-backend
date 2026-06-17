@@ -20,7 +20,7 @@ public class CookieConfig {
     }
 
     @Bean
-    @Profile({"local", "dev"})
+    @Profile({"local", "dev", "test"})
     public CookieSerializer devCookieSerializer() {
         DefaultCookieSerializer serializer = new DefaultCookieSerializer();
         serializer.setUseSecureCookie(false);
